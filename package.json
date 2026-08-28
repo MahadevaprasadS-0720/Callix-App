@@ -1,0 +1,13 @@
+{
+  "name": "audio-guardian",
+  "version": "1.0.0",
+  "description": "Audio Guardian - AI Voice Scam & Fraud Call Detection Platform",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build && npm --prefix backend/functions run build",
+    "install:all": "npm --prefix frontend install && npm --prefix backend/functions install",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:backend": "npm --prefix backend/functions run build"
+  }
+}
