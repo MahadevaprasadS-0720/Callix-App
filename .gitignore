@@ -11,6 +11,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+build
 *.local
 
 # Editor directories and files
@@ -24,18 +25,28 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment Variables
+# Environment Variables - NEVER commit these
 .env
-.env.production
 .env.local
+.env.production
+.env.staging
 .env.*.local
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+frontend/.env.staging
+backend/functions/.env
+backend/functions/.env.local
+*.env
 
 # Firebase cache
 .firebase/
-.firebaserc
 firestore-debug.log
 ui-debug.log
 firebase-debug.log
 
 # Build outputs
 lib/
+
+# OS artifacts
+Thumbs.db

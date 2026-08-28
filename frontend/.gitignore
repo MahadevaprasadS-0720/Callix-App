@@ -1,0 +1,27 @@
+# Environment Variables - NEVER commit credentials
+.env
+.env.local
+.env.production
+.env.staging
+.env.test
+.env.*.local
+*.env
+
+# Node modules & build outputs
+node_modules/
+dist/
+dist-ssr/
+build/
+
+# Editor artifacts
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Vite cache
+.vite/
+
+# TypeScript incremental build info
+*.tsbuildinfo
