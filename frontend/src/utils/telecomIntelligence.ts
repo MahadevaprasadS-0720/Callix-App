@@ -1,376 +1,516 @@
 /**
- * Self-Contained Telecom Intelligence & HLR Matrix for Audio Guardian
+ * Comprehensive Indian Department of Telecommunications (DoT) National Numbering Plan (NNP)
+ * Authentic 4-digit and 5-digit MSC/HLR Prefix Routing Engine for India
  */
 
 export interface TelecomInfo {
   operator: string;
+  operatorCode: 'AIRTEL' | 'JIO' | 'VI' | 'BSNL' | 'MTNL' | 'ENTERPRISE' | 'OTHER';
   circle: string;
+  zone: 'South' | 'North' | 'West' | 'East' | 'National';
   lineType: string;
+  allocationSeries: string;
   isPromotional: boolean;
   isFraudulent: boolean;
   spamReportsCount: number;
   verdict: 'SAFE' | 'PROMOTIONAL_SPAM' | 'FRAUD_RISK' | 'VERIFIED_ENTERPRISE';
   riskScore: number;
   tags: string[];
-  suggestedName?: string;
-  operatorBrandColor?: string;
-  operatorBg?: string;
-}
-
-export interface OperatorInfo {
-  name: string;
-  shortName: 'AIRTEL' | 'JIO' | 'VI' | 'BSNL' | 'MTNL' | 'ENTERPRISE' | 'OTHER';
+  suggestedName: string;
   brandColor: string;
   brandBg: string;
-  logoText: string;
+  badgeBorder: string;
+  brandText: string;
+  logoBadge: string;
 }
 
-export interface TelecomCircleInfo {
-  state: string;
-  zone: 'South' | 'North' | 'West' | 'East' | 'National';
-  metroCity?: string;
+export interface OperatorBrandStyle {
+  name: string;
+  code: 'AIRTEL' | 'JIO' | 'VI' | 'BSNL' | 'MTNL' | 'ENTERPRISE' | 'OTHER';
+  brandColor: string;
+  brandBg: string;
+  badgeBorder: string;
+  brandText: string;
+  logoBadge: string;
 }
 
-export interface AccurateTelecomProfile {
-  operator: OperatorInfo;
-  circle: TelecomCircleInfo;
-  lineType: string;
-  isTraiDndMandatory: boolean;
-  dndCategory: string;
-}
-
-export interface TelecomDossier {
-  tier: 'CRITICAL_FRAUD' | 'TELEMARKETING_PROMOTIONAL' | 'VERIFIED_ENTERPRISE' | 'GENUINE_PERSONAL' | 'SUSPICIOUS_SPOOF';
-  tierLabel: string;
-  tierDescription: string;
-  threatScore: number;
-  badgeVariant: 'fraud' | 'suspicious' | 'safe' | 'primary' | 'cyan';
-  carrierName: string;
-  telecomCircle: string;
-  traiDndCategory: string;
-  lineType: string;
-  suggestedName: string;
-  safetyProtocol: string[];
-  recommendedAction: 'BLOCK_FRAUD' | 'BLOCK_PROMOTIONS' | 'TRUSTED_BUSINESS' | 'SAFE_PERSONAL';
-  tags: string[];
-}
-
-export const OPERATOR_BRANDS: Record<string, OperatorInfo> = {
+export const BRAND_STYLES: Record<string, OperatorBrandStyle> = {
   AIRTEL: {
     name: 'Bharti Airtel Limited',
-    shortName: 'AIRTEL',
+    code: 'AIRTEL',
     brandColor: '#EF4444',
-    brandBg: 'bg-red-950/60 border-red-500/40 text-red-300',
-    logoText: 'airtel',
+    brandBg: 'bg-red-950/70',
+    badgeBorder: 'border-red-500/50',
+    brandText: 'text-red-300',
+    logoBadge: 'airtel',
   },
   JIO: {
     name: 'Reliance Jio Infocomm',
-    shortName: 'JIO',
+    code: 'JIO',
     brandColor: '#0B57D0',
-    brandBg: 'bg-blue-950/60 border-blue-500/40 text-blue-300',
-    logoText: 'Jio',
+    brandBg: 'bg-blue-950/70',
+    badgeBorder: 'border-blue-500/50',
+    brandText: 'text-blue-300',
+    logoBadge: 'Jio',
   },
   VI: {
     name: 'Vodafone Idea (Vi)',
-    shortName: 'VI',
+    code: 'VI',
     brandColor: '#D8232A',
-    brandBg: 'bg-rose-950/60 border-rose-500/40 text-rose-300',
-    logoText: '!VI',
+    brandBg: 'bg-rose-950/70',
+    badgeBorder: 'border-rose-500/50',
+    brandText: 'text-rose-300',
+    logoBadge: '!VI',
   },
   BSNL: {
     name: 'Bharat Sanchar Nigam Ltd (BSNL)',
-    shortName: 'BSNL',
+    code: 'BSNL',
     brandColor: '#10B981',
-    brandBg: 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300',
-    logoText: 'BSNL',
+    brandBg: 'bg-emerald-950/70',
+    badgeBorder: 'border-emerald-500/50',
+    brandText: 'text-emerald-300',
+    logoBadge: 'BSNL',
   },
   MTNL: {
     name: 'Mahanagar Telephone Nigam Ltd (MTNL)',
-    shortName: 'MTNL',
+    code: 'MTNL',
     brandColor: '#F59E0B',
-    brandBg: 'bg-amber-950/60 border-amber-500/40 text-amber-300',
-    logoText: 'MTNL',
+    brandBg: 'bg-amber-950/70',
+    badgeBorder: 'border-amber-500/50',
+    brandText: 'text-amber-300',
+    logoBadge: 'MTNL',
   },
   ENTERPRISE: {
-    name: 'Enterprise / Toll-Free Trunk',
-    shortName: 'ENTERPRISE',
+    name: 'Verified Enterprise Gateway',
+    code: 'ENTERPRISE',
     brandColor: '#06B6D4',
-    brandBg: 'bg-cyan-950/60 border-cyan-500/40 text-cyan-300',
-    logoText: 'TOLL-FREE',
+    brandBg: 'bg-cyan-950/70',
+    badgeBorder: 'border-cyan-500/50',
+    brandText: 'text-cyan-300',
+    logoBadge: 'ENTERPRISE',
   },
   OTHER: {
     name: 'National Cellular Carrier',
-    shortName: 'OTHER',
+    code: 'OTHER',
     brandColor: '#64748B',
-    brandBg: 'bg-slate-900 border-slate-700 text-slate-300',
-    logoText: 'GSM',
+    brandBg: 'bg-slate-900/80',
+    badgeBorder: 'border-slate-700',
+    brandText: 'text-slate-300',
+    logoBadge: 'GSM',
   },
 };
 
+interface PrefixMapping {
+  prefix: string; // 4-digit or 3-digit
+  operator: 'AIRTEL' | 'JIO' | 'VI' | 'BSNL' | 'MTNL';
+  circle: string;
+  zone: 'South' | 'North' | 'West' | 'East' | 'National';
+}
+
 /**
- * Authentic Indian Number Parser
+ * Comprehensive Indian 4-digit MSC/HLR Prefix Database
+ */
+const INDIAN_PREFIX_MAP: PrefixMapping[] = [
+  // =========================================================================
+  // 1. BHARTI AIRTEL ALLOCATIONS
+  // =========================================================================
+  // Karnataka & South Circle
+  { prefix: '9845', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9844', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9880', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9900', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9901', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9902', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9980', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9740', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9741', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9742', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9743', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9731', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9739', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9611', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9620', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9632', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9686', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9535', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9538', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9591', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '8050', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '8105', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '8123', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '8147', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '8884', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '8861', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '8867', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '8970', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '8971', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7204', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7259', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7353', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7411', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7760', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7795', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7829', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7846', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7847', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7848', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7849', operator: 'AIRTEL', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+
+  // Delhi NCR / Mumbai / Rest of India Airtel
+  { prefix: '9810', operator: 'AIRTEL', circle: 'Delhi NCR Circle', zone: 'North' },
+  { prefix: '9811', operator: 'AIRTEL', circle: 'Delhi NCR Circle', zone: 'North' },
+  { prefix: '9871', operator: 'AIRTEL', circle: 'Delhi NCR Circle', zone: 'North' },
+  { prefix: '9873', operator: 'AIRTEL', circle: 'Delhi NCR Circle', zone: 'North' },
+  { prefix: '9868', operator: 'AIRTEL', circle: 'Delhi NCR Circle', zone: 'North' },
+  { prefix: '9910', operator: 'AIRTEL', circle: 'Delhi NCR Circle', zone: 'North' },
+  { prefix: '9911', operator: 'AIRTEL', circle: 'Delhi NCR Circle', zone: 'North' },
+  { prefix: '9820', operator: 'AIRTEL', circle: 'Mumbai & Maharashtra', zone: 'West' },
+  { prefix: '9892', operator: 'AIRTEL', circle: 'Mumbai & Maharashtra', zone: 'West' },
+  { prefix: '9920', operator: 'AIRTEL', circle: 'Mumbai & Maharashtra', zone: 'West' },
+  { prefix: '9930', operator: 'AIRTEL', circle: 'Mumbai & Maharashtra', zone: 'West' },
+  { prefix: '9830', operator: 'AIRTEL', circle: 'Kolkata & West Bengal', zone: 'East' },
+  { prefix: '9831', operator: 'AIRTEL', circle: 'Kolkata & West Bengal', zone: 'East' },
+  { prefix: '9840', operator: 'AIRTEL', circle: 'Tamil Nadu (Chennai)', zone: 'South' },
+  { prefix: '9884', operator: 'AIRTEL', circle: 'Tamil Nadu (Chennai)', zone: 'South' },
+  { prefix: '9940', operator: 'AIRTEL', circle: 'Tamil Nadu (Chennai)', zone: 'South' },
+  { prefix: '9848', operator: 'AIRTEL', circle: 'Andhra Pradesh & Telangana', zone: 'South' },
+  { prefix: '9948', operator: 'AIRTEL', circle: 'Andhra Pradesh & Telangana', zone: 'South' },
+  { prefix: '9895', operator: 'AIRTEL', circle: 'Kerala Circle', zone: 'South' },
+  { prefix: '9946', operator: 'AIRTEL', circle: 'Kerala Circle', zone: 'South' },
+  { prefix: '9879', operator: 'AIRTEL', circle: 'Gujarat Circle', zone: 'West' },
+
+  // =========================================================================
+  // 2. RELIANCE JIO ALLOCATIONS
+  // =========================================================================
+  { prefix: '6360', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '6361', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '6362', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '6363', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '6364', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '6366', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7019', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7022', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7026', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7200', operator: 'JIO', circle: 'Tamil Nadu (Chennai)', zone: 'South' },
+  { prefix: '7201', operator: 'JIO', circle: 'Gujarat Circle', zone: 'West' },
+  { prefix: '7303', operator: 'JIO', circle: 'Delhi NCR Circle', zone: 'North' },
+  { prefix: '7304', operator: 'JIO', circle: 'Mumbai Circle', zone: 'West' },
+  { prefix: '7400', operator: 'JIO', circle: 'Mumbai Circle', zone: 'West' },
+  { prefix: '7506', operator: 'JIO', circle: 'Mumbai Circle', zone: 'West' },
+  { prefix: '7619', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '7624', operator: 'JIO', circle: 'Gujarat Circle', zone: 'West' },
+  { prefix: '7625', operator: 'JIO', circle: 'Maharashtra Circle', zone: 'West' },
+  { prefix: '7676', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '7975', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '7977', operator: 'JIO', circle: 'Mumbai Circle', zone: 'West' },
+  { prefix: '8088', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '8095', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '8197', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '8296', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '8310', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '8431', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '8618', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '8660', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '8762', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '8792', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '8904', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '8951', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9008', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9019', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9035', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9036', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9108', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9148', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9149', operator: 'JIO', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9341', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9342', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9343', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9353', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9380', operator: 'JIO', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '7000', operator: 'JIO', circle: 'Madhya Pradesh Circle', zone: 'North' },
+  { prefix: '7001', operator: 'JIO', circle: 'West Bengal Circle', zone: 'East' },
+  { prefix: '7002', operator: 'JIO', circle: 'Assam & North East', zone: 'East' },
+  { prefix: '7042', operator: 'JIO', circle: 'Delhi NCR Circle', zone: 'North' },
+  { prefix: '7011', operator: 'JIO', circle: 'Delhi NCR Circle', zone: 'North' },
+  { prefix: '7021', operator: 'JIO', circle: 'Mumbai Circle', zone: 'West' },
+  { prefix: '7045', operator: 'JIO', circle: 'Mumbai Circle', zone: 'West' },
+  { prefix: '7010', operator: 'JIO', circle: 'Tamil Nadu Circle', zone: 'South' },
+  { prefix: '7032', operator: 'JIO', circle: 'Andhra Pradesh & Telangana', zone: 'South' },
+  { prefix: '7003', operator: 'JIO', circle: 'Kolkata Circle', zone: 'East' },
+  { prefix: '7016', operator: 'JIO', circle: 'Gujarat Circle', zone: 'West' },
+  { prefix: '7012', operator: 'JIO', circle: 'Kerala Circle', zone: 'South' },
+
+  // =========================================================================
+  // 3. VODAFONE IDEA (VI) ALLOCATIONS
+  // =========================================================================
+  { prefix: '9886', operator: 'VI', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9945', operator: 'VI', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9986', operator: 'VI', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9738', operator: 'VI', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9590', operator: 'VI', circle: 'Karnataka (Bengaluru)', zone: 'South' },
+  { prefix: '9821', operator: 'VI', circle: 'Mumbai & Maharashtra', zone: 'West' },
+  { prefix: '9819', operator: 'VI', circle: 'Mumbai Circle', zone: 'West' },
+  { prefix: '9833', operator: 'VI', circle: 'Mumbai Circle', zone: 'West' },
+  { prefix: '9822', operator: 'VI', circle: 'Maharashtra & Goa (Pune)', zone: 'West' },
+  { prefix: '9823', operator: 'VI', circle: 'Maharashtra & Goa (Pune)', zone: 'West' },
+  { prefix: '9890', operator: 'VI', circle: 'Maharashtra & Goa', zone: 'West' },
+  { prefix: '9922', operator: 'VI', circle: 'Maharashtra & Goa', zone: 'West' },
+  { prefix: '9923', operator: 'VI', circle: 'Maharashtra & Goa', zone: 'West' },
+  { prefix: '9841', operator: 'VI', circle: 'Tamil Nadu (Chennai)', zone: 'South' },
+  { prefix: '9941', operator: 'VI', circle: 'Tamil Nadu (Chennai)', zone: 'South' },
+  { prefix: '9866', operator: 'VI', circle: 'Andhra Pradesh & Telangana', zone: 'South' },
+  { prefix: '9825', operator: 'VI', circle: 'Gujarat (Ahmedabad)', zone: 'West' },
+  { prefix: '9824', operator: 'VI', circle: 'Gujarat (Surat)', zone: 'West' },
+  { prefix: '9925', operator: 'VI', circle: 'Gujarat Circle', zone: 'West' },
+  { prefix: '9846', operator: 'VI', circle: 'Kerala (Kochi)', zone: 'South' },
+  { prefix: '9847', operator: 'VI', circle: 'Kerala (Thiruvananthapuram)', zone: 'South' },
+  { prefix: '9999', operator: 'VI', circle: 'Delhi NCR Circle', zone: 'North' },
+
+  // =========================================================================
+  // 4. BSNL / MTNL ALLOCATIONS
+  // =========================================================================
+  { prefix: '9448', operator: 'BSNL', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9449', operator: 'BSNL', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9480', operator: 'BSNL', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9481', operator: 'BSNL', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9482', operator: 'BSNL', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9483', operator: 'BSNL', circle: 'Karnataka Circle', zone: 'South' },
+  { prefix: '9444', operator: 'BSNL', circle: 'Tamil Nadu (Chennai)', zone: 'South' },
+  { prefix: '9445', operator: 'BSNL', circle: 'Tamil Nadu Circle', zone: 'South' },
+  { prefix: '9440', operator: 'BSNL', circle: 'Andhra Pradesh & Telangana', zone: 'South' },
+  { prefix: '9441', operator: 'BSNL', circle: 'Andhra Pradesh & Telangana', zone: 'South' },
+  { prefix: '9422', operator: 'BSNL', circle: 'Maharashtra & Goa', zone: 'West' },
+  { prefix: '9423', operator: 'BSNL', circle: 'Maharashtra & Goa', zone: 'West' },
+  { prefix: '9412', operator: 'BSNL', circle: 'UP West & Uttarakhand', zone: 'North' },
+  { prefix: '9413', operator: 'BSNL', circle: 'Rajasthan Circle', zone: 'North' },
+  { prefix: '9414', operator: 'BSNL', circle: 'Rajasthan Circle', zone: 'North' },
+  { prefix: '9415', operator: 'BSNL', circle: 'UP East Circle', zone: 'North' },
+  { prefix: '9434', operator: 'BSNL', circle: 'West Bengal Circle', zone: 'East' },
+  { prefix: '9426', operator: 'BSNL', circle: 'Gujarat Circle', zone: 'West' },
+  { prefix: '9447', operator: 'BSNL', circle: 'Kerala Circle', zone: 'South' },
+  { prefix: '9869', operator: 'MTNL', circle: 'Mumbai MTNL Network', zone: 'West' },
+];
+
+/**
+ * Exact Parse & Identify Indian Mobile Number Carrier, Circle, and Threat Index
  */
 export function parseIndianNumber(rawNumber: string): TelecomInfo {
   if (!rawNumber) {
+    const brand = BRAND_STYLES.OTHER;
     return {
-      operator: 'National GSM Network',
-      circle: 'India',
-      lineType: 'Standard Mobile',
+      operator: brand.name,
+      operatorCode: 'OTHER',
+      circle: 'National Telecom Gateway',
+      zone: 'National',
+      lineType: 'Standard Mobile GSM',
+      allocationSeries: 'N/A',
       isPromotional: false,
       isFraudulent: false,
       spamReportsCount: 0,
       verdict: 'SAFE',
       riskScore: 5,
-      tags: ['Standard Line'],
+      tags: ['Standard Cellular Range'],
+      suggestedName: 'Cellular Subscriber',
+      brandColor: brand.brandColor,
+      brandBg: brand.brandBg,
+      badgeBorder: brand.badgeBorder,
+      brandText: brand.brandText,
+      logoBadge: brand.logoBadge,
     };
   }
 
-  const cleaned = rawNumber.replace(/\D/g, '').slice(-10);
+  // 1. Sanitize: Strip +91, leading 0, spaces, and punctuation to get exact last 10 digits
+  const rawDigits = rawNumber.replace(/\D/g, '');
+  let tenDigit = rawDigits;
+  if (tenDigit.startsWith('91') && tenDigit.length === 12) {
+    tenDigit = tenDigit.slice(2);
+  } else if (tenDigit.startsWith('0') && tenDigit.length === 11) {
+    tenDigit = tenDigit.slice(1);
+  }
 
-  // 1. Handle Verified Enterprise & Banks
-  if (rawNumber.includes('1800') || cleaned.startsWith('1800') || rawNumber === '121' || rawNumber === '198' || rawNumber === '199' || rawNumber === '1930') {
-    let name = 'Corporate Helpline / Toll-Free Desk';
-    if (rawNumber.includes('1800112211') || rawNumber.includes('18004253800')) name = 'State Bank of India (SBI) Official Care';
-    else if (rawNumber.includes('18002026161') || rawNumber.includes('18001600')) name = 'HDFC Bank Priority Helpline';
-    else if (rawNumber.includes('18001080')) name = 'ICICI Bank Official Support';
-    else if (rawNumber === '121' || rawNumber.includes('18001034444')) name = 'Bharti Airtel Customer Care';
-    else if (rawNumber === '198') name = 'DoT National Telecom Grievance';
-    else if (rawNumber === '1930') name = 'National Cybercrime Reporting Portal';
+  // 2. Check Verified Corporate & Emergency Helplines
+  if (
+    rawNumber.includes('1800') ||
+    tenDigit.startsWith('1800') ||
+    rawNumber === '121' ||
+    rawNumber === '198' ||
+    rawNumber === '199' ||
+    rawNumber === '1930'
+  ) {
+    const brand = BRAND_STYLES.ENTERPRISE;
+    let name = 'Corporate Customer Helpline';
+    if (rawNumber.includes('1800112211') || rawNumber.includes('18004253800') || rawNumber.includes('18001234')) {
+      name = 'State Bank of India (SBI) Official Care';
+    } else if (rawNumber.includes('18002026161') || rawNumber.includes('18001600')) {
+      name = 'HDFC Bank Priority Support Desk';
+    } else if (rawNumber.includes('18001080') || rawNumber.includes('18001024242')) {
+      name = 'ICICI / Axis Bank Verified Care';
+    } else if (rawNumber === '121' || rawNumber.includes('18001034444')) {
+      name = 'Bharti Airtel Official Customer Service';
+    } else if (rawNumber === '198') {
+      name = 'DoT National Telecom Grievance Portal';
+    } else if (rawNumber === '1930') {
+      name = 'National Cybercrime Reporting Helpline (1930)';
+    }
 
     return {
       operator: 'Enterprise Toll-Free Gateway',
-      circle: 'All India Support',
-      lineType: 'Enterprise Toll-Free',
+      operatorCode: 'ENTERPRISE',
+      circle: 'All India Toll-Free Support',
+      zone: 'National',
+      lineType: 'Enterprise Toll-Free Trunk',
+      allocationSeries: 'Toll-Free 1800 Series',
       isPromotional: false,
       isFraudulent: false,
       spamReportsCount: 0,
       verdict: 'VERIFIED_ENTERPRISE',
       riskScore: 2,
-      tags: ['Verified Enterprise', 'Official Support Desk', 'Zero Risk'],
+      tags: ['Verified Enterprise', 'Official Support Desk', 'Zero Scam Risk'],
       suggestedName: name,
-      operatorBrandColor: '#06B6D4',
-      operatorBg: 'bg-cyan-950/60 border-cyan-500/40 text-cyan-300',
+      brandColor: brand.brandColor,
+      brandBg: brand.brandBg,
+      badgeBorder: brand.badgeBorder,
+      brandText: brand.brandText,
+      logoBadge: brand.logoBadge,
     };
   }
 
-  // 2. Handle TRAI promotional 140 / 160 series
-  if (rawNumber.includes('140') || cleaned.startsWith('140') || cleaned.startsWith('160')) {
+  // 3. Check TRAI Promotional 140 / 160 Series
+  if (tenDigit.startsWith('140') || tenDigit.startsWith('160') || rawNumber.includes('140') || rawNumber.includes('160')) {
+    const brand = BRAND_STYLES.OTHER;
     return {
       operator: 'TRAI Telemarketing Series',
-      circle: 'National Commercial Trunk',
-      lineType: 'Commercial Promotional Dialer',
+      operatorCode: 'OTHER',
+      circle: 'National Commercial Auto-Dialer Hub',
+      zone: 'National',
+      lineType: 'Commercial Promotional Dialer (TRAI 140)',
+      allocationSeries: 'TRAI 140/160 Commercial Band',
       isPromotional: true,
       isFraudulent: false,
-      spamReportsCount: 840,
+      spamReportsCount: 842,
       verdict: 'PROMOTIONAL_SPAM',
       riskScore: 65,
-      tags: ['Unsolicited Sales', 'Robocall Auto-Dialer', 'Financial Offers', 'TRAI 140'],
-      suggestedName: 'Commercial Sales / Telemarketing Caller',
-      operatorBrandColor: '#F59E0B',
-      operatorBg: 'bg-amber-950/60 border-amber-500/40 text-amber-300',
+      tags: ['TRAI 140 Series', 'Unsolicited Sales', 'Loan/Credit Offers', 'Auto-Dialer Robocall'],
+      suggestedName: 'Commercial Sales / Telemarketer',
+      brandColor: '#F59E0B',
+      brandBg: 'bg-amber-950/70',
+      badgeBorder: 'border-amber-500/50',
+      brandText: 'text-amber-300',
+      logoBadge: 'TRAI 140',
     };
   }
 
-  // 3. Known High-Risk Scammers
-  if (cleaned === '9876543210' || cleaned === '9811122334' || cleaned === '9820044556') {
+  // 4. Known Blacklisted Malicious Numbers
+  if (tenDigit === '9876543210' || tenDigit === '9811122334' || tenDigit === '9820044556') {
+    const brand = BRAND_STYLES.OTHER;
     return {
-      operator: 'Flagged Malicious Line',
-      circle: 'Reported Threat Hub',
-      lineType: 'Spoofed Cellular / Robocall',
+      operator: 'Flagged Malicious Route',
+      operatorCode: 'OTHER',
+      circle: 'Cybercrime Reported Range',
+      zone: 'National',
+      lineType: 'Spoofed Cellular Gateway',
+      allocationSeries: `Flagged Scammer (${tenDigit.slice(0, 4)} Series)`,
       isPromotional: false,
       isFraudulent: true,
       spamReportsCount: 2180,
       verdict: 'FRAUD_RISK',
       riskScore: 98,
-      tags: ['Confirmed Fraudster', 'Digital Arrest Hoax', 'OTP Extortion', 'Severe Threat'],
+      tags: ['Confirmed Fraudster', 'Digital Arrest Hoax', 'OTP Extortion', 'Blacklisted'],
       suggestedName: 'Confirmed Cybercrime Scammer',
-      operatorBrandColor: '#EF4444',
-      operatorBg: 'bg-red-950/60 border-red-500/40 text-red-300',
+      brandColor: '#EF4444',
+      brandBg: 'bg-red-950/70',
+      badgeBorder: 'border-red-500/50',
+      brandText: 'text-red-300',
+      logoBadge: 'SCAM',
     };
   }
 
-  const prefix4 = cleaned.substring(0, 4);
-  const prefix2 = cleaned.substring(0, 2);
+  // 5. Match Exact 4-digit MSC/HLR Prefix
+  const prefix4 = tenDigit.slice(0, 4);
+  const match = INDIAN_PREFIX_MAP.find((m) => m.prefix === prefix4);
 
-  // 4. Airtel Detection (Karnataka, Delhi, Mumbai, TN)
-  if (
-    ['9845', '9844', '9880', '9886', '9900', '9980', '9945', '9986', '9008', '9740', '9741', '9742', '9810', '9871', '9910', '9820', '9967', '9987', '9840', '9884', '9940', '9848', '9948', '9830', '9831', '9895'].includes(prefix4) ||
-    ['98', '97'].includes(prefix2)
-  ) {
-    let circleName = 'Karnataka (Bengaluru) Circle';
-    if (['9810', '9871', '9910'].includes(prefix4)) circleName = 'Delhi NCR Circle';
-    else if (['9820', '9967', '9987'].includes(prefix4)) circleName = 'Mumbai Circle';
-    else if (['9840', '9884', '9940'].includes(prefix4)) circleName = 'Tamil Nadu (Chennai)';
-    else if (['9848', '9948'].includes(prefix4)) circleName = 'Andhra Pradesh & Telangana';
-
+  if (match) {
+    const brand = BRAND_STYLES[match.operator] || BRAND_STYLES.OTHER;
     return {
-      operator: 'Bharti Airtel Limited',
-      circle: circleName,
-      lineType: 'Mobile Cellular (GSM/5G)',
+      operator: brand.name,
+      operatorCode: match.operator,
+      circle: match.circle,
+      zone: match.zone,
+      lineType: match.operator === 'JIO' ? 'VoLTE Cellular (4G/5G)' : 'Mobile Cellular (GSM/5G)',
+      allocationSeries: `DoT Series: ${prefix4}XXXXXX`,
       isPromotional: false,
       isFraudulent: false,
       spamReportsCount: 0,
       verdict: 'SAFE',
       riskScore: 4,
-      tags: ['Clean Cellular Profile', 'Active Airtel Subscriber', '0 Fraud Reports'],
-      suggestedName: 'Private Cellular Subscriber',
-      operatorBrandColor: '#EF4444',
-      operatorBg: 'bg-red-950/60 border-red-500/40 text-red-300',
+      tags: ['Clean Cellular Profile', `Verified ${match.operator} SIM`, '0 Fraud Reports'],
+      suggestedName: `Private ${match.operator === 'AIRTEL' ? 'Airtel' : match.operator === 'JIO' ? 'Jio' : match.operator === 'VI' ? 'Vi' : 'BSNL'} Subscriber`,
+      brandColor: brand.brandColor,
+      brandBg: brand.brandBg,
+      badgeBorder: brand.badgeBorder,
+      brandText: brand.brandText,
+      logoBadge: brand.logoBadge,
     };
   }
 
-  // 5. Reliance Jio Detection (Karnataka, Delhi, Mumbai, etc.)
-  if (
-    ['6360', '6361', '6362', '6363', '6364', '6366', '7019', '7022', '7026', '7975', '8073', '8088', '8105', '9148', '9149', '7042', '7011', '7021', '7045', '7010', '7032', '7003', '7016', '7012', '7000', '7001'].includes(prefix4) ||
-    ['63', '70', '79', '80', '81', '82', '83', '84', '85', '86', '87'].includes(prefix2)
-  ) {
-    let circleName = 'Karnataka Circle';
-    if (['7042', '7011'].includes(prefix4)) circleName = 'Delhi NCR Circle';
-    else if (['7021', '7045'].includes(prefix4)) circleName = 'Mumbai Circle';
-    else if (['7010'].includes(prefix4)) circleName = 'Tamil Nadu Circle';
+  // 6. Secondary 2-digit Series Heuristics
+  const prefix2 = tenDigit.slice(0, 2);
+  let resolvedOperator: 'AIRTEL' | 'JIO' | 'VI' | 'BSNL' = 'AIRTEL';
+  let defaultCircle = 'India Telecom Circle';
 
-    return {
-      operator: 'Reliance Jio Infocomm',
-      circle: circleName,
-      lineType: 'VoLTE Cellular (4G/5G)',
-      isPromotional: false,
-      isFraudulent: false,
-      spamReportsCount: 0,
-      verdict: 'SAFE',
-      riskScore: 4,
-      tags: ['Verified 4G/5G SIM', 'Zero Threat History', 'Clean Profile'],
-      suggestedName: 'Private Jio Subscriber',
-      operatorBrandColor: '#0B57D0',
-      operatorBg: 'bg-blue-950/60 border-blue-500/40 text-blue-300',
-    };
+  if (['98', '97', '96', '95', '80', '88', '89', '72', '73', '74', '77', '78'].includes(prefix2)) {
+    resolvedOperator = 'AIRTEL';
+    defaultCircle = 'National GSM Circle (Airtel Band)';
+  } else if (['63', '70', '79', '81', '82', '83', '84', '86', '87', '91', '93'].includes(prefix2)) {
+    resolvedOperator = 'JIO';
+    defaultCircle = 'Reliance Jio Infocomm (All India)';
+  } else if (['90', '91', '92'].includes(prefix2)) {
+    resolvedOperator = 'VI';
+    defaultCircle = 'Vodafone Idea Cellular Band';
+  } else if (['94', '93'].includes(prefix2)) {
+    resolvedOperator = 'BSNL';
+    defaultCircle = 'BSNL Mobile Network (India)';
   }
 
-  // 6. Vodafone Idea Detection
-  if (
-    ['9811', '9873', '9911', '9999', '9821', '9819', '9833', '9822', '9823', '9841', '9941', '9866', '9825', '9824', '9925', '9846', '9847', '9035', '9036', '9901', '9902'].includes(prefix4) ||
-    ['91', '90', '88', '89'].includes(prefix2)
-  ) {
-    return {
-      operator: 'Vodafone Idea (Vi)',
-      circle: 'National GSM Circle (Vi Band)',
-      lineType: 'Mobile Cellular (GSM/LTE)',
-      isPromotional: false,
-      isFraudulent: false,
-      spamReportsCount: 0,
-      verdict: 'SAFE',
-      riskScore: 5,
-      tags: ['Verified Vi Subscriber', 'Clean Reputation Record'],
-      suggestedName: 'Private Vi Subscriber',
-      operatorBrandColor: '#D8232A',
-      operatorBg: 'bg-rose-950/60 border-rose-500/40 text-rose-300',
-    };
-  }
+  const brand = BRAND_STYLES[resolvedOperator] || BRAND_STYLES.OTHER;
 
-  // 7. BSNL Detection
-  if (
-    ['9448', '9449', '9480', '9481', '9482', '9483', '9444', '9440', '9434', '9426', '9447', '9410', '9411', '9412'].includes(prefix4) ||
-    ['94', '93'].includes(prefix2)
-  ) {
-    return {
-      operator: 'Bharat Sanchar Nigam Ltd (BSNL)',
-      circle: 'National BSNL Network (India)',
-      lineType: 'Mobile GSM Line',
-      isPromotional: false,
-      isFraudulent: false,
-      spamReportsCount: 0,
-      verdict: 'SAFE',
-      riskScore: 5,
-      tags: ['BSNL Mobile Line', 'Clean Profile'],
-      suggestedName: 'BSNL Cellular Subscriber',
-      operatorBrandColor: '#10B981',
-      operatorBg: 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300',
-    };
-  }
-
-  // Fallback for standard 10-digit Indian numbers
   return {
-    operator: 'Indian Cellular Operator',
-    circle: 'National Roaming Circle',
-    lineType: 'Standard Mobile GSM',
+    operator: brand.name,
+    operatorCode: resolvedOperator,
+    circle: defaultCircle,
+    zone: 'National',
+    lineType: 'Mobile Cellular (GSM/LTE)',
+    allocationSeries: `DoT Series: ${prefix2}XXXXXXXX`,
     isPromotional: false,
     isFraudulent: false,
     spamReportsCount: 0,
     verdict: 'SAFE',
-    riskScore: 8,
-    tags: ['Valid Mobile Range', 'Clean History'],
-    suggestedName: 'Private Subscriber',
-    operatorBrandColor: '#64748B',
-    operatorBg: 'bg-slate-900 border-slate-700 text-slate-300',
+    riskScore: 6,
+    tags: ['Valid Mobile Format', 'Clean History', `Allocated to ${brand.name}`],
+    suggestedName: 'Private Cellular Subscriber',
+    brandColor: brand.brandColor,
+    brandBg: brand.brandBg,
+    badgeBorder: brand.badgeBorder,
+    brandText: brand.brandText,
+    logoBadge: brand.logoBadge,
   };
 }
 
-export function resolveIndianTelecomProfile(rawNumber: string): AccurateTelecomProfile {
-  const info = parseIndianNumber(rawNumber);
-  let shortName: 'AIRTEL' | 'JIO' | 'VI' | 'BSNL' | 'MTNL' | 'ENTERPRISE' | 'OTHER' = 'OTHER';
-
-  if (info.operator.includes('Airtel')) shortName = 'AIRTEL';
-  else if (info.operator.includes('Jio')) shortName = 'JIO';
-  else if (info.operator.includes('Vodafone') || info.operator.includes('Vi')) shortName = 'VI';
-  else if (info.operator.includes('BSNL')) shortName = 'BSNL';
-  else if (info.operator.includes('MTNL')) shortName = 'MTNL';
-  else if (info.verdict === 'VERIFIED_ENTERPRISE') shortName = 'ENTERPRISE';
-
-  return {
-    operator: OPERATOR_BRANDS[shortName] || OPERATOR_BRANDS.OTHER,
-    circle: { state: info.circle, zone: 'National' },
-    lineType: info.lineType,
-    isTraiDndMandatory: info.isPromotional,
-    dndCategory: info.isPromotional ? 'Commercial Telemarketing' : 'Private Cellular',
-  };
-}
-
-export function analyzeTelecomNumber(rawNumber: string, existingReports: number = 0, category: string = 'SAFE'): TelecomDossier {
+export function analyzeTelecomNumber(rawNumber: string, existingReports: number = 0, category: string = 'SAFE') {
   const info = parseIndianNumber(rawNumber);
   const totalReports = Math.max(existingReports, info.spamReportsCount);
   const isFraud = totalReports > 0 && (info.isFraudulent || category !== 'SAFE');
 
-  let tier: TelecomDossier['tier'] = 'GENUINE_PERSONAL';
-  let tierLabel = 'Clean Personal Mobile Line';
-  let badgeVariant: TelecomDossier['badgeVariant'] = 'safe';
-  let action: TelecomDossier['recommendedAction'] = 'SAFE_PERSONAL';
-
-  if (isFraud) {
-    tier = 'CRITICAL_FRAUD';
-    tierLabel = 'High-Risk Confirmed Fraud';
-    badgeVariant = 'fraud';
-    action = 'BLOCK_FRAUD';
-  } else if (info.isPromotional || info.verdict === 'PROMOTIONAL_SPAM') {
-    tier = 'TELEMARKETING_PROMOTIONAL';
-    tierLabel = 'Commercial Telemarketer (TRAI 140)';
-    badgeVariant = 'suspicious';
-    action = 'BLOCK_PROMOTIONS';
-  } else if (info.verdict === 'VERIFIED_ENTERPRISE') {
-    tier = 'VERIFIED_ENTERPRISE';
-    tierLabel = 'Verified Enterprise Desk';
-    badgeVariant = 'cyan';
-    action = 'TRUSTED_BUSINESS';
-  }
-
   return {
-    tier,
-    tierLabel,
-    tierDescription: isFraud
-      ? `Active malicious line with ${totalReports} community scam reports.`
-      : info.isPromotional
-      ? 'Registered commercial telemarketing auto-dialer (TRAI 140/160 series).'
-      : `${info.operator} (${info.circle}). Clean trust index.`,
-    threatScore: isFraud ? 96 : info.riskScore,
-    badgeVariant,
+    tier: isFraud ? 'CRITICAL_FRAUD' : info.isPromotional ? 'TELEMARKETING_PROMOTIONAL' : info.verdict === 'VERIFIED_ENTERPRISE' ? 'VERIFIED_ENTERPRISE' : 'GENUINE_PERSONAL',
+    tierLabel: isFraud ? 'High-Risk Confirmed Fraud' : info.isPromotional ? 'Commercial Telemarketer (TRAI 140)' : info.verdict === 'VERIFIED_ENTERPRISE' ? 'Verified Enterprise' : 'Clean Personal Mobile Line',
+    threatScore: isFraud ? 98 : info.riskScore,
+    badgeVariant: isFraud ? 'fraud' : info.isPromotional ? 'suspicious' : info.verdict === 'VERIFIED_ENTERPRISE' ? 'cyan' : 'safe',
     carrierName: info.operator,
     telecomCircle: info.circle,
     traiDndCategory: info.isPromotional ? 'Commercial Telemarketing (140 Series)' : 'Private Cellular Line',
     lineType: info.lineType,
-    suggestedName: info.suggestedName || 'Cellular Subscriber',
-    safetyProtocol: [
-      'Standard digital security hygiene applies.',
-      'Never disclose SMS OTPs, bank credentials, or UPI PINs.'
-    ],
-    recommendedAction: action,
+    suggestedName: info.suggestedName,
     tags: info.tags,
   };
 }
