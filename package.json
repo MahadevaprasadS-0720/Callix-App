@@ -9,5 +9,8 @@
     "install:all": "npm --prefix frontend install && npm --prefix backend/functions install",
     "dev:frontend": "npm --prefix frontend run dev",
     "build:backend": "npm --prefix backend/functions run build"
+  },
+  "dependencies": {
+    "firebase": "^12.18.0"
   }
 }

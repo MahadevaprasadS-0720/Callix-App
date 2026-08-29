@@ -24,9 +24,10 @@ import { useAuth } from '../../context/AuthContext';
 interface SidebarProps {
   isOpen: boolean;
   onClose?: () => void;
+  onProfileClick?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onProfileClick }) => {
   const { isCallActive, currentRiskScore } = useCallSimulation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -83,13 +84,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* User Session Quick Strip */}
         <div className="px-3 pt-3">
-          <div className="p-2 rounded-xl bg-zinc-950/80 border border-zinc-900 flex items-center justify-between text-xs">
+          <div 
+            onClick={onProfileClick}
+            className="p-2 rounded-xl bg-zinc-950/80 hover:bg-zinc-900 border border-zinc-900 hover:border-zinc-800 flex items-center justify-between text-xs cursor-pointer transition-all group"
+            title="Open User Profile & Credentials"
+          >
             <div className="flex items-center gap-2 truncate">
-              <div className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-300 shrink-0">
-                {user?.isGuest ? <Fingerprint className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+              <div className="w-6 h-6 rounded-full bg-zinc-800 overflow-hidden flex items-center justify-center text-zinc-300 shrink-0 ring-1 ring-white/10 group-hover:ring-white/30">
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+                ) : user?.isGuest ? (
+                  <Fingerprint className="w-3.5 h-3.5" />
+                ) : (
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                )}
               </div>
               <div className="truncate">
-                <div className="font-medium text-zinc-200 truncate text-[11px]">
+                <div className="font-medium text-zinc-200 group-hover:text-white truncate text-[11px] transition-colors">
                   {user?.displayName || 'Developer'}
                 </div>
                 <div className="text-[10px] text-zinc-500 font-mono">
@@ -97,13 +108,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
             </div>
-            <NavLink
-              to="/"
-              title="Return to Public Landing Page"
-              className="p-1 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
-            >
-              <Home className="w-3.5 h-3.5" />
-            </NavLink>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 group-hover:text-zinc-200 font-mono border border-zinc-800 group-hover:border-zinc-700 transition-colors">
+              Profile
+            </span>
           </div>
         </div>
 

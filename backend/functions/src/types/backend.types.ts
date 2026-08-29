@@ -4,6 +4,7 @@ export type SpeakerRole = 'caller' | 'user' | 'unknown';
 
 export type ScamCategory = 
   | 'SAFE'
+  | 'NONE'
   | 'OTP_THEFT' 
   | 'UPI_FRAUD' 
   | 'KYC_EXPIRY' 

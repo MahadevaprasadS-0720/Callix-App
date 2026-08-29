@@ -1,13 +1,15 @@
-import * as admin from 'firebase-admin';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
+import { getStorage } from 'firebase-admin/storage';
+import { getMessaging } from 'firebase-admin/messaging';
 
 // Initialize Firebase Admin singleton
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
+const app: App = !getApps().length ? initializeApp() : getApps()[0];
 
-export const db = admin.firestore();
-export const auth = admin.auth();
-export const storage = admin.storage();
-export const messaging = admin.messaging();
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+export const storage = getStorage(app);
+export const messaging = getMessaging(app);
 
-export default admin;
+export default app;

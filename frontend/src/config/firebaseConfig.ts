@@ -1,31 +1,20 @@
-import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-api-key',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'audio-guardian-dev.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'audio-guardian-dev',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'audio-guardian-dev.appspot.com',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '1234567890',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:1234567890:web:mockid',
+export const firebaseConfig = {
+  apiKey: "AIzaSyAfXwbPG7Gr6eMpQuDxHvZMuX8wuvRMjW0",
+  authDomain: "callix-app-9f1db.firebaseapp.com",
+  projectId: "callix-app-9f1db",
+  storageBucket: "callix-app-9f1db.firebasestorage.app",
+  messagingSenderId: "96759030535",
+  appId: "1:96759030535:web:c7a5e9564613945f451ba2",
+  measurementId: "G-4XJV5HHC33"
 };
 
-let app: FirebaseApp | undefined;
-let auth: Auth | undefined;
-let db: Firestore | undefined;
-
-try {
-  if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-  } else {
-    app = getApps()[0];
-  }
-  auth = getAuth(app);
-  db = getFirestore(app);
-} catch {
-  // If Firebase fails to initialize in mock environment, create safe fallbacks
-  console.warn('Firebase initializing in offline simulation fallback mode');
-}
+const app: FirebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+const auth: Auth = getAuth(app);
+const db: Firestore = getFirestore(app);
 
 export { app, auth, db };
+export default app;

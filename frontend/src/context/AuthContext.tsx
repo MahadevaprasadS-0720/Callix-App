@@ -1,13 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../config/firebaseConfig';
 import { User, GuardianLink } from '../types/user.types';
 import { authService } from '../services/authService';
+import { MOCK_USER } from '../services/mockDataService';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   loginWithGoogle: () => Promise<void>;
+  loginWithGithub: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   registerWithEmail: (email: string, pass: string, displayName: string) => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
   loginAsGuest: () => void;
   loginDemo: () => void;
   logout: () => Promise<void>;
@@ -25,11 +30,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     try {
       const currentUser = authService.getCurrentUser();
-      setUser(currentUser);
+      if (currentUser) {
+        setUser(currentUser);
+      }
     } catch (err) {
       console.error('Failed to restore auth session:', err);
     } finally {
       setLoading(false);
+    }
+
+    if (auth) {
+      const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+        if (fbUser) {
+          const existing = authService.getCurrentUser();
+          const syncedUser: User = {
+            uid: fbUser.uid,
+            email: fbUser.email || existing?.email || 'user@callix.ai',
+            displayName: fbUser.displayName || existing?.displayName || fbUser.email?.split('@')[0] || 'Callix User',
+            photoURL: fbUser.photoURL || existing?.photoURL || undefined,
+            plan: existing?.plan || 'PRO_SHIELD',
+            authProvider: (fbUser.providerData[0]?.providerId.includes('github') ? 'github' : fbUser.providerData[0]?.providerId.includes('google') ? 'google' : 'password'),
+            guardianLinks: existing?.guardianLinks || MOCK_USER.guardianLinks,
+            preferences: existing?.preferences || MOCK_USER.preferences,
+            createdAt: existing?.createdAt || Date.now(),
+          };
+          setUser(syncedUser);
+          localStorage.setItem('audio_guardian_current_user', JSON.stringify(syncedUser));
+        }
+      });
+      return () => unsubscribe();
     }
   }, []);
 
@@ -37,6 +66,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       const u = await authService.loginWithGoogle();
+      setUser(u);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithGithub = async () => {
+    setLoading(true);
+    try {
+      const u = await authService.loginWithGithub();
       setUser(u);
     } finally {
       setLoading(false);
@@ -100,14 +139,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateProfile({ guardianLinks: updatedLinks });
   };
 
+  const sendPasswordReset = async (email: string) => {
+    await authService.sendPasswordReset(email);
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
         loading,
         loginWithGoogle,
+        loginWithGithub,
         loginWithEmail,
         registerWithEmail,
+        sendPasswordReset,
         loginAsGuest,
         loginDemo,
         logout,

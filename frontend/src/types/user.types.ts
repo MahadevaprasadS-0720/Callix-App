@@ -20,7 +20,7 @@ export interface User {
   plan: SubscriptionPlan;
   isSimulationUser?: boolean;
   isGuest?: boolean;
-  authProvider?: 'google' | 'password' | 'guest' | 'demo';
+  authProvider?: 'google' | 'github' | 'password' | 'guest' | 'demo';
   guardianLinks: GuardianLink[];
   preferences: {
     autoBlockHighRisk: boolean;

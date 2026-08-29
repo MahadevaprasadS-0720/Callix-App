@@ -43,17 +43,23 @@ import {
   X
 } from 'lucide-react';
 import { ResendCube3D } from '../components/common/ResendCube3D';
+import { AuthModal } from '../components/auth/AuthModal';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, loginAsGuest } = useAuth();
+
+  // Auth modal state
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
 
   // Navigation handlers
   const handleLaunchApp = (destination = '/dashboard') => {
     if (user) {
       navigate(destination);
     } else {
-      navigate('/auth', { state: { from: { pathname: destination } } });
+      setAuthModalMode('register');
+      setAuthModalOpen(true);
     }
   };
 
@@ -811,7 +817,10 @@ export function CallSecurityHUD({ activeCall }) {
               <>
                 <button
                   type="button"
-                  onClick={() => navigate('/auth')}
+                  onClick={() => {
+                    setAuthModalMode('login');
+                    setAuthModalOpen(true);
+                  }}
                   className="nav-3d-btn text-zinc-200 hover:text-white text-sm font-semibold hidden md:block transition-colors px-3 py-1.5 rounded-full"
                 >
                   Log in
@@ -1029,9 +1038,9 @@ export function CallSecurityHUD({ activeCall }) {
       </header>
 
       {/* ========================================================= */}
-      {/* 2. HERO SECTION (EXACT 1:1 RESEND OFFICIAL PRODUCTION DOM)*/}
+      {/* 2. HERO SECTION (FULL-WIDTH IMMERSIVE ENTERPRISE HERO)   */}
       {/* ========================================================= */}
-      <div className="relative z-20 pt-[60px] md:h-screen md:max-h-[950px] md:pt-0">
+      <div className="relative z-20 w-full min-h-[calc(100vh-80px)] flex items-center pt-[60px] md:pt-0 overflow-hidden">
         
         {/* Floor background */}
         <img 
@@ -1043,14 +1052,24 @@ export function CallSecurityHUD({ activeCall }) {
           src="/bg-hero-1.jpg" 
         />
 
-        <section className="mx-auto max-w-5xl px-6 pb-8 md:h-screen md:max-h-[950px] md:max-w-7xl">
-          <div className="flex h-full flex-col items-center justify-between md:flex-row md:pb-12">
+        {/* Light ray background */}
+        <img 
+          alt="Light ray background" 
+          width="1920" 
+          height="1080" 
+          className="pointer-events-none absolute -top-20 left-0 right-0 mx-auto hidden h-screen w-full select-none md:block transition-all duration-500" 
+          style={{ maskImage: 'linear-gradient(to top, transparent 15%, black 25%)' }} 
+          src="/bg-light.png" 
+        />
+
+        <section className="mx-auto w-full max-w-[1700px] px-8 md:px-12 lg:px-16 min-h-[calc(100vh-80px)] flex items-center justify-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 items-center justify-between w-full gap-12 lg:gap-16 py-10 lg:py-0">
             
             {/* Left text column */}
-            <div className="origin-center-left order-2 max-w-3xl animate-hero-text-slide-up-fade sm:shrink-0 md:order-1 lg:pl-16 space-y-4">
+            <div className="order-2 lg:order-1 w-full animate-hero-text-slide-up-fade flex flex-col items-start text-left max-w-2xl z-10">
               
               {/* Rainbow badge */}
-              <div className="flex items-center justify-center md:inline-flex mb-8">
+              <div className="flex items-center justify-start mb-6">
                 <a className="rainbow-border inline-flex items-center justify-center rounded-full relative text-sm leading-none" href="#code">
                   <span className="inline-flex items-center gap-1 whitespace-nowrap px-3.5 py-1.5 m-[1px] rounded-full text-zinc-300 font-mono text-xs bg-black">
                     Join us at Callix Forward
@@ -1059,48 +1078,39 @@ export function CallSecurityHUD({ activeCall }) {
                 </a>
               </div>
               
-              {/* Headline in pure white serif */}
-              <h1 className="font-serif-hero text-white text-[4rem] sm:text-[5.5rem] md:text-[6.25rem] lg:text-[7rem] tracking-[-0.015em] leading-[100%] relative text-center md:text-left pb-3 drop-shadow-sm">
-                Voice security for<br />
-                developers
+              {/* Headline: Exact 3-line structure with single sharp diagonal laser beam */}
+              <h1 className="headline-shimmer inline-block font-sans text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.08] relative pb-2 select-none">
+                Next-Gen<br />
+                Voice<br />
+                <span className="whitespace-nowrap">Fraud Defense</span>
               </h1>
               
               {/* Subtitle */}
-              <p className="text-base md:text-[1.125rem] md:leading-[1.55] text-zinc-400 font-normal relative mb-8 mt-2 max-w-[30rem] text-center leading-7 md:text-left">
-                The best way to reach authentic callers instead of scammers. Intercept synthetic voice clones, Indian telecom fraud, and social engineering in real time.
+              <p className="font-sans text-base md:text-lg text-zinc-400 font-normal tracking-tight leading-snug md:leading-[1.5] max-w-lg md:max-w-xl mt-5 mb-8 antialiased">
+                Stop synthetic voice clones, deepfake audio, and telecom fraud in real time. Protect every conversation with enterprise-grade voice intelligence.
               </p>
               
               {/* Buttons */}
-              <div className="flex flex-col justify-center gap-4 md:flex-row md:justify-start pt-2">
+              <div className="flex flex-col sm:flex-row items-center justify-start gap-4 pt-2 w-full sm:w-auto">
                 <button 
                   type="button" 
                   onClick={() => handleLaunchApp('/dashboard')}
-                  className="resend-frosted-btn relative inline-flex items-center justify-center select-none rounded-2xl text-white text-base h-12 gap-1 px-6 font-semibold hover:bg-white hover:text-black transition-all duration-200"
+                  className="resend-frosted-btn relative inline-flex items-center justify-center select-none rounded-2xl text-white text-base h-auto px-7 py-3.5 font-medium hover:bg-white hover:text-black transition-all duration-200 shadow-lg"
                 >
                   Get started
                 </button>
                 <a 
                   href="#code" 
-                  className="relative inline-flex items-center justify-center select-none rounded-2xl bg-transparent border-transparent text-zinc-400 hover:text-white text-base h-12 gap-1 px-5 font-semibold transition-colors"
+                  className="relative inline-flex items-center justify-center select-none rounded-2xl bg-transparent border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white text-base h-auto px-7 py-3.5 font-medium transition-colors"
                 >
                   Documentation
                 </a>
               </div>
             </div>
             
-            {/* Light ray background */}
-            <img 
-              alt="Light ray background" 
-              width="1920" 
-              height="1080" 
-              className="pointer-events-none absolute -top-20 left-0 right-0 mx-auto hidden h-screen w-full select-none md:block transition-all duration-500" 
-              style={{ maskImage: 'linear-gradient(to top, transparent 15%, black 25%)' }} 
-              src="/bg-light.png" 
-            />
-            
             {/* Right: 1:1 Resend 3D Cube with 100% True Alpha Transparency (Zero Black Box) */}
-            <div className="duration-300 relative order-1 min-h-[280px] min-w-[280px] md:order-2 md:min-h-[480px] md:min-w-[480px] flex items-center justify-center overflow-visible pointer-events-auto">
-              <ResendCube3D className="w-[360px] h-[360px] sm:w-[480px] sm:h-[480px] md:w-[560px] md:h-[560px]" />
+            <div className="duration-300 relative order-1 lg:order-2 flex items-center justify-end w-full h-[550px] lg:h-[700px] overflow-visible pointer-events-auto">
+              <ResendCube3D className="w-full h-full max-w-[650px] lg:max-w-[850px] xl:max-w-[900px]" />
             </div>
 
           </div>
@@ -1798,6 +1808,14 @@ export function CallSecurityHUD({ activeCall }) {
           </div>
         </div>
       </footer>
+
+      {/* Sleek Dark-Themed Firebase Auth Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        initialMode={authModalMode}
+        onSuccess={() => navigate('/dashboard')}
+      />
     </div>
   );
 };
