@@ -204,7 +204,7 @@ export function useLiveMicrophone(): UseLiveMicrophoneReturn {
     }
 
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current.getTracks().forEach((track: MediaStreamTrack) => track.stop());
       streamRef.current = null;
     }
     setAudioStream(null);
@@ -238,7 +238,7 @@ export function useLiveMicrophone(): UseLiveMicrophoneReturn {
         } catch {}
       }
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current.getTracks().forEach((track: MediaStreamTrack) => track.stop());
       }
       stopVolumeMeter();
     };

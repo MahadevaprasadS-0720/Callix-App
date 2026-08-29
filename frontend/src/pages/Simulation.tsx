@@ -15,6 +15,7 @@ import { firestoreService } from '../services/firestoreService';
 import { formatPhoneNumber, formatDuration } from '../utils/formatters';
 import { SCAM_CATEGORIES } from '../utils/constants';
 import { ScamCategory } from '../types/fraud.types';
+import { CallRecord } from '../types/call.types';
 import { 
   Mic, 
   MicOff, 
@@ -171,21 +172,32 @@ export const Simulation: React.FC = () => {
   };
 
   const handleSaveToHistory = async () => {
-    const callRecord = {
-      callId: `call_${Date.now()}`,
+    const now = Date.now();
+    const callRecord: CallRecord = {
+      callId: `call_${now}`,
       uid: 'user_live_01',
       callerNumber,
       callerName,
-      startTime: Date.now() - callDuration * 1000,
-      endTime: Date.now(),
+      startTime: now - callDuration * 1000,
+      endTime: now,
       durationSeconds: callDuration,
       status: currentScore >= 75 ? ('FLAGGED' as const) : ('COMPLETED' as const),
       finalScore: currentScore,
       verdict,
       primaryCategory,
-      riskEventsCount: triggerPhrases.length,
-      guardianNotified,
       summaryExplanation: modelExplanation,
+      guardianNotified,
+      riskEvents: triggerPhrases.map((phrase, idx) => ({
+        eventId: `evt_${now}_${idx}`,
+        callId: `call_${now}`,
+        score: currentScore,
+        category: primaryCategory,
+        triggerPhrase: phrase,
+        modelExplanation,
+        timestampOffset: idx * 4,
+        createdAt: now,
+      })),
+      confidence: 0.96,
       transcript: finalTranscriptList.map((t, idx) => ({
         segmentId: t.id,
         speaker: t.speaker,
@@ -193,8 +205,7 @@ export const Simulation: React.FC = () => {
         timestampOffset: idx * 4,
         confidence: 0.95,
       })),
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      createdAt: now,
     };
 
     await firestoreService.saveCallRecord(callRecord);

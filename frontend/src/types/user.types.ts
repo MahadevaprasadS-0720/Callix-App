@@ -19,6 +19,8 @@ export interface User {
   photoURL?: string;
   plan: SubscriptionPlan;
   isSimulationUser?: boolean;
+  isGuest?: boolean;
+  authProvider?: 'google' | 'password' | 'guest' | 'demo';
   guardianLinks: GuardianLink[];
   preferences: {
     autoBlockHighRisk: boolean;
@@ -29,3 +31,4 @@ export interface User {
   };
   createdAt: number;
 }
+

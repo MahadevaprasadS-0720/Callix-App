@@ -5,9 +5,12 @@ import { CallSimulationProvider } from './context/CallSimulationContext';
 import { ToastProvider } from './context/ToastContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { DashboardLayout } from './components/layout/DashboardLayout';
+import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { Loader } from './components/common/Loader';
 
 // Lazy-loaded route components for optimal production bundle splitting
+const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
+const Auth = lazy(() => import('./pages/Auth').then(m => ({ default: m.Auth })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
 const Simulation = lazy(() => import('./pages/Simulation').then(m => ({ default: m.Simulation })));
 const AudioScanner = lazy(() => import('./pages/AudioScanner').then(m => ({ default: m.AudioScanner })));
@@ -18,7 +21,6 @@ const NumberLookup = lazy(() => import('./pages/NumberLookup').then(m => ({ defa
 const GuardianView = lazy(() => import('./pages/GuardianView').then(m => ({ default: m.GuardianView })));
 const PhraseLibrary = lazy(() => import('./pages/PhraseLibrary').then(m => ({ default: m.PhraseLibrary })));
 const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
-const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
 
 export const App: React.FC = () => {
   return (
@@ -27,42 +29,52 @@ export const App: React.FC = () => {
         <CallSimulationProvider>
           <ToastProvider>
             <BrowserRouter>
-            <Suspense
-              fallback={
-                <div className="min-h-screen bg-cyber-bg flex items-center justify-center">
-                  <Loader size="lg" text="Initializing Audio Guardian Multimodal Shield..." />
-                </div>
-              }
-            >
-              <Routes>
-                {/* Public Auth Route */}
-                <Route path="/login" element={<Login />} />
+              <Suspense
+                fallback={
+                  <div className="min-h-screen bg-cyber-bg flex items-center justify-center">
+                    <Loader size="lg" text="Initializing Audio Guardian Multimodal Shield..." />
+                  </div>
+                }
+              >
+                <Routes>
+                  {/* Public Landing Page */}
+                  <Route path="/" element={<LandingPage />} />
 
-                {/* Protected Console Dashboard Routes */}
-                <Route path="/" element={<DashboardLayout />}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="simulation" element={<Simulation />} />
-                  <Route path="scanner" element={<AudioScanner />} />
-                  <Route path="audio-scanner" element={<AudioScanner />} />
-                  <Route path="calls" element={<CallHistory />} />
-                  <Route path="calls/:callId" element={<CallDetails />} />
-                  <Route path="analytics" element={<Analytics />} />
-                  <Route path="lookup" element={<NumberLookup />} />
-                  <Route path="guardian" element={<GuardianView />} />
-                  <Route path="phrases" element={<PhraseLibrary />} />
-                  <Route path="library" element={<PhraseLibrary />} />
-                  <Route path="settings" element={<Settings />} />
-                </Route>
+                  {/* Public Authentication Route */}
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/login" element={<Navigate to="/auth" replace />} />
 
-                {/* Catch-all redirect */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </ToastProvider>
-      </CallSimulationProvider>
-    </AuthProvider>
-  </ErrorBoundary>
+                  {/* Protected Console Dashboard Routes */}
+                  <Route
+                    element={
+                      <ProtectedRoute>
+                        <DashboardLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/simulation" element={<Simulation />} />
+                    <Route path="/scanner" element={<AudioScanner />} />
+                    <Route path="/audio-scanner" element={<AudioScanner />} />
+                    <Route path="/calls" element={<CallHistory />} />
+                    <Route path="/calls/:callId" element={<CallDetails />} />
+                    <Route path="/analytics" element={<Analytics />} />
+                    <Route path="/lookup" element={<NumberLookup />} />
+                    <Route path="/guardian" element={<GuardianView />} />
+                    <Route path="/phrases" element={<PhraseLibrary />} />
+                    <Route path="/library" element={<PhraseLibrary />} />
+                    <Route path="/settings" element={<Settings />} />
+                  </Route>
+
+                  {/* Catch-all fallback */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </ToastProvider>
+        </CallSimulationProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 };
 

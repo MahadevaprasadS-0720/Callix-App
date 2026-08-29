@@ -31,6 +31,11 @@ export const SCAM_CATEGORIES: Record<ScamCategory, { label: string; color: strin
     color: '#10B981',
     description: 'Normal conversational dialogue with zero threat indicators.',
   },
+  NONE: {
+    label: 'None / Safe',
+    color: '#10B981',
+    description: 'No threat indicators identified.',
+  },
 };
 
 export interface SimulationPreset {

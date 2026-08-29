@@ -6,6 +6,8 @@ interface LiveWaveformProps {
   isActive?: boolean;
   audioStream?: MediaStream | null;
   volume?: number;
+  levels?: number[];
+  color?: string;
   className?: string;
   threatLevel?: 'safe' | 'suspicious' | 'fraud';
 }
@@ -15,6 +17,8 @@ export const LiveWaveform: React.FC<LiveWaveformProps> = ({
   isActive = false,
   audioStream = null,
   volume = 0,
+  levels,
+  color,
   className,
   threatLevel = 'safe',
 }) => {

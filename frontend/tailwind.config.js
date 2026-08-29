@@ -9,17 +9,18 @@ export default {
     extend: {
       colors: {
         cyber: {
-          bg: '#0B0F19',
-          card: '#111827',
-          cardHover: '#1A2234',
-          border: '#1E293B',
-          borderLight: '#334155',
-          text: '#F8FAFC',
-          muted: '#94A3B8',
-          subtle: '#64748B',
+          bg: '#000000',
+          surface: '#09090B',
+          card: '#0C0C0E',
+          cardHover: '#141417',
+          border: 'rgba(255, 255, 255, 0.08)',
+          borderLight: 'rgba(255, 255, 255, 0.15)',
+          text: '#EDEDED',
+          muted: '#A1A1AA',
+          subtle: '#71717A',
         },
         threat: {
-          safe: '#10B981',       // Green
+          safe: '#10B981',       // Emerald
           safeBg: 'rgba(16, 185, 129, 0.12)',
           suspicious: '#F59E0B', // Amber
           suspiciousBg: 'rgba(245, 158, 11, 0.12)',
@@ -29,27 +30,53 @@ export default {
           criticalBg: 'rgba(220, 38, 38, 0.22)',
         },
         brand: {
-          primary: '#6366F1',    // Electric Indigo
-          cyan: '#06B6D4',       // Neon Cyan
-          purple: '#8B5CF6',     // Violet
-          glow: 'rgba(99, 102, 241, 0.25)',
+          primary: '#FFFFFF',    // Resend crisp white primary
+          indigo: '#6366F1',
+          cyan: '#06B6D4',
+          purple: '#8B5CF6',
+          glow: 'rgba(255, 255, 255, 0.15)',
         },
+        resend: {
+          black: '#000000',
+          surface: '#09090B',
+          card: '#0E0E12',
+          border: 'rgba(255, 255, 255, 0.08)',
+          hover: 'rgba(255, 255, 255, 0.04)',
+          text: '#F4F4F5',
+          muted: '#A1A1AA',
+          subtle: '#71717A',
+        }
       },
       boxShadow: {
-        'glow-primary': '0 0 20px rgba(99, 102, 241, 0.35)',
-        'glow-cyan': '0 0 20px rgba(6, 182, 212, 0.35)',
-        'glow-danger': '0 0 25px rgba(239, 68, 68, 0.45)',
-        'glow-safe': '0 0 20px rgba(16, 185, 129, 0.35)',
-        'card-cyber': '0 8px 30px rgba(0, 0, 0, 0.45)',
+        'glow-primary': '0 0 25px rgba(255, 255, 255, 0.15)',
+        'glow-cyan': '0 0 20px rgba(6, 182, 212, 0.25)',
+        'glow-danger': '0 0 25px rgba(239, 68, 68, 0.35)',
+        'glow-safe': '0 0 20px rgba(16, 185, 129, 0.25)',
+        'card-cyber': '0 8px 30px rgba(0, 0, 0, 0.8)',
+        'resend-button': '0 0 0 1px rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.4), 0 12px 24px rgba(0, 0, 0, 0.4)',
+        'resend-glow': '0 0 40px -10px rgba(255, 255, 255, 0.15)',
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'ping-slow': 'ping 2.5s cubic-bezier(0, 0, 0.2, 1) infinite',
         'spin-slow': 'spin 12s linear infinite',
+        'shimmer': 'shimmer 2.5s linear infinite',
+        'border-beam': 'border-beam 6s linear infinite',
+      },
+      keyframes: {
+        shimmer: {
+          '0%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' },
+        },
+        'border-beam': {
+          '100%': { 'offset-distance': '100%' },
+        }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        serif: ['"Instrument Serif"', 'Domaine', 'Georgia', 'serif'],
+        mono: ['"JetBrains Mono"', 'Commit Mono', 'Fira Code', 'monospace'],
       },
     },
   },

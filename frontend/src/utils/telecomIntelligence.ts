@@ -514,3 +514,8 @@ export function analyzeTelecomNumber(rawNumber: string, existingReports: number 
     tags: info.tags,
   };
 }
+
+export type AccurateTelecomProfile = TelecomInfo;
+export const resolveIndianTelecomProfile = parseIndianNumber;
+export const OPERATOR_BRANDS = BRAND_STYLES;
+

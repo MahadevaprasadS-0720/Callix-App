@@ -39,6 +39,21 @@ export const firestoreService = {
     localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(updatedCalls));
   },
 
+  saveCall: async (call: CallRecord): Promise<void> => {
+    return firestoreService.saveCallRecord(call);
+  },
+
+  deleteCall: async (callId: string): Promise<void> => {
+    const calls = await firestoreService.getCalls();
+    const updatedCalls = calls.filter((c: CallRecord) => c.callId !== callId);
+    localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(updatedCalls));
+  },
+
+  resetDemoCalls: (): CallRecord[] => {
+    localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(MOCK_CALLS));
+    return MOCK_CALLS;
+  },
+
   saveRiskEvent: async (callId: string, event: RiskEvent): Promise<void> => {
     const key = `${RISK_EVENTS_STORAGE_KEY}_${callId}`;
     const stored = localStorage.getItem(key);

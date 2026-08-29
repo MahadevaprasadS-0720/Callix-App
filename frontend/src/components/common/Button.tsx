@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '../../utils/cn';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'frosted' | 'danger' | 'success' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
@@ -20,21 +20,22 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-cyber-bg disabled:opacity-50 disabled:cursor-not-allowed select-none cursor-pointer';
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:opacity-40 disabled:cursor-not-allowed select-none cursor-pointer active:scale-[0.98]';
 
   const variants: Record<string, string> = {
-    primary: 'bg-gradient-to-r from-brand-primary to-indigo-600 hover:from-indigo-500 hover:to-indigo-700 text-white shadow-glow-primary focus:ring-brand-primary',
-    secondary: 'bg-cyber-cardHover hover:bg-slate-700 text-cyber-text border border-cyber-border focus:ring-slate-400',
-    danger: 'bg-gradient-to-r from-threat-fraud to-red-700 hover:from-red-600 hover:to-red-800 text-white shadow-glow-danger focus:ring-threat-fraud',
-    success: 'bg-gradient-to-r from-threat-safe to-emerald-700 hover:from-emerald-600 hover:to-emerald-800 text-white shadow-glow-safe focus:ring-threat-safe',
-    outline: 'border border-brand-primary/50 text-brand-primary hover:bg-brand-primary/10 focus:ring-brand-primary',
-    ghost: 'text-cyber-muted hover:text-cyber-text hover:bg-cyber-cardHover focus:ring-cyber-subtle',
+    primary: 'bg-white text-black font-semibold hover:bg-zinc-200 shadow-sm border border-white/90',
+    secondary: 'bg-zinc-900/90 text-zinc-200 hover:text-white hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700',
+    frosted: 'resend-frosted-btn text-white',
+    danger: 'bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:text-red-300',
+    success: 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300',
+    outline: 'border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 hover:bg-zinc-900/50',
+    ghost: 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60',
   };
 
   const sizes: Record<string, string> = {
-    sm: 'px-3 py-1.5 text-xs gap-1.5',
+    sm: 'px-3 py-1.5 text-xs gap-1.5 rounded-lg',
     md: 'px-4 py-2 text-sm gap-2',
-    lg: 'px-6 py-3 text-base gap-2.5 font-semibold',
+    lg: 'px-5 py-2.5 text-base gap-2.5 font-medium',
   };
 
   return (

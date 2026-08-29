@@ -1,46 +1,65 @@
 import React from 'react';
-import { Menu, Shield, Bell, User as UserIcon, Play, Radio } from 'lucide-react';
+import { Menu, User as UserIcon, Play, Radio, Home, LogOut, Fingerprint, ShieldCheck, Terminal } from 'lucide-react';
 import { Button } from '../common/Button';
 import { Badge } from '../common/Badge';
 import { useAuth } from '../../context/AuthContext';
 import { useCallSimulation } from '../../context/CallSimulationContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 interface HeaderProps {
   onMenuToggle: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { isCallActive, startSimulation, currentRiskScore } = useCallSimulation();
   const navigate = useNavigate();
 
+  const handleSignOut = async () => {
+    await logout();
+    navigate('/auth');
+  };
+
   return (
-    <header className="sticky top-0 z-20 h-16 bg-cyber-card/90 backdrop-blur-md border-b border-cyber-border px-4 lg:px-8 flex items-center justify-between">
+    <header className="sticky top-0 z-20 h-14 glass-navbar border-b border-white/20 px-4 lg:px-8 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuToggle}
-          className="p-2 text-cyber-muted hover:text-cyber-text rounded-lg hover:bg-cyber-cardHover lg:hidden"
+          className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-900 lg:hidden"
+          aria-label="Toggle Navigation Menu"
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-5 h-5" />
         </button>
-        <div className="hidden sm:flex items-center gap-2">
-          <Badge variant="cyan" size="sm" pulse>
-            ACTIVE INTELLIGENCE
-          </Badge>
-          <span className="text-xs text-cyber-muted font-mono hidden md:inline">
-            Deepgram nova-2 en-IN + Anthropic Claude XAI
+        <div className="hidden sm:flex items-center gap-2.5">
+          <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] font-mono text-zinc-300">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+            </span>
+            <span>SYSTEM NORMAL</span>
+          </span>
+          <span className="text-xs text-zinc-500 font-mono hidden md:inline">
+            Deepgram nova-2 · Claude 3.5 Sonnet XAI
           </span>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Public Landing Link */}
+        <Link
+          to="/"
+          className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-zinc-800 text-xs text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors"
+        >
+          <Home className="w-3.5 h-3.5" />
+          <span>Home</span>
+        </Link>
+
         {/* Quick Launch Simulation Button */}
         {!isCallActive ? (
           <Button
             size="sm"
             variant="primary"
-            leftIcon={<Play className="w-3.5 h-3.5 fill-current" />}
+            leftIcon={<Play className="w-3 h-3 fill-current" />}
             onClick={() => {
               startSimulation();
               navigate('/simulation');
@@ -52,31 +71,47 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           <Button
             size="sm"
             variant="danger"
-            leftIcon={<Radio className="w-3.5 h-3.5 animate-pulse" />}
+            leftIcon={<Radio className="w-3 h-3 animate-pulse" />}
             onClick={() => navigate('/simulation')}
           >
-            Live Sim ({currentRiskScore}/100)
+            Live Stream ({currentRiskScore}/100)
           </Button>
         )}
 
         {/* User Account / Status */}
-        <div className="flex items-center gap-3 pl-3 border-l border-cyber-border">
+        <div className="flex items-center gap-3 pl-3 border-l border-zinc-800">
           <div className="hidden sm:flex flex-col text-right">
-            <span className="text-xs font-semibold text-cyber-text leading-tight">
-              {user?.displayName || 'Arjun Sharma'}
+            <span className="text-xs font-medium text-zinc-200 leading-tight flex items-center justify-end gap-1.5">
+              {user?.displayName || 'Developer'}
+              {user?.isGuest && (
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 font-mono">
+                  GUEST
+                </span>
+              )}
             </span>
-            <span className="text-[10px] text-brand-cyan font-mono">
-              {user?.plan === 'PRO_SHIELD' ? 'Pro Shield Protected' : 'Free Tier'}
+            <span className="text-[10px] text-zinc-500 font-mono">
+              {user?.isGuest ? 'Sandbox' : (user?.plan === 'PRO_SHIELD' ? 'Pro Shield' : 'Free Tier')}
             </span>
           </div>
 
-          <div className="w-9 h-9 rounded-full ring-2 ring-brand-primary/40 overflow-hidden bg-slate-800 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full ring-1 ring-zinc-700 overflow-hidden bg-zinc-900 flex items-center justify-center">
             {user?.photoURL ? (
               <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+            ) : user?.isGuest ? (
+              <Fingerprint className="w-4 h-4 text-zinc-400" />
             ) : (
-              <UserIcon className="w-5 h-5 text-cyber-muted" />
+              <UserIcon className="w-4 h-4 text-zinc-400" />
             )}
           </div>
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            title="Sign Out"
+            className="p-1.5 text-zinc-400 hover:text-zinc-200 rounded-lg hover:bg-zinc-900 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </header>

@@ -3,37 +3,654 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-cyber-bg text-cyber-text antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
   }
 
-  /* Custom Cyber Scrollbar */
+  body {
+    background-color: #000000;
+    color: #EDEDED;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* Resend Minimalist Dark Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #0B0F19;
+    background: #000000;
   }
   ::-webkit-scrollbar-thumb {
-    background: #1E293B;
-    border-radius: 4px;
+    background: #27272a;
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #334155;
+    background: #3f3f46;
   }
+}
+
+/* Resend Hero Display Typography */
+.font-domaine,
+.font-serif-hero {
+  font-family: 'Instrument Serif', Georgia, Cambria, 'Times New Roman', serif;
+  color: #FFFFFF;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Resend Rainbow Border Badge */
+.rainbow-border {
+  position: relative;
+  background: linear-gradient(90deg, #ff4545, #00ffaa, #0066ff, #ff00ea, #ff4545);
+  background-size: 300% 100%;
+  animation: rainbow-shift 6s linear infinite;
+  padding: 1px;
+}
+
+.rainbow-border > * {
+  background: #000000;
+}
+
+@keyframes rainbow-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* Resend Button Frosted Glass */
+.resend-frosted-btn {
+  background: linear-gradient(104deg, rgba(253, 253, 253, 0.05) 5%, rgba(240, 240, 228, 0.1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(25px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.resend-frosted-btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  color: #000000;
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
+}
+
+/* Resend White High-Contrast Button */
+.resend-primary-btn {
+  background-color: #FFFFFF;
+  color: #000000;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 255, 255, 0.2);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.resend-primary-btn:hover {
+  background-color: #E4E4E7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.35);
+}
+
+.resend-primary-btn:active {
+  transform: translateY(0);
+}
+
+/* Resend Card Surface with 1px subtle border */
+.resend-card {
+  background-color: #09090B;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.resend-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Resend Radial Glow Light Beam */
+.resend-top-glow {
+  background: radial-gradient(circle at 50% -20%, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+}
+
+.resend-conic-glow {
+  background: conic-gradient(from 90deg at 50% 50%, #00000000 50%, #000 50%), radial-gradient(rgba(200, 200, 200, 0.12) 0%, transparent 80%);
+}
+
+/* Resend Grid background pattern */
+.resend-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* ========================================================= */
+/* IMAGE 1 EXACT GLASSMORPHISM DESIGN SYSTEM                */
+/* ========================================================= */
+
+.glass-panel {
+  position: relative;
+  background: rgba(14, 14, 18, 0.68);
+  backdrop-filter: blur(28px) saturate(210%);
+  -webkit-backdrop-filter: blur(28px) saturate(210%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 
+    0 30px 60px -15px rgba(0, 0, 0, 0.95),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 25px -5px rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+/* Diagonal glass reflection sheen */
+.glass-panel::before,
+.glass-navbar::before,
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    130deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.03) 40%,
+    transparent 40.5%,
+    transparent 100%
+  );
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* ========================================================= */
+/* EXACT CRYSTAL CLEAR GLASS CAPSULE (OPTICAL GLASS)        */
+/* ========================================================= */
+
+.crystal-glass-capsule {
+  position: relative;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.04) 42%,
+    rgba(8, 8, 12, 0.45) 100%
+  );
+  backdrop-filter: blur(28px) saturate(200%) contrast(105%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%) contrast(105%);
+  border: 1.2px solid rgba(255, 255, 255, 0.42);
+  border-radius: 9999px;
+  box-shadow: 
+    0 25px 55px -12px rgba(0, 0, 0, 0.95),
+    0 0 25px rgba(255, 255, 255, 0.2),
+    inset 0 1.8px 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 0 18px rgba(255, 255, 255, 0.06);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transform: none !important; /* Fixed and stable, zero wobbly shaking */
+}
+
+.crystal-glass-capsule:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 
+    0 28px 65px -10px rgba(0, 0, 0, 1),
+    0 0 35px rgba(255, 255, 255, 0.3),
+    inset 0 2px 1.5px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 0 22px rgba(255, 255, 255, 0.09);
+}
+
+/* Diagonal crystal glass reflection sheen */
+.crystal-glass-capsule::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    122deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.04) 38%,
+    transparent 38.5%,
+    transparent 100%
+  );
+  pointer-events: none;
+  border-radius: 9999px;
+  z-index: 1;
+}
+
+/* 4-Point Sparkle Star Glint Flare Animation */
+.sparkle-star {
+  position: absolute;
+  top: -6px;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.6));
+  animation: sparkle-pulse 3s ease-in-out infinite;
+}
+
+@keyframes sparkle-pulse {
+  0%, 100% {
+    transform: scale(0.9) rotate(0deg);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.25) rotate(45deg);
+    opacity: 1;
+  }
+}
+
+/* ========================================================= */
+/* ULTRA-PREMIUM CRYSTAL GLASS BUTTONS & STABLE INTERACTIONS */
+/* ========================================================= */
+
+.nav-3d-btn {
+  position: relative;
+  transition: background 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.15s ease,
+              box-shadow 0.18s ease;
+  will-change: background, box-shadow;
+  transform: none !important; /* Stable and fixed, zero shaking */
+}
+
+.nav-3d-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+.nav-3d-btn:active {
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Active Luminous Crystal Glass Pill (High-Refraction Optical Diamond Pill) */
+.nav-3d-active-pill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.12) 55%,
+    rgba(255, 255, 255, 0.22) 100%
+  );
+  backdrop-filter: blur(28px) saturate(240%);
+  -webkit-backdrop-filter: blur(28px) saturate(240%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 9999px;
+  box-shadow: 
+    0 0 24px rgba(255, 255, 255, 0.45),
+    inset 0 2px 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+  z-index: 0;
+  animation: pill-pop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pill-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ========================================================= */
+/* VISIONOS FUTURISTIC HOLOGRAPHIC GLASS MODAL               */
+/* ========================================================= */
+
+.visionos-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  z-index: 90;
+  animation: visionos-fade 0.22s ease-out forwards;
+}
+
+@keyframes visionos-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.visionos-glass-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 94vw;
+  max-width: 880px;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.04) 35%,
+    rgba(10, 10, 16, 0.72) 100%
+  );
+  backdrop-filter: blur(44px) saturate(220%) contrast(108%);
+  -webkit-backdrop-filter: blur(44px) saturate(220%) contrast(108%);
+  border: 1.5px solid rgba(255, 255, 255, 0.48);
+  border-radius: 2rem;
+  box-shadow: 
+    0 40px 100px -20px rgba(0, 0, 0, 0.95),
+    0 0 60px rgba(255, 255, 255, 0.2),
+    inset 0 2px 1.5px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 1.5px 0 rgba(255, 255, 255, 0.3),
+    inset 0 0 30px rgba(255, 255, 255, 0.05);
+  z-index: 100;
+  animation: visionos-enter 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden;
+}
+
+.visionos-glass-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.24) 0%,
+    rgba(255, 255, 255, 0.04) 38%,
+    transparent 38.5%,
+    transparent 100%
+  );
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+@keyframes visionos-enter {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Holographic 3D Viewport Chamber */
+.holographic-chamber {
+  position: relative;
+  background: radial-gradient(circle at center, rgba(16, 24, 42, 0.75) 0%, rgba(5, 5, 10, 0.92) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 30px rgba(56, 189, 248, 0.18);
+}
+
+.holo-grid {
+  background-size: 24px 24px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+}
+
+.holo-scanner-beam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.9), transparent);
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.85);
+  animation: holo-scan 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes holo-scan {
+  0% { top: 12%; opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { top: 88%; opacity: 0.3; }
+}
+
+.holo-radar-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  border: 1px dashed rgba(56, 189, 248, 0.35);
+  animation: radar-spin 14s linear infinite;
+}
+
+@keyframes radar-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* VisionOS Feature Interactive Tab Buttons */
+.visionos-tab-btn {
+  position: relative;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  border-radius: 1rem;
+}
+
+.visionos-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+.visionos-tab-btn.active {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%);
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.25), inset 0 1.5px 1px rgba(255, 255, 255, 0.9);
+}
+
+/* Glassmorphism Capsule Pill Button */
+.glass-pill {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 9999px;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.5),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.glass-pill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    130deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.04) 45%,
+    transparent 45.5%,
+    transparent 100%
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.glass-pill:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow: 
+    0 6px 25px rgba(0, 0, 0, 0.7),
+    0 0 25px rgba(255, 255, 255, 0.3),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.glass-pill:active {
+  transform: translateY(0);
+}
+
+/* Glassmorphism Card Element */
+.glass-card {
+  position: relative;
+  background: rgba(14, 14, 18, 0.65);
+  backdrop-filter: blur(25px) saturate(190%);
+  -webkit-backdrop-filter: blur(25px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 1.5rem;
+  box-shadow: 
+    0 20px 45px -10px rgba(0, 0, 0, 0.8),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.25s ease;
+  overflow: hidden;
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 
+    0 25px 55px -10px rgba(0, 0, 0, 0.9),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.6),
+    0 0 30px rgba(255, 255, 255, 0.08);
 }
 
 /* Glowing text utilities */
 .text-glow-primary {
-  text-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.4);
 }
 
 .text-glow-cyan {
-  text-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+  text-shadow: 0 0 16px rgba(6, 182, 212, 0.5);
 }
 
 .text-glow-danger {
-  text-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+  text-shadow: 0 0 16px rgba(239, 68, 68, 0.5);
 }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* ========================================================= */
+/* VISIONOS GLASS AUTH CARD & FORM ELEMENTS                 */
+/* ========================================================= */
+
+.visionos-glass-card {
+  position: relative;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.04) 35%,
+    rgba(10, 10, 16, 0.74) 100%
+  );
+  backdrop-filter: blur(44px) saturate(220%) contrast(108%);
+  -webkit-backdrop-filter: blur(44px) saturate(220%) contrast(108%);
+  border: 1.5px solid rgba(255, 255, 255, 0.48);
+  border-radius: 2rem;
+  box-shadow: 
+    0 40px 100px -20px rgba(0, 0, 0, 0.95),
+    0 0 50px rgba(255, 255, 255, 0.16),
+    inset 0 2px 1.5px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 1.5px 0 rgba(255, 255, 255, 0.25),
+    inset 0 0 30px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.visionos-glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.24) 0%,
+    rgba(255, 255, 255, 0.04) 38%,
+    transparent 38.5%,
+    transparent 100%
+  );
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+.glass-input-3d {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 0.875rem !important;
+  color: #fff !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.3), inset 0 0.5px 0.5px rgba(255, 255, 255, 0.2) !important;
+}
+
+.glass-input-3d:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.glass-input-3d:focus {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.75) !important;
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.25), inset 0 1.5px 1px rgba(255, 255, 255, 0.8) !important;
+  outline: none !important;
+}
+
+/* Resend-Matched Professional Glassmorphism Auth Card (Light Optical Crystal Glass) */
+.resend-glass-auth-card {
+  position: relative;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 40%,
+    rgba(255, 255, 255, 0.01) 70%,
+    rgba(18, 18, 24, 0.45) 100%
+  );
+  backdrop-filter: blur(30px) saturate(210%) contrast(106%);
+  -webkit-backdrop-filter: blur(30px) saturate(210%) contrast(106%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 2rem;
+  box-shadow: 
+    0 30px 70px -15px rgba(0, 0, 0, 0.85),
+    0 0 35px rgba(255, 255, 255, 0.06),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.resend-glass-auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.02) 35%,
+    transparent 35.5%,
+    transparent 100%
+  );
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+

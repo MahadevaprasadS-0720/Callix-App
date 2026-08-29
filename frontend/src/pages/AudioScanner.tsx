@@ -140,7 +140,7 @@ export const AudioScanner: React.FC = () => {
       // Resume Web Audio Context if suspended
       audioRef.current.play().then(() => {
         setIsPlaying(true);
-      }).catch((err) => {
+      }).catch((err: any) => {
         console.warn('Playback error:', err);
         setIsPlaying(true);
       });

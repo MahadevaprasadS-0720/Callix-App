@@ -15,17 +15,17 @@ export const Card: React.FC<CardProps> = ({
 }) => {
   const glows: Record<string, string> = {
     none: '',
-    primary: 'hover:shadow-glow-primary hover:border-brand-primary/40',
-    cyan: 'hover:shadow-glow-cyan hover:border-brand-cyan/40',
-    danger: 'hover:shadow-glow-danger hover:border-threat-fraud/40',
-    safe: 'hover:shadow-glow-safe hover:border-threat-safe/40',
+    primary: 'hover:border-zinc-500/50 hover:shadow-glow-primary',
+    cyan: 'hover:border-cyan-500/40 hover:shadow-glow-cyan',
+    danger: 'hover:border-red-500/40 hover:shadow-glow-danger',
+    safe: 'hover:border-emerald-500/40 hover:shadow-glow-safe',
   };
 
   return (
     <div
       className={cn(
-        'bg-cyber-card border border-cyber-border rounded-xl p-5 shadow-card-cyber transition-all duration-200',
-        hover && 'hover:bg-cyber-cardHover hover:border-cyber-borderLight',
+        'bg-[#09090B] border border-white/[0.08] rounded-2xl p-5 shadow-2xl transition-all duration-200',
+        hover && 'hover:bg-[#0E0E12] hover:border-white/[0.15]',
         glows[glow] || '',
         className
       )}
