@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { 
   ShieldAlert, 
@@ -12,9 +12,10 @@ import {
 } from 'lucide-react';
 
 export const Auth: React.FC = () => {
+  return <Navigate to="/?auth=login" replace />;
   const navigate = useNavigate();
   const location = useLocation();
-  const { loginWithGoogle, loginWithGithub, loginWithEmail, registerWithEmail, loginAsGuest } = useAuth();
+  const { loginWithGoogle, loginWithGithub, loginWithEmail, registerWithEmail } = useAuth();
 
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('arjun.sharma@callix.ai');
@@ -330,19 +331,6 @@ export const Auth: React.FC = () => {
                 </>
               )}
             </p>
-
-            {/* Quick 1-Click Demo Access */}
-            <button
-              type="button"
-              onClick={() => {
-                loginAsGuest();
-                navigate('/dashboard');
-              }}
-              className="text-xs text-zinc-400 hover:text-white transition-colors flex items-center justify-center gap-1.5 mx-auto py-1"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Explore live simulator as Guest (Instant Access)</span>
-            </button>
           </div>
 
         </div>

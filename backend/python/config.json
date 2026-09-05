@@ -1,0 +1,105 @@
+{
+  "project": {
+    "name": "Callix Audio Guardian Backend",
+    "version": "2.0.0",
+    "description": "AI-Powered Voice Scam, Deepfake & Fraud Detection System",
+    "author": "Callix Engineering",
+    "license": "MIT"
+  },
+  "compiler_settings": {
+    "python_target": "3.14",
+    "optimization_level": "production",
+    "float_precision": "float32",
+    "enable_jit": false,
+    "vectorized_numpy": true,
+    "random_seed": 42
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 5001,
+    "debug": false,
+    "cors_origins": ["*"]
+  },
+  "database": {
+    "dialect": "sqlite",
+    "sqlite_path": "callix_guardian.db",
+    "postgresql_example": "postgresql://postgres:password@localhost:5432/callix_db",
+    "mysql_example": "mysql+pymysql://user:password@localhost:3306/callix_db",
+    "echo_queries": false
+  },
+  "ml_models": {
+    "random_forest": {
+      "name": "Random Forest Classifier",
+      "n_estimators": 100,
+      "max_depth": 10,
+      "min_samples_split": 2,
+      "random_state": 42
+    },
+    "svm": {
+      "name": "Support Vector Machine",
+      "kernel": "rbf",
+      "C": 1.0,
+      "gamma": "scale",
+      "probability": true
+    },
+    "cnn": {
+      "name": "1D Convolutional Neural Network",
+      "input_dim": 16,
+      "num_filters": 32,
+      "kernel_size": 3,
+      "pool_size": 2,
+      "learning_rate": 0.005,
+      "epochs": 40
+    },
+    "rnn": {
+      "name": "Recurrent Neural Network (Elman)",
+      "input_dim": 16,
+      "hidden_dim": 24,
+      "output_dim": 1,
+      "learning_rate": 0.005,
+      "epochs": 40
+    },
+    "lstm": {
+      "name": "Long Short-Term Memory (LSTM)",
+      "input_dim": 16,
+      "hidden_dim": 24,
+      "output_dim": 1,
+      "learning_rate": 0.005,
+      "epochs": 45
+    },
+    "ensemble": {
+      "weights": {
+        "random_forest": 0.30,
+        "svm": 0.20,
+        "cnn": 0.20,
+        "rnn": 0.15,
+        "lstm": 0.15
+      }
+    }
+  },
+  "nlp": {
+    "high_risk_threshold": 75,
+    "suspicious_threshold": 40,
+    "scam_categories": [
+      "OTP_THEFT",
+      "KYC_EXPIRY",
+      "DIGITAL_ARREST",
+      "CUSTOMS_PARCEL_SCAM",
+      "UPI_FRAUD",
+      "REMOTE_ACCESS",
+      "LOTTERY_PRIZE",
+      "SAFE"
+    ]
+  },
+  "stt": {
+    "default_language": "en-IN",
+    "sample_rate_hz": 16000,
+    "deepfake_pitch_variance_threshold_hz": 8.0,
+    "breathing_pause_min_ms": 150
+  },
+  "reports": {
+    "company_name": "Audio Guardian Defense Systems",
+    "emergency_helpline": "1930 (National Cybercrime Portal)",
+    "export_formats": ["json", "html"]
+  }
+}

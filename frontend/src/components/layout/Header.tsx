@@ -2,6 +2,7 @@ import React from 'react';
 import { Menu, User as UserIcon, Play, Radio, Home, LogOut, Fingerprint, ShieldCheck, Terminal } from 'lucide-react';
 import { Button } from '../common/Button';
 import { Badge } from '../common/Badge';
+import { UserAvatar } from '../common/UserAvatar';
 import { useAuth } from '../../context/AuthContext';
 import { useCallSimulation } from '../../context/CallSimulationContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -18,7 +19,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, onProfileClick }) 
 
   const handleSignOut = async () => {
     await logout();
-    navigate('/auth');
+    navigate('/?auth=login');
   };
 
   return (
@@ -89,26 +90,17 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, onProfileClick }) 
             <div className="hidden sm:flex flex-col text-right">
               <span className="text-xs font-medium text-zinc-200 group-hover:text-white leading-tight flex items-center justify-end gap-1.5 transition-colors">
                 {user?.displayName || 'Developer'}
-                {user?.isGuest && (
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 font-mono">
-                    GUEST
-                  </span>
-                )}
               </span>
               <span className="text-[10px] text-zinc-500 group-hover:text-zinc-400 font-mono transition-colors">
-                {user?.isGuest ? 'Sandbox' : (user?.plan === 'PRO_SHIELD' ? 'Pro Shield' : 'Free Tier')}
+                {user?.plan === 'PRO_SHIELD' ? 'Pro Shield' : 'Active'}
               </span>
             </div>
 
-            <div className="w-8 h-8 rounded-full ring-1 ring-zinc-700 group-hover:ring-white/50 overflow-hidden bg-zinc-900 flex items-center justify-center transition-all shadow-sm">
-              {user?.photoURL ? (
-                <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
-              ) : user?.isGuest ? (
-                <Fingerprint className="w-4 h-4 text-zinc-400 group-hover:text-white" />
-              ) : (
-                <UserIcon className="w-4 h-4 text-zinc-400 group-hover:text-white" />
-              )}
-            </div>
+            <UserAvatar 
+              user={user} 
+              size="sm" 
+              className="ring-1 ring-zinc-700 group-hover:ring-white/50 transition-all" 
+            />
           </div>
 
           <button

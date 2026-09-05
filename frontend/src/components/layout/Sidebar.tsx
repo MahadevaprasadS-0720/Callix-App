@@ -20,6 +20,7 @@ import {
 import { cn } from '../../utils/cn';
 import { useCallSimulation } from '../../context/CallSimulationContext';
 import { useAuth } from '../../context/AuthContext';
+import { UserAvatar } from '../common/UserAvatar';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onProfileClic
 
   const handleLogout = async () => {
     await logout();
-    navigate('/auth');
+    navigate('/?auth=login');
   };
 
   const navItems = [
@@ -90,21 +91,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onProfileClic
             title="Open User Profile & Credentials"
           >
             <div className="flex items-center gap-2 truncate">
-              <div className="w-6 h-6 rounded-full bg-zinc-800 overflow-hidden flex items-center justify-center text-zinc-300 shrink-0 ring-1 ring-white/10 group-hover:ring-white/30">
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
-                ) : user?.isGuest ? (
-                  <Fingerprint className="w-3.5 h-3.5" />
-                ) : (
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                )}
-              </div>
+              <UserAvatar user={user} size="xs" shape="circle" className="ring-1 ring-white/10 group-hover:ring-white/30" />
               <div className="truncate">
                 <div className="font-medium text-zinc-200 group-hover:text-white truncate text-[11px] transition-colors">
                   {user?.displayName || 'Developer'}
                 </div>
                 <div className="text-[10px] text-zinc-500 font-mono">
-                  {user?.isGuest ? 'Sandbox' : (user?.plan || 'PRO_SHIELD')}
+                  {user?.plan || 'PRO_SHIELD'}
                 </div>
               </div>
             </div>

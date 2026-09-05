@@ -26,7 +26,8 @@ import {
   Sparkles,
   CreditCard,
   Plus,
-  Trash2
+  Trash2,
+  Camera
 } from 'lucide-react';
 
 export const Settings: React.FC = () => {
@@ -60,6 +61,20 @@ export const Settings: React.FC = () => {
       ...prev,
       [guardianId]: !prev[guardianId],
     }));
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        if (base64) {
+          updateProfile({ photoURL: base64 });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSaveKeys = (e: React.FormEvent) => {
@@ -154,11 +169,34 @@ export const Settings: React.FC = () => {
       <Card className="p-6 bg-gradient-to-r from-slate-900 via-cyber-card to-slate-900 border border-cyber-border space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <img
-              src={user?.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-              alt={user?.displayName || 'User Profile'}
-              className="w-16 h-16 rounded-2xl object-cover border-2 border-brand-primary shadow-glow-primary/20"
-            />
+            <div className="group relative w-16 h-16 rounded-2xl overflow-hidden border-2 border-brand-primary shadow-glow-primary/20 shrink-0 bg-zinc-900 flex items-center justify-center">
+              {user?.photoURL ? (
+                <img
+                  src={user.photoURL.includes('googleusercontent.com') ? user.photoURL.replace(/=s\d+(-c)?$/, '=s256-c') : user.photoURL}
+                  alt={user?.displayName || 'User Profile'}
+                  referrerPolicy="no-referrer"
+                  crossOrigin="anonymous"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-xl font-bold bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-transparent">
+                  {(user?.displayName || 'CX').substring(0, 2).toUpperCase()}
+                </span>
+              )}
+              <label 
+                title="Change Profile Photo"
+                className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-[10px] font-medium gap-0.5 z-10"
+              >
+                <Camera className="w-4 h-4 text-brand-cyan" />
+                <span>Update</span>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handlePhotoUpload} 
+                />
+              </label>
+            </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-bold text-white">{user?.displayName || 'Arjun Sharma'}</h3>

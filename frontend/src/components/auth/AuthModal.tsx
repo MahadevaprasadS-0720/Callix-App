@@ -26,7 +26,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   initialMode = 'login',
   onSuccess,
 }) => {
-  const { loginWithGoogle, loginWithGithub, loginWithEmail, registerWithEmail, sendPasswordReset, loginAsGuest } = useAuth();
+  const { loginWithGoogle, loginWithGithub, loginWithEmail, registerWithEmail, sendPasswordReset } = useAuth();
 
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
   const [email, setEmail] = useState('');
@@ -65,22 +65,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setSuccessMessage(null);
     setLoading(true);
 
+    const trimmedEmail = email.trim();
+    const cleanPassword = password;
+
     try {
       if (mode === 'forgot') {
-        if (!email) throw new Error('Please enter your email address');
-        await sendPasswordReset(email);
+        if (!trimmedEmail) throw new Error('Please enter your email address');
+        await sendPasswordReset(trimmedEmail);
         setSuccessMessage('Password reset link sent to your inbox.');
         setLoading(false);
         return;
       }
 
       if (mode === 'login') {
-        if (!email || !password) throw new Error('Please enter email and password');
-        await loginWithEmail(email, password);
+        if (!trimmedEmail || !cleanPassword) throw new Error('Please enter email and password');
+        await loginWithEmail(trimmedEmail, cleanPassword);
       } else {
-        if (!email || !password) throw new Error('Please enter email and password');
-        if (password.length < 6) throw new Error('Password must be at least 6 characters');
-        await registerWithEmail(email, password, displayName);
+        if (!trimmedEmail || !cleanPassword) throw new Error('Please enter email and password');
+        if (cleanPassword.length < 6) throw new Error('Password must be at least 6 characters');
+        await registerWithEmail(trimmedEmail, cleanPassword, displayName.trim());
       }
       onClose();
       if (onSuccess) onSuccess();
@@ -89,8 +92,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       let message = err?.message || 'Authentication failed. Please verify credentials.';
       if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
         message = 'Invalid email or password. Please try again.';
-      } else if (code === 'auth/email-already-in-use') {
-        message = 'This email is already registered. Please sign in instead.';
+      } else if (code === 'auth/email-already-in-use' || message.includes('already registered')) {
+        message = 'This email is already registered. Please sign in with your password.';
+        setMode('login');
       } else if (code === 'auth/weak-password') {
         message = 'Password should be at least 6 characters.';
       } else if (code === 'auth/popup-closed-by-user') {
@@ -134,12 +138,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGuestAccess = () => {
-    loginAsGuest();
-    onClose();
-    if (onSuccess) onSuccess();
   };
 
   return (
@@ -389,20 +387,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           >
             ← Back to sign in
           </button>
-        )}
-
-        {/* Quick Guest Simulation Access */}
-        {mode !== 'forgot' && (
-          <div className="pt-4 mt-4 border-t border-white/[0.08] text-center">
-            <button
-              type="button"
-              onClick={handleGuestAccess}
-              className="text-xs text-zinc-400 hover:text-white transition-colors flex items-center justify-center gap-1.5 mx-auto"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Explore live simulator as Guest</span>
-            </button>
-          </div>
         )}
 
       </div>

@@ -40,9 +40,9 @@ export const App: React.FC = () => {
                   {/* Public Landing Page */}
                   <Route path="/" element={<LandingPage />} />
 
-                  {/* Public Authentication Route */}
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/login" element={<Navigate to="/auth" replace />} />
+                  {/* Public Authentication Route - Opens Auth modal over Landing Page */}
+                  <Route path="/auth" element={<Navigate to="/?auth=login" replace />} />
+                  <Route path="/login" element={<Navigate to="/?auth=login" replace />} />
 
                   {/* Protected Console Dashboard Routes */}
                   <Route

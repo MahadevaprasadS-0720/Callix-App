@@ -1,0 +1,42 @@
+{
+  "random_forest": {
+    "name": "Random Forest Classifier",
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1Score": 1.0,
+    "valSamples": 120
+  },
+  "svm": {
+    "name": "Support Vector Machine (SVM)",
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1Score": 1.0,
+    "valSamples": 120
+  },
+  "cnn": {
+    "name": "1D Convolutional Neural Network (CNN)",
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1Score": 1.0,
+    "valSamples": 120
+  },
+  "rnn": {
+    "name": "Recurrent Neural Network (RNN)",
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1Score": 1.0,
+    "valSamples": 120
+  },
+  "lstm": {
+    "name": "Long Short-Term Memory (LSTM)",
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1Score": 1.0,
+    "valSamples": 120
+  }
+}

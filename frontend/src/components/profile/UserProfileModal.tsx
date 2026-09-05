@@ -18,7 +18,8 @@ import {
   Lock, 
   Sliders, 
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  Camera
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -72,6 +73,22 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
     }
   };
 
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        if (base64) {
+          updateProfile({ photoURL: base64 });
+          setSaveSuccess(true);
+          setTimeout(() => setSaveSuccess(false), 2000);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSavePreferences = () => {
     updateProfile({
       preferences: {
@@ -89,7 +106,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
   const handleSignOut = async () => {
     onClose();
     await logout();
-    navigate('/auth');
+    navigate('/?auth=login');
   };
 
   const getInitials = (name?: string) => {
@@ -147,16 +164,37 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
             
             {/* Avatar & Names */}
             <div className="flex items-end gap-4">
-              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl ring-4 ring-[#09090B] bg-zinc-900 border border-white/15 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center text-xl font-bold text-white">
+              <div className="group relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl ring-4 ring-[#09090B] bg-zinc-900 border border-white/15 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center text-xl font-bold text-white">
                 {user.photoURL ? (
-                  <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+                  <img 
+                    src={user.photoURL.includes('googleusercontent.com') ? user.photoURL.replace(/=s\d+(-c)?$/, '=s256-c') : user.photoURL} 
+                    alt={user.displayName} 
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
+                    className="w-full h-full object-cover" 
+                  />
                 ) : (
                   <span className="bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-transparent text-2xl font-bold">
                     {getInitials(user.displayName)}
                   </span>
                 )}
                 {/* Active Indicator dot */}
-                <div className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#09090B] rounded-full" />
+                <div className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#09090B] rounded-full z-10" />
+
+                {/* Change photo hover button */}
+                <label 
+                  title="Change Profile Photo"
+                  className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-[10px] font-medium gap-1 z-20"
+                >
+                  <Camera className="w-5 h-5 text-white" />
+                  <span>Update</span>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    onChange={handleAvatarFileChange} 
+                  />
+                </label>
               </div>
 
               <div className="space-y-1 pb-1">
@@ -234,7 +272,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
             <div className="flex items-center gap-2">
               <span className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-white/10 to-white/5 border border-white/15 text-xs font-semibold text-white shadow-sm flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-                <span>{user.isGuest ? 'Sandbox Guest' : (user.plan || 'PRO SHIELD')}</span>
+                <span>{user.plan || 'PRO SHIELD'}</span>
               </span>
             </div>
 

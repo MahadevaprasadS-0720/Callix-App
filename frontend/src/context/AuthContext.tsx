@@ -43,11 +43,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
         if (fbUser) {
           const existing = authService.getCurrentUser();
+
+          // Extract photoURL from fbUser or providerData
+          let photo = fbUser.photoURL || undefined;
+          if (!photo && fbUser.providerData) {
+            for (const p of fbUser.providerData) {
+              if (p?.photoURL) {
+                photo = p.photoURL;
+                break;
+              }
+            }
+          }
+          if (!photo && existing?.photoURL) {
+            photo = existing.photoURL;
+          }
+          if (photo && photo.includes('googleusercontent.com')) {
+            photo = photo.replace(/=s\d+(-c)?$/, '=s256-c');
+          }
+
+          const googleName = fbUser.displayName || 
+                             fbUser.providerData?.[0]?.displayName || 
+                             existing?.displayName || 
+                             fbUser.email?.split('@')[0] || 
+                             'Callix User';
+
           const syncedUser: User = {
             uid: fbUser.uid,
             email: fbUser.email || existing?.email || 'user@callix.ai',
-            displayName: fbUser.displayName || existing?.displayName || fbUser.email?.split('@')[0] || 'Callix User',
-            photoURL: fbUser.photoURL || existing?.photoURL || undefined,
+            displayName: googleName,
+            photoURL: photo,
             plan: existing?.plan || 'PRO_SHIELD',
             authProvider: (fbUser.providerData[0]?.providerId.includes('github') ? 'github' : fbUser.providerData[0]?.providerId.includes('google') ? 'google' : 'password'),
             guardianLinks: existing?.guardianLinks || MOCK_USER.guardianLinks,
@@ -103,8 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginAsGuest = () => {
-    const u = authService.loginAsGuest();
-    setUser(u);
+    // Guest access disabled - users must register or sign in via Google/GitHub/Email
   };
 
   const loginDemo = () => {

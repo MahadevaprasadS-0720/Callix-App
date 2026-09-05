@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { 
   ShieldCheck, 
@@ -47,11 +47,33 @@ import { AuthModal } from '../components/auth/AuthModal';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loginAsGuest } = useAuth();
+  const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Auth modal state
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+
+  useEffect(() => {
+    const authQuery = searchParams.get('auth');
+    if (authQuery) {
+      if (authQuery === 'register' || authQuery === 'signup') {
+        setAuthModalMode('register');
+      } else {
+        setAuthModalMode('login');
+      }
+      setAuthModalOpen(true);
+    }
+  }, [searchParams]);
+
+  const handleCloseAuthModal = () => {
+    setAuthModalOpen(false);
+    if (searchParams.has('auth')) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('auth');
+      setSearchParams(nextParams, { replace: true });
+    }
+  };
 
   // Navigation handlers
   const handleLaunchApp = (destination = '/dashboard') => {
@@ -61,11 +83,6 @@ export const LandingPage: React.FC = () => {
       setAuthModalMode('register');
       setAuthModalOpen(true);
     }
-  };
-
-  const handleQuickGuest = () => {
-    loginAsGuest();
-    navigate('/dashboard');
   };
 
   // -------------------------------------------------------------
@@ -1622,7 +1639,7 @@ export function CallSecurityHUD({ activeCall }) {
 
               <button
                 type="button"
-                onClick={handleQuickGuest}
+                onClick={() => handleLaunchApp('/dashboard')}
                 className="w-full resend-frosted-btn rounded-xl py-2.5 text-xs font-medium text-white"
               >
                 Start Free
@@ -1730,10 +1747,10 @@ export function CallSecurityHUD({ activeCall }) {
 
           <button
             type="button"
-            onClick={handleQuickGuest}
+            onClick={() => handleLaunchApp('/dashboard')}
             className="resend-frosted-btn rounded-2xl px-5 py-3 text-sm font-medium text-zinc-300 hover:text-white"
           >
-            Instant Sandbox ➔
+            Sign In ➔
           </button>
         </div>
       </section>
@@ -1812,9 +1829,12 @@ export function CallSecurityHUD({ activeCall }) {
       {/* Sleek Dark-Themed Firebase Auth Modal */}
       <AuthModal
         isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
+        onClose={handleCloseAuthModal}
         initialMode={authModalMode}
-        onSuccess={() => navigate('/dashboard')}
+        onSuccess={() => {
+          setAuthModalOpen(false);
+          navigate('/dashboard');
+        }}
       />
     </div>
   );
