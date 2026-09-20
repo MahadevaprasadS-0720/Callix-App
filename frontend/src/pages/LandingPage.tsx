@@ -44,6 +44,7 @@ import {
   BarChart3,
   PhoneOff,
   X,
+  Menu,
   Calculator,
   TrendingUp,
   HelpCircle,
@@ -131,12 +132,25 @@ export const LandingPage: React.FC = () => {
   };
 
   // -------------------------------------------------------------
-  // VISIONOS HOLOGRAPHIC MODAL STATE (FIXED & STABLE)
+  // VISIONOS HOLOGRAPHIC MODAL & MOBILE NAVIGATION DRAWER STATE
   // -------------------------------------------------------------
   type DropdownKey = 'features' | 'company' | 'enterprise' | 'help' | 'docs' | 'ai';
   const [activeDropdown, setActiveDropdown] = useState<DropdownKey | null>(null);
   const [activeHoloTab, setActiveHoloTab] = useState<number>(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navbarRef = React.useRef<HTMLDivElement>(null);
+
+  // Prevent background scrolling when mobile navigation drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -415,11 +429,11 @@ export const LandingPage: React.FC = () => {
   const [micDb, setMicDb] = useState<number>(68);
   const [activeSpeechIndex, setActiveSpeechIndex] = useState<number>(1);
 
-  const sampleTranscripts = [
+  const sampleTranscripts = React.useMemo(() => [
     { speaker: 'CALLER', text: 'Hello, this is Senior Inspector Verma from Cyber Crime Cell, New Delhi.', threat: false },
     { speaker: 'CALLER', text: 'Your biometric Aadhaar is linked to 14 illegal bank accounts. Digital arrest is in effect.', threat: true, keyword: 'Digital arrest' },
     { speaker: 'CALLER', text: 'Transfer 50,000 security deposit immediately via UPI to clear your Supreme Court clearance file.', threat: true, keyword: 'Transfer 50,000 immediately' },
-  ];
+  ], []);
 
   useEffect(() => {
     if (!micActive) return;
@@ -828,8 +842,8 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* 1. CRYSTAL CLEAR FIXED GLASS CAPSULE NAVBAR (ROCK-SOLID)  */}
       {/* ========================================================= */}
-      <header className="fixed top-3 sm:top-5 left-0 right-0 z-50 px-4 sm:px-6 w-full max-w-5xl md:max-w-7xl mx-auto transition-all duration-300" ref={navbarRef}>
-        <div className="crystal-glass-capsule w-full px-5 sm:px-8 py-2.5 rounded-full flex items-center justify-between relative overflow-visible">
+      <header className="fixed top-2 sm:top-4 md:top-5 left-0 right-0 z-50 px-3 sm:px-6 w-full max-w-5xl md:max-w-7xl mx-auto transition-all duration-300 landscape-compact-nav" ref={navbarRef}>
+        <div className="crystal-glass-capsule w-full px-3.5 sm:px-8 py-1.5 sm:py-2.5 rounded-full flex items-center justify-between relative overflow-visible">
           
           {/* 4-Point Sparkle Star Glints on top glass rim matching photo */}
           <div className="sparkle-star left-[34%]">
@@ -844,9 +858,9 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Static Brand Name (Pure Identity - Non-Clickable, No Button Effect) */}
-          <div className="flex items-center gap-8 z-10">
+          <div className="flex items-center gap-4 sm:gap-8 z-10">
             <div className="py-1 flex items-center gap-2 select-none cursor-default">
-              <span className="font-bold text-xl tracking-tight text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
+              <span className="font-bold text-lg sm:text-xl tracking-tight text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
                 Callix
               </span>
             </div>
@@ -922,13 +936,13 @@ export const LandingPage: React.FC = () => {
             </ul>
           </div>
 
-          {/* Action CTAs with 3D Glass Pill Physics */}
-          <div className="flex items-center gap-3 z-10">
+          {/* Action CTAs & Mobile Hamburger Menu */}
+          <div className="flex items-center gap-1.5 sm:gap-3 z-10">
             {user ? (
               <button
                 type="button"
                 onClick={() => navigate('/dashboard')}
-                className="glass-pill nav-3d-btn relative inline-flex items-center justify-center select-none text-white text-sm h-9 px-4 font-semibold shadow-md"
+                className="glass-pill nav-3d-btn relative inline-flex items-center justify-center select-none text-white text-xs sm:text-sm h-7 sm:h-9 px-3 sm:px-4 font-semibold shadow-md cursor-pointer"
               >
                 <span>Console</span>
                 <ChevronRight className="w-3.5 h-3.5 ml-1" />
@@ -941,137 +955,342 @@ export const LandingPage: React.FC = () => {
                     setAuthModalMode('login');
                     setAuthModalOpen(true);
                   }}
-                  className="nav-3d-btn text-zinc-200 hover:text-white text-sm font-semibold hidden md:block transition-colors px-3 py-1.5 rounded-full"
+                  className="nav-3d-btn text-zinc-200 hover:text-white text-sm font-semibold hidden md:block transition-colors px-3 py-1.5 rounded-full cursor-pointer"
                 >
                   Log in
                 </button>
                 <button
                   type="button"
                   onClick={() => handleLaunchApp('/dashboard')}
-                  className="glass-pill nav-3d-btn relative inline-flex items-center justify-center select-none text-white text-sm h-9 px-5 font-semibold shadow-lg"
+                  className="glass-pill nav-3d-btn relative inline-flex items-center justify-center select-none text-white text-xs sm:text-sm h-7 sm:h-9 px-3 sm:px-5 font-semibold shadow-lg cursor-pointer"
                 >
                   <span>Get started</span>
                 </button>
               </>
             )}
-          </div>
 
+            {/* Mobile Hamburger Menu Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center transition-all cursor-pointer shadow-sm"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            >
+              {mobileMenuOpen ? <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+            </button>
+          </div>
 
         </div>
 
+        {/* Mobile Horizontal Quick Nav Pills (Shows ALL options on mobile just like laptop) */}
+        <div className="md:hidden w-full mt-2 overflow-x-auto no-scrollbar py-1 px-1 flex items-center gap-1.5 select-none">
+          <button
+            type="button"
+            onClick={() => toggleDropdown('features')}
+            className="shrink-0 px-3 py-1 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/20 text-[11px] font-medium text-zinc-200 hover:text-white flex items-center gap-1 cursor-pointer active:scale-95 transition-all shadow-sm"
+          >
+            <span>Features</span>
+            <ChevronDown className="w-3 h-3 opacity-70" />
+          </button>
+
+          <a
+            href="#waveform"
+            onClick={(e) => handleSmoothScroll(e, 'waveform')}
+            className="shrink-0 px-3 py-1 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/20 text-[11px] font-medium text-zinc-200 hover:text-white cursor-pointer active:scale-95 transition-all shadow-sm"
+          >
+            Simulator
+          </a>
+
+          <a
+            href="#deepfake"
+            onClick={(e) => handleSmoothScroll(e, 'deepfake')}
+            className="shrink-0 px-3 py-1 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/20 text-[11px] font-medium text-zinc-200 hover:text-white cursor-pointer active:scale-95 transition-all shadow-sm"
+          >
+            Scanner
+          </a>
+
+          <a
+            href="#carrier"
+            onClick={(e) => handleSmoothScroll(e, 'carrier')}
+            className="shrink-0 px-3 py-1 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/20 text-[11px] font-medium text-zinc-200 hover:text-white cursor-pointer active:scale-95 transition-all shadow-sm"
+          >
+            Intelligence
+          </a>
+
+          <button
+            type="button"
+            onClick={() => toggleDropdown('ai')}
+            className="shrink-0 px-3 py-1 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/20 text-[11px] font-medium text-zinc-200 hover:text-white flex items-center gap-1 cursor-pointer active:scale-95 transition-all shadow-sm"
+          >
+            <span>AI &amp; XAI</span>
+            <ChevronDown className="w-3 h-3 opacity-70" />
+          </button>
+
+          <a
+            href="#radar"
+            onClick={(e) => handleSmoothScroll(e, 'radar')}
+            className="shrink-0 px-3 py-1 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/20 text-[11px] font-medium text-zinc-200 hover:text-white cursor-pointer active:scale-95 transition-all shadow-sm"
+          >
+            Radar
+          </a>
+
+          <a
+            href="#calculator"
+            onClick={(e) => handleSmoothScroll(e, 'calculator')}
+            className="shrink-0 px-3 py-1 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/20 text-[11px] font-medium text-zinc-200 hover:text-white cursor-pointer active:scale-95 transition-all shadow-sm"
+          >
+            ROI
+          </a>
+        </div>
+
         {/* ========================================================= */}
-        {/* VISIONOS FUTURISTIC HOLOGRAPHIC GLASS MODAL               */}
+        {/* MOBILE CRYSTAL GLASS FULL NAVIGATION DRAWER               */}
+        {/* ========================================================= */}
+        {mobileMenuOpen && (
+          <div className="mobile-nav-drawer md:hidden flex flex-col justify-between p-6">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-white/15">
+              <span className="font-bold text-xl tracking-tight text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
+                Callix
+              </span>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/25 text-white flex items-center justify-center transition-all cursor-pointer"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Navigation Items List */}
+            <div className="py-6 space-y-2.5 flex-1 overflow-y-auto">
+              <span className="text-[10px] font-mono uppercase text-zinc-500 tracking-wider block mb-2">
+                SECURITY SUITE &amp; CONSOLES
+              </span>
+
+              {/* Features Accordion Trigger */}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  toggleDropdown('features');
+                }}
+                className="w-full p-3.5 rounded-2xl bg-white/[0.05] border border-white/15 text-left flex items-center justify-between text-zinc-200 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-950/80 border border-cyan-800/60 flex items-center justify-center text-cyan-400">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-white">Features Suite</div>
+                    <div className="text-[11px] text-zinc-400">All 6 security console modules</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-zinc-500" />
+              </button>
+
+              {/* Live Call Simulator */}
+              <a
+                href="#waveform"
+                onClick={(e) => {
+                  setMobileMenuOpen(false);
+                  handleSmoothScroll(e, 'waveform');
+                }}
+                className="w-full p-3.5 rounded-2xl bg-white/[0.05] border border-white/15 text-left flex items-center justify-between text-zinc-200 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-950/80 border border-emerald-800/60 flex items-center justify-center text-emerald-400">
+                    <Play className="w-4 h-4 fill-current" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-white">Call Simulator</div>
+                    <div className="text-[11px] text-zinc-400">Real-time scam interception</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-zinc-500" />
+              </a>
+
+              {/* Deepfake Audio Scanner */}
+              <a
+                href="#deepfake"
+                onClick={(e) => {
+                  setMobileMenuOpen(false);
+                  handleSmoothScroll(e, 'deepfake');
+                }}
+                className="w-full p-3.5 rounded-2xl bg-white/[0.05] border border-white/15 text-left flex items-center justify-between text-zinc-200 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-purple-950/80 border border-purple-800/60 flex items-center justify-center text-purple-400">
+                    <Activity className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-white">Deepfake Scanner</div>
+                    <div className="text-[11px] text-zinc-400">512-band FFT voice biometrics</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-zinc-500" />
+              </a>
+
+              {/* Carrier Intelligence */}
+              <a
+                href="#carrier"
+                onClick={(e) => {
+                  setMobileMenuOpen(false);
+                  handleSmoothScroll(e, 'carrier');
+                }}
+                className="w-full p-3.5 rounded-2xl bg-white/[0.05] border border-white/15 text-left flex items-center justify-between text-zinc-200 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-amber-950/80 border border-amber-800/60 flex items-center justify-center text-amber-400">
+                    <Radio className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-white">Carrier Intelligence</div>
+                    <div className="text-[11px] text-zinc-400">HLR lookup &amp; SIM swap scan</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-zinc-500" />
+              </a>
+
+              {/* AI & XAI */}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  toggleDropdown('ai');
+                }}
+                className="w-full p-3.5 rounded-2xl bg-white/[0.05] border border-white/15 text-left flex items-center justify-between text-zinc-200 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-950/80 border border-cyan-800/60 flex items-center justify-center text-cyan-400">
+                    <Cpu className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-white">AI &amp; XAI Engine</div>
+                    <div className="text-[11px] text-zinc-400">Claude 3.5 Sonnet reasoning</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-zinc-500" />
+              </button>
+
+              {/* Radar Live Feed */}
+              <a
+                href="#radar"
+                onClick={(e) => {
+                  setMobileMenuOpen(false);
+                  handleSmoothScroll(e, 'radar');
+                }}
+                className="w-full p-3.5 rounded-2xl bg-white/[0.05] border border-white/15 text-left flex items-center justify-between text-zinc-200 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-red-950/80 border border-red-800/60 flex items-center justify-center text-red-400">
+                    <ShieldAlert className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-white">Incident Radar</div>
+                    <div className="text-[11px] text-zinc-400">Live Indian carrier threat feed</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-zinc-500" />
+              </a>
+
+              {/* Financial ROI Calculator */}
+              <a
+                href="#calculator"
+                onClick={(e) => {
+                  setMobileMenuOpen(false);
+                  handleSmoothScroll(e, 'calculator');
+                }}
+                className="w-full p-3.5 rounded-2xl bg-white/[0.05] border border-white/15 text-left flex items-center justify-between text-zinc-200 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-blue-950/80 border border-blue-800/60 flex items-center justify-center text-blue-400">
+                    <Calculator className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-white">ROI Calculator</div>
+                    <div className="text-[11px] text-zinc-400">Estimate fraud damages avoided</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-zinc-500" />
+              </a>
+            </div>
+
+            {/* Drawer Footer */}
+            <div className="pt-4 border-t border-white/15 space-y-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleLaunchApp('/dashboard');
+                }}
+                className="w-full py-3 rounded-2xl bg-white text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-lg"
+              >
+                <span>Launch Callix Console</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* VISIONOS HOLOGRAPHIC DROPDOWN MODAL                       */}
         {/* ========================================================= */}
         {activeDropdown && (
           <>
-            {/* Backdrop Blur Dimmer */}
             <div 
-              className="visionos-backdrop" 
-              onClick={() => setActiveDropdown(null)} 
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+              onClick={() => setActiveDropdown(null)}
             />
-
-            {/* Floating VisionOS Glass Modal */}
-            <div className="visionos-glass-modal p-6 sm:p-8 text-left relative">
-              {/* Dual Top-Rim Sparkle Stars */}
-              <div className="sparkle-star left-[20%] -top-[6px]">
-                <svg viewBox="0 0 24 24" className="w-full h-full text-white fill-white">
-                  <path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z" />
-                </svg>
-              </div>
-              <div className="sparkle-star right-[20%] -top-[6px]" style={{ animationDelay: '1.5s' }}>
-                <svg viewBox="0 0 24 24" className="w-full h-full text-white fill-white">
-                  <path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z" />
-                </svg>
-              </div>
-
-              {/* Modal Header */}
-              <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/15 relative z-10">
+            <div className="visionos-glass-modal absolute top-full left-0 right-0 mt-3 p-6 rounded-3xl z-50 animate-fade-in-up">
+              <div className="flex items-center justify-between pb-4 border-b border-white/10">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/25 flex items-center justify-center text-white shadow-inner">
-                    <Sparkles className="w-4 h-4 text-cyan-300 animate-pulse" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-white tracking-wide">
-                      {holoModalData[activeDropdown]?.categoryTitle}
-                    </h3>
-                    <span className="text-[11px] font-mono text-zinc-400">
-                      {holoModalData[activeDropdown]?.visionBadge} • Holographic Diagnostics
-                    </span>
-                  </div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+                  <h3 className="font-semibold text-base text-white">
+                    {holoModalData[activeDropdown]?.categoryTitle}
+                  </h3>
+                  <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-white/10 text-zinc-300 border border-white/15">
+                    {holoModalData[activeDropdown]?.visionBadge}
+                  </span>
                 </div>
-
-                <button 
+                <button
                   type="button"
                   onClick={() => setActiveDropdown(null)}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/30 text-zinc-300 hover:text-white flex items-center justify-center transition-all shadow-inner"
-                  title="Close (Esc)"
+                  className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              {/* 2-Column VisionOS Layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
-                
-                {/* Left Column: Holographic 3D Viewport Chamber */}
-                <div className="lg:col-span-5 flex flex-col space-y-3">
-                  <div className="holographic-chamber h-64 sm:h-72 holo-grid flex flex-col justify-between p-4 relative">
-                    {/* Scanning Laser Beam */}
-                    <div className="holo-scanner-beam" />
-
-                    {/* Rotating Radar Rings */}
-                    <div className="holo-radar-ring w-44 h-44 pointer-events-none" />
-                    <div className="holo-radar-ring w-28 h-28 pointer-events-none" style={{ animationDirection: 'reverse', animationDuration: '8s' }} />
-
-                    {/* Top Chamber Header Status */}
-                    <div className="flex items-center justify-between z-10">
-                      <span className="text-[10px] font-mono tracking-widest text-cyan-400 bg-cyan-950/60 border border-cyan-800/60 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-sm">
-                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-                        LIVE FORENSIC HUD
-                      </span>
-                      <span className="text-[10px] font-mono text-zinc-400">
-                        {holoModalData[activeDropdown]?.subFeatures[activeHoloTab]?.telemetry.channel}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4">
+                {/* Left Column: Live Optical Telemetry Readout */}
+                <div className="lg:col-span-5 p-4 rounded-2xl bg-black/50 border border-white/10 flex flex-col justify-between space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
+                      <span>VOICE TELEMETRY</span>
+                      <span className="text-cyan-400 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                        LIVE STREAM
                       </span>
                     </div>
 
-                    {/* Center Hologram Visual: Animated Waveform Spectrum */}
-                    <div className="my-auto z-10 flex flex-col items-center justify-center text-center space-y-3">
-                      <div className="flex items-end justify-center gap-1.5 h-16 w-full max-w-[220px]">
-                        {[40, 75, 55, 95, 30, 85, 65, 100, 45, 90, 70, 35, 80, 60, 90, 50].map((h, i) => (
-                          <div 
+                    {/* Holographic 32-band Audio Visualizer Spectrum */}
+                    <div className="h-28 rounded-xl bg-zinc-950/80 border border-white/10 p-3 flex flex-col justify-between overflow-hidden relative">
+                      <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 via-transparent to-transparent pointer-events-none" />
+                      <div className="flex items-end justify-between gap-1 h-14 z-10">
+                        {Array.from({ length: 28 }).map((_, i) => (
+                          <div
                             key={i}
-                            className="flex-1 rounded-t-sm bg-gradient-to-t from-cyan-500 via-sky-400 to-white shadow-[0_0_10px_rgba(56,189,248,0.85)]"
+                            className="flex-1 bg-gradient-to-t from-cyan-500 to-white rounded-t-sm animate-pulse"
                             style={{ 
-                              height: `${h}%`,
-                              animation: 'pulse 1.4s ease-in-out infinite',
+                              height: `${20 + Math.sin(i * 0.4) * 50 + ((i * 13) % 30)}%`,
                               animationDelay: `${i * 0.08}s` 
                             }}
                           />
                         ))}
                       </div>
-
-                      <div>
-                        <div className={`text-2xl font-bold font-mono tracking-tight ${holoModalData[activeDropdown]?.subFeatures[activeHoloTab]?.telemetry.scoreColor} drop-shadow-[0_0_12px_currentColor]`}>
-                          {holoModalData[activeDropdown]?.subFeatures[activeHoloTab]?.telemetry.scoreValue}
-                        </div>
-                        <div className="text-[10px] font-mono text-zinc-400 tracking-wider mt-0.5">
-                          {holoModalData[activeDropdown]?.subFeatures[activeHoloTab]?.telemetry.scoreLabel}
-                        </div>
-                      </div>
                     </div>
-
-                    {/* Bottom Status readout */}
-                    <div className="z-10 bg-black/60 backdrop-blur-md rounded-xl p-2 border border-white/10 text-center">
-                      <span className="text-[10px] font-mono text-emerald-400 tracking-wide flex items-center justify-center gap-1.5">
-                        <CheckCircle2 className="w-3 h-3" />
-                        {holoModalData[activeDropdown]?.subFeatures[activeHoloTab]?.telemetry.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="text-[11px] font-mono text-zinc-400 flex items-center justify-between px-1">
-                    <span>Optical Telemetry Engine</span>
-                    <span className="text-zinc-500">24-Bit Linear PCM</span>
                   </div>
                 </div>
 
@@ -1160,12 +1379,12 @@ export const LandingPage: React.FC = () => {
       </header>
       
       {/* Spacer to preserve initial hero spacing with fixed navbar */}
-      <div className="h-16 sm:h-20 w-full shrink-0" aria-hidden="true" />
+      <div className="h-16 sm:h-18 md:h-20 w-full shrink-0 landscape-spacer" aria-hidden="true" />
 
       {/* ========================================================= */}
       {/* 2. HERO SECTION (FULL-WIDTH IMMERSIVE ENTERPRISE HERO)   */}
       {/* ========================================================= */}
-      <div id="hero" className="relative z-20 w-full min-h-[calc(100vh-80px)] flex items-center pt-[60px] md:pt-0 overflow-hidden">
+      <div id="hero" className="relative z-20 w-full flex items-center pt-1 md:pt-3 overflow-hidden landscape-hero">
         
         {/* Floor background */}
         <img 
@@ -1187,66 +1406,66 @@ export const LandingPage: React.FC = () => {
           src="/bg-light.png" 
         />
 
-        <section className="mx-auto w-full max-w-[1700px] px-8 md:px-12 lg:px-16 min-h-[calc(100vh-80px)] flex items-center justify-center">
-          <div className="grid grid-cols-1 lg:grid-cols-2 items-center justify-between w-full gap-12 lg:gap-16 py-10 lg:py-0">
+        <section className="mx-auto w-full max-w-7xl px-3 sm:px-8 md:px-12 py-1.5 sm:py-6 md:py-8 flex items-center justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 items-center justify-between w-full gap-4 sm:gap-8 lg:gap-16">
             
-            {/* Left text column */}
-            <div className="order-2 lg:order-1 w-full animate-hero-text-slide-up-fade flex flex-col items-start text-left max-w-2xl z-10">
+            {/* Text column - Always order-1 (first on mobile and desktop) */}
+            <div className="order-1 w-full animate-hero-text-slide-up-fade flex flex-col items-start text-left max-w-xl lg:max-w-2xl z-10">
               
               {/* Rainbow badge with subtle voice frequency micro-animation */}
-              <div className="flex items-center justify-start mb-6">
+              <div className="flex items-center justify-start mb-2 sm:mb-4">
                 <a 
-                  className="rainbow-border inline-flex items-center justify-center rounded-full relative text-sm leading-none cursor-pointer group" 
+                  className="rainbow-border inline-flex items-center justify-center rounded-full relative text-xs leading-none cursor-pointer group" 
                   href="#features"
                   onClick={(e) => handleSmoothScroll(e, 'features')}
                 >
-                  <span className="inline-flex items-center gap-2 whitespace-nowrap px-3.5 py-1.5 m-[1px] rounded-full text-zinc-300 font-mono text-xs bg-black">
+                  <span className="inline-flex items-center gap-1.5 sm:gap-2 whitespace-nowrap px-2.5 sm:px-3.5 py-0.5 sm:py-1.5 m-[1px] rounded-full text-zinc-300 font-mono text-[11px] sm:text-xs bg-black">
                     {/* Subtle 3-bar voice frequency equalizer */}
-                    <span className="flex items-end gap-0.5 h-3 w-3" aria-hidden="true">
+                    <span className="flex items-end gap-0.5 h-2.5 w-2.5 sm:h-3 sm:w-3" aria-hidden="true">
                       <span className="w-0.5 h-full bg-cyan-400 rounded-full butter-wave-bar" style={{ animationDelay: '0ms' }} />
                       <span className="w-0.5 h-full bg-emerald-400 rounded-full butter-wave-bar" style={{ animationDelay: '200ms' }} />
                       <span className="w-0.5 h-full bg-purple-400 rounded-full butter-wave-bar" style={{ animationDelay: '400ms' }} />
                     </span>
-                    <span>Join us at Callix Forward</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:translate-x-0.5 transition-transform" />
+                    <span className="truncate max-w-[170px] sm:max-w-none">Join us at Callix Forward</span>
+                    <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-400 group-hover:translate-x-0.5 transition-transform" />
                   </span>
                 </a>
               </div>
               
-              {/* Headline: Exact 3-line structure with single sharp diagonal laser beam */}
-              <h1 className="headline-shimmer inline-block font-sans text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.08] relative pb-2 select-none">
-                Next-Gen<br />
-                Voice<br />
-                <span className="whitespace-nowrap">Fraud Defense</span>
+              {/* Headline: Fluid responsive typography fitting all devices (mobile, laptop, 4K) */}
+              <h1 className="headline-shimmer inline-block font-sans text-fluid-hero font-bold tracking-tight relative pb-0.5 sm:pb-2 select-none">
+                Next-Gen <span className="block xs:inline">Voice</span> <span className="whitespace-nowrap">Fraud Defense</span>
               </h1>
               
               {/* Subtitle */}
-              <p className="font-sans text-base md:text-lg text-zinc-400 font-normal tracking-tight leading-snug md:leading-[1.5] max-w-lg md:max-w-xl mt-5 mb-8 antialiased">
+              <p className="font-sans text-fluid-subtitle text-zinc-400 font-normal tracking-tight max-w-sm sm:max-w-xl mt-1.5 sm:mt-3 mb-3 sm:mb-6 antialiased landscape-compact-text">
                 Stop synthetic voice clones, deepfake audio, and telecom fraud in real time. Protect every conversation with enterprise-grade voice intelligence.
               </p>
               
-              {/* Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-start gap-4 pt-2 w-full sm:w-auto">
+              {/* Buttons: Side-by-side on mobile and desktop for optimal vertical space */}
+              <div className="flex flex-row items-center justify-start gap-2 sm:gap-3.5 pt-0.5 w-full sm:w-auto">
                 <button 
                   type="button" 
                   onClick={() => handleLaunchApp('/dashboard')}
-                  className="resend-frosted-btn relative inline-flex items-center justify-center select-none rounded-2xl text-white text-base h-auto px-7 py-3.5 font-medium hover:bg-white hover:text-black transition-all duration-200 shadow-lg"
+                  className="resend-frosted-btn relative inline-flex items-center justify-center select-none rounded-xl sm:rounded-2xl text-white text-xs sm:text-sm md:text-base h-auto px-4 sm:px-7 py-2 sm:py-3.5 font-medium hover:bg-white hover:text-black transition-all duration-200 shadow-lg cursor-pointer flex-1 sm:flex-initial"
                 >
                   Get started
                 </button>
                 <a 
                   href="#features" 
                   onClick={(e) => handleSmoothScroll(e, 'features')}
-                  className="relative inline-flex items-center justify-center select-none rounded-2xl bg-transparent border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white text-base h-auto px-7 py-3.5 font-medium transition-colors"
+                  className="relative inline-flex items-center justify-center select-none rounded-xl sm:rounded-2xl bg-transparent border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white text-xs sm:text-sm md:text-base h-auto px-3.5 sm:px-7 py-2 sm:py-3.5 font-medium transition-colors text-center cursor-pointer flex-1 sm:flex-initial"
                 >
                   Explore Features
                 </a>
               </div>
             </div>
             
-            {/* Right: 1:1 Resend 3D Cube with 100% True Alpha Transparency (Zero Black Box) */}
-            <div className="duration-300 relative order-1 lg:order-2 flex items-center justify-end w-full h-[550px] lg:h-[700px] overflow-visible pointer-events-auto">
-              <ResendCube3D className="w-full h-full max-w-[650px] lg:max-w-[850px] xl:max-w-[900px]" />
+            {/* 3D Cube Column - Order-2 on mobile, right column on desktop (side-by-side from md:). Exact aspect-square prevents any clipping */}
+            <div className="duration-300 relative order-2 flex items-center justify-center md:justify-end w-full overflow-visible pointer-events-auto mt-1 sm:mt-2 md:mt-0">
+              <div className="w-[180px] h-[180px] xs:w-[210px] xs:h-[210px] sm:w-[260px] sm:h-[260px] md:w-[360px] md:h-[360px] lg:w-[460px] lg:h-[460px] xl:w-[520px] xl:h-[520px] aspect-square relative flex items-center justify-center landscape-cube-scale">
+                <ResendCube3D className="w-full h-full" />
+              </div>
             </div>
 
           </div>
@@ -1256,16 +1475,16 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* 3. RESEND SOCIAL PROOF & PARTNER LOGOS (SEAMLESS STRIP)   */}
       {/* ========================================================= */}
-      <section className="scroll-reveal mx-auto px-6 py-12 sm:py-24 max-w-5xl md:max-w-7xl relative rounded-3xl border-t border-white/[0.08] mt-16 flex flex-col items-center">
+      <section className="scroll-reveal mx-auto px-4 sm:px-6 py-6 sm:py-14 md:py-20 max-w-5xl md:max-w-7xl relative rounded-3xl border-t border-white/[0.08] mt-6 sm:mt-12 flex flex-col items-center">
         
         {/* Conic light beam divider in Resend style */}
         <div aria-hidden="true" className="left-1/2 top-0 w-[300px] center pointer-events-none absolute h-px max-w-full -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent" />
         
-        <p className="text-base md:text-[1.125rem] md:leading-[1.5] text-zinc-400 font-normal mb-10 max-w-lg text-center">
+        <p className="text-xs sm:text-sm md:text-base text-zinc-400 font-normal mb-6 sm:mb-10 max-w-lg text-center">
           Enterprise-grade protection against high-velocity Indian &amp; global telecom cybercrime.
         </p>
 
-        <div className="w-5/6 gap-x-6 gap-y-4 grid grid-cols-2 items-center sm:grid-cols-3 lg:grid-cols-6 text-zinc-400 font-mono text-sm tracking-wider opacity-80 text-center">
+        <div className="w-full max-w-4xl gap-x-4 sm:gap-x-6 gap-y-3 sm:gap-y-4 grid grid-cols-2 items-center sm:grid-cols-3 lg:grid-cols-6 text-zinc-400 font-mono text-xs sm:text-sm tracking-wider opacity-80 text-center">
           <span className="hover:text-white transition-colors font-bold tracking-tight">Bharti Airtel</span>
           <span className="hover:text-white transition-colors font-bold tracking-tight">Reliance Jio</span>
           <span className="hover:text-white transition-colors font-bold tracking-tight">Deepgram</span>
@@ -1278,23 +1497,23 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* 3.5. 4-STEP ZERO-TRUST DEFENSE PIPELINE (STEP-BY-STEP)    */}
       {/* ========================================================= */}
-      <section id="pipeline" className="py-24 border-t border-white/[0.08] relative scroll-mt-24 sm:scroll-mt-28 overflow-hidden">
+      <section id="pipeline" className="py-10 sm:py-16 md:py-24 border-t border-white/[0.08] relative scroll-mt-20 sm:scroll-mt-28 overflow-hidden">
         
         {/* Subtle Ambient Radial Glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-cyan-500/5 blur-[120px] rounded-full pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-6 space-y-16 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8 sm:space-y-16 relative z-10">
           
-          <div className="text-center space-y-4 max-w-3xl mx-auto scroll-reveal">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-800/60 text-cyan-400 text-xs font-mono tracking-widest uppercase">
+          <div className="text-center space-y-3 sm:space-y-4 max-w-3xl mx-auto scroll-reveal">
+            <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-cyan-950/60 border border-cyan-800/60 text-cyan-400 text-[11px] sm:text-xs font-mono tracking-widest uppercase">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
               HOW CALLIX WORKS • ZERO-TRUST PIPELINE
             </div>
-            <h2 className="font-serif-hero text-4xl sm:text-5xl font-normal text-white tracking-tight">
+            <h2 className="font-serif-hero text-fluid-section font-normal text-white tracking-tight">
               Defending conversations, <br />
               <span className="italic font-light text-zinc-300">step by autonomous step</span>
             </h2>
-            <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-xs sm:text-sm md:text-base text-zinc-400 leading-relaxed max-w-2xl mx-auto">
               Every incoming call is analyzed concurrently across 4 synchronized AI defense layers in under 140ms — before fraudsters can execute social engineering or extortion.
             </p>
           </div>
@@ -1309,7 +1528,7 @@ export const LandingPage: React.FC = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 relative z-10">
               {pipelineSteps.map((stepItem, idx) => {
                 const isActive = activePipelineStep === idx;
                 return (
@@ -1317,7 +1536,7 @@ export const LandingPage: React.FC = () => {
                     key={stepItem.step}
                     type="button"
                     onClick={() => setActivePipelineStep(idx)}
-                    className={`p-5 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between cursor-pointer ${
+                    className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between cursor-pointer ${
                       isActive 
                         ? 'bg-zinc-900/90 border-cyan-400/80 shadow-[0_0_30px_rgba(56,189,248,0.25)] step-active-glow' 
                         : 'bg-black/80 border-white/[0.08] hover:border-white/20 text-zinc-400'
@@ -1493,36 +1712,36 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* 4. 6 CORE POST-LOGIN MODULES BENTO GRID                   */}
       {/* ========================================================= */}
-      <section id="features" className="py-20 border-t border-white/[0.08] bg-zinc-950/40 scroll-mt-24 sm:scroll-mt-28">
-        <div className="max-w-7xl mx-auto px-6 space-y-12">
+      <section id="features" className="py-10 sm:py-16 md:py-20 border-t border-white/[0.08] bg-zinc-950/40 scroll-mt-20 sm:scroll-mt-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-12">
           
-          <div className="text-center space-y-3 max-w-3xl mx-auto scroll-reveal">
-            <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest">AUTHENTICATED CONSOLE CAPABILITIES</span>
-            <h2 className="font-serif-hero text-4xl sm:text-5xl font-normal text-white tracking-tight">
+          <div className="text-center space-y-2 sm:space-y-3 max-w-3xl mx-auto scroll-reveal">
+            <span className="text-[11px] sm:text-xs font-mono text-cyan-400 uppercase tracking-widest">AUTHENTICATED CONSOLE CAPABILITIES</span>
+            <h2 className="font-serif-hero text-fluid-section font-normal text-white tracking-tight">
               Every tool in your security arsenal, <br />
               <span className="italic font-light text-zinc-300">ready upon sign in</span>
             </h2>
-            <p className="text-sm text-zinc-400 leading-relaxed">
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
               Explore the exact 6 forensic intelligence modules available inside the Callix Console to combat voice cloning, extortion, and carrier fraud.
             </p>
           </div>
 
           {/* Bento Grid: 6 Real Modules */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
             
             {/* Module 1: Live Call Simulator */}
-            <div className="scroll-reveal reveal-delay-100 resend-card butter-card butter-shimmer-container rounded-2xl p-6 space-y-4 flex flex-col justify-between hover:border-emerald-500/40 transition-all">
-              <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-950/60 border border-emerald-800/60 flex items-center justify-center text-emerald-400 shadow-sm">
-                  <Play className="w-5 h-5 fill-current" />
+            <div className="scroll-reveal reveal-delay-100 resend-card butter-card butter-shimmer-container rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 flex flex-col justify-between hover:border-emerald-500/40 transition-all">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-950/60 border border-emerald-800/60 flex items-center justify-center text-emerald-400 shadow-sm">
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
                 </div>
-                <h3 className="text-lg font-semibold text-white">Live Call Interceptor &amp; Simulator</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Live Call Interceptor &amp; Simulator</h3>
                 <p className="text-xs text-zinc-400 leading-relaxed">
                   Real-time speech stream diarization with dynamic 0-100 risk scoring. Simulate or intercept CBI/Police "Digital Arrests", Bank KYC traps, and urgent voice clones.
                 </p>
               </div>
-              <div className="space-y-3 pt-2">
-                <div className="p-3 rounded-xl bg-black border border-zinc-900 font-mono text-[11px] text-zinc-400 flex justify-between">
+              <div className="space-y-2 sm:space-y-3 pt-2">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-black border border-zinc-900 font-mono text-[11px] text-zinc-400 flex justify-between">
                   <span>Diarization Engine</span>
                   <span className="text-emerald-400 font-semibold">18ms Latency</span>
                 </div>
@@ -1538,18 +1757,18 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Module 2: Deepfake Audio Forensics Scanner */}
-            <div className="scroll-reveal reveal-delay-150 resend-card butter-card butter-shimmer-container rounded-2xl p-6 space-y-4 flex flex-col justify-between hover:border-cyan-500/40 transition-all">
-              <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-cyan-950/60 border border-cyan-800/60 flex items-center justify-center text-cyan-400 shadow-sm">
-                  <Activity className="w-5 h-5" />
+            <div className="scroll-reveal reveal-delay-150 resend-card butter-card butter-shimmer-container rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 flex flex-col justify-between hover:border-cyan-500/40 transition-all">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-cyan-950/60 border border-cyan-800/60 flex items-center justify-center text-cyan-400 shadow-sm">
+                  <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="text-lg font-semibold text-white">Deepfake Audio Scanner</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Deepfake Audio Scanner</h3>
                 <p className="text-xs text-zinc-400 leading-relaxed">
                   Upload audio recordings or record live microphone to perform 512-band FFT spectral decomposition, vocoder artifact detection (HiFi-GAN), and breathing absence analysis.
                 </p>
               </div>
-              <div className="space-y-3 pt-2">
-                <div className="p-3 rounded-xl bg-black border border-zinc-900 font-mono text-[11px] text-zinc-400 flex justify-between">
+              <div className="space-y-2 sm:space-y-3 pt-2">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-black border border-zinc-900 font-mono text-[11px] text-zinc-400 flex justify-between">
                   <span>Acoustic FFT</span>
                   <span className="text-cyan-400 font-semibold">Dual Scam/Clone Score</span>
                 </div>
@@ -1565,18 +1784,18 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Module 3: Elder Guardian Protection Hub */}
-            <div className="scroll-reveal reveal-delay-200 resend-card butter-card butter-shimmer-container rounded-2xl p-6 space-y-4 flex flex-col justify-between hover:border-amber-500/40 transition-all">
-              <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-950/60 border border-amber-800/60 flex items-center justify-center text-amber-400 shadow-sm">
-                  <Users className="w-5 h-5" />
+            <div className="scroll-reveal reveal-delay-200 resend-card butter-card butter-shimmer-container rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 flex flex-col justify-between hover:border-amber-500/40 transition-all">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-950/60 border border-amber-800/60 flex items-center justify-center text-amber-400 shadow-sm">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="text-lg font-semibold text-white">Elder Guardian Protection Hub</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Elder Guardian Protection Hub</h3>
                 <p className="text-xs text-zinc-400 leading-relaxed">
                   Autonomous family safety network. Dispatches instant SMS and WhatsApp emergency alerts within &lt;140ms when predatory fraud (Score &gt; 75) targets elderly relatives.
                 </p>
               </div>
-              <div className="space-y-3 pt-2">
-                <div className="p-3 rounded-xl bg-black border border-zinc-900 font-mono text-[11px] text-zinc-400 flex justify-between">
+              <div className="space-y-2 sm:space-y-3 pt-2">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-black border border-zinc-900 font-mono text-[11px] text-zinc-400 flex justify-between">
                   <span>SMS Relay</span>
                   <span className="text-amber-400 font-semibold">&lt; 140ms Dispatch</span>
                 </div>
@@ -1592,18 +1811,18 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Module 4: Carrier Number Threat Intelligence */}
-            <div className="scroll-reveal reveal-delay-250 resend-card butter-card butter-shimmer-container rounded-2xl p-6 space-y-4 flex flex-col justify-between hover:border-purple-500/40 transition-all">
-              <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-950/60 border border-purple-800/60 flex items-center justify-center text-purple-400 shadow-sm">
-                  <Radio className="w-5 h-5" />
+            <div className="scroll-reveal reveal-delay-250 resend-card butter-card butter-shimmer-container rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 flex flex-col justify-between hover:border-purple-500/40 transition-all">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-950/60 border border-purple-800/60 flex items-center justify-center text-purple-400 shadow-sm">
+                  <Radio className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="text-lg font-semibold text-white">Carrier Number Threat Lookup</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Carrier Number Threat Lookup</h3>
                 <p className="text-xs text-zinc-400 leading-relaxed">
                   Direct HLR / BTS radio tower verification across Indian telecom networks (Vi, Jio, Airtel, BSNL). Detects fresh SIM swaps, VoIP SIP masquerades, and spam report history.
                 </p>
               </div>
-              <div className="space-y-3 pt-2">
-                <div className="p-3 rounded-xl bg-black border border-zinc-900 font-mono text-[11px] text-zinc-400 flex justify-between">
+              <div className="space-y-2 sm:space-y-3 pt-2">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-black border border-zinc-900 font-mono text-[11px] text-zinc-400 flex justify-between">
                   <span>HLR Query</span>
                   <span className="text-purple-400 font-semibold">12ms SS7/Diameter</span>
                 </div>
@@ -1619,18 +1838,18 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Module 5: Scam Phrase & Coercion Library */}
-            <div className="scroll-reveal reveal-delay-300 resend-card butter-card butter-shimmer-container rounded-2xl p-6 space-y-4 flex flex-col justify-between hover:border-red-500/40 transition-all">
-              <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-red-950/60 border border-red-800/60 flex items-center justify-center text-red-400 shadow-sm">
-                  <ShieldCheck className="w-5 h-5" />
+            <div className="scroll-reveal reveal-delay-300 resend-card butter-card butter-shimmer-container rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 flex flex-col justify-between hover:border-red-500/40 transition-all">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-950/60 border border-red-800/60 flex items-center justify-center text-red-400 shadow-sm">
+                  <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="text-lg font-semibold text-white">Scam Phrase &amp; Coercion Library</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Scam Phrase &amp; Coercion Library</h3>
                 <p className="text-xs text-zinc-400 leading-relaxed">
                   Indexed database of real-world Indian cybercrime scripts: Digital Arrest notices, Supreme Court clearance fees, urgent UPI traps, and OTP harvesting patterns.
                 </p>
               </div>
-              <div className="space-y-3 pt-2">
-                <div className="p-3 rounded-xl bg-black border border-zinc-900 font-mono text-[11px] text-zinc-400 flex justify-between">
+              <div className="space-y-2 sm:space-y-3 pt-2">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-black border border-zinc-900 font-mono text-[11px] text-zinc-400 flex justify-between">
                   <span>Pattern Index</span>
                   <span className="text-red-400 font-semibold">Severity 5-50 Weights</span>
                 </div>
@@ -1646,18 +1865,18 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Module 6: Forensic Call History & Analytics */}
-            <div className="scroll-reveal reveal-delay-350 resend-card butter-card butter-shimmer-container rounded-2xl p-6 space-y-4 flex flex-col justify-between hover:border-blue-500/40 transition-all">
-              <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-950/60 border border-blue-800/60 flex items-center justify-center text-blue-400 shadow-sm">
-                  <BarChart3 className="w-5 h-5" />
+            <div className="scroll-reveal reveal-delay-350 resend-card butter-card butter-shimmer-container rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 flex flex-col justify-between hover:border-blue-500/40 transition-all">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-950/60 border border-blue-800/60 flex items-center justify-center text-blue-400 shadow-sm">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="text-lg font-semibold text-white">Call Forensics &amp; Threat Analytics</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Call Forensics &amp; Threat Analytics</h3>
                 <p className="text-xs text-zinc-400 leading-relaxed">
                   Cryptographically signed call event logs with synchronized audio waveforms, speaker diarization timestamps, and macroeconomic threat vector distribution metrics.
                 </p>
               </div>
-              <div className="space-y-3 pt-2">
-                <div className="p-3 rounded-xl bg-black border border-zinc-900 font-mono text-[11px] text-zinc-400 flex justify-between">
+              <div className="space-y-2 sm:space-y-3 pt-2">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-black border border-zinc-900 font-mono text-[11px] text-zinc-400 flex justify-between">
                   <span>Audit Logs</span>
                   <span className="text-blue-400 font-semibold">HMAC-SHA256 Signed</span>
                 </div>
@@ -1679,12 +1898,12 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* 6. INTERACTIVE LIVE CALL SIMULATOR DEMO                   */}
       {/* ========================================================= */}
-      <section id="waveform" className="py-20 border-t border-white/[0.08] scroll-mt-24 sm:scroll-mt-28">
-        <div className="max-w-5xl mx-auto px-6 space-y-8">
-          <div className="scroll-reveal flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div className="space-y-2">
-              <span className="text-xs font-mono text-emerald-400 uppercase tracking-widest">01 • LIVE CALL SIMULATOR</span>
-              <h3 className="font-serif-hero text-3xl sm:text-4xl font-normal text-white tracking-tight">
+      <section id="waveform" className="py-10 sm:py-16 md:py-20 border-t border-white/[0.08] scroll-mt-20 sm:scroll-mt-28">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8">
+          <div className="scroll-reveal flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <span className="text-[11px] sm:text-xs font-mono text-emerald-400 uppercase tracking-widest">01 • LIVE CALL SIMULATOR</span>
+              <h3 className="font-serif-hero text-fluid-section font-normal text-white tracking-tight">
                 Live Call Interceptor &amp; Diarization Simulator
               </h3>
               <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
@@ -1696,7 +1915,7 @@ export const LandingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setMicActive(!micActive)}
-                className="resend-frosted-btn rounded-xl px-4 py-2 text-xs font-mono text-zinc-300 flex items-center gap-2 self-start md:self-auto"
+                className="resend-frosted-btn rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-mono text-zinc-300 flex items-center gap-2 self-start md:self-auto"
               >
                 {micActive ? <Pause className="w-3.5 h-3.5 text-amber-400" /> : <Play className="w-3.5 h-3.5 text-emerald-400" />}
                 <span>{micActive ? 'Pause Audio' : 'Resume Audio'}</span>
@@ -1704,7 +1923,7 @@ export const LandingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleLaunchApp('/simulation')}
-                className="resend-primary-btn rounded-xl px-4 py-2 text-xs font-mono text-white flex items-center gap-1.5"
+                className="resend-primary-btn rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-mono text-white flex items-center gap-1.5"
               >
                 <span>Launch Full Simulator</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -1721,7 +1940,7 @@ export const LandingPage: React.FC = () => {
                   key={scen.id}
                   type="button"
                   onClick={() => setActiveHeroScenario(scen)}
-                  className={`p-3 rounded-xl border text-left transition-all ${
+                  className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all ${
                     activeHeroScenario.id === scen.id
                       ? 'bg-zinc-800 border-zinc-500 text-white shadow-md'
                       : 'bg-black/60 border-zinc-900 text-zinc-400 hover:border-zinc-800 hover:text-zinc-200'
@@ -1740,7 +1959,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Clean Dark Interceptor Card */}
-          <div className="scroll-reveal reveal-delay-150 resend-card butter-card rounded-2xl p-6 space-y-6">
+          <div className="scroll-reveal reveal-delay-150 resend-card butter-card rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono border-b border-white/[0.08] pb-3">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
@@ -1763,7 +1982,7 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* 32-Bar Decibel Spectrum (Butter-smooth fluid equalizer) */}
-            <div className="h-24 bg-black rounded-xl border border-zinc-900 p-4 flex items-end justify-between gap-1.5 overflow-hidden relative">
+            <div className="h-16 sm:h-24 bg-black rounded-xl border border-zinc-900 p-2.5 sm:p-4 flex items-end justify-between gap-1 sm:gap-1.5 overflow-hidden relative">
               {micActive && <div className="butter-laser-beam opacity-40" />}
               {Array.from({ length: 32 }).map((_, i) => {
                 const barHeight = micActive
@@ -1794,13 +2013,13 @@ export const LandingPage: React.FC = () => {
                 <span>SPEECH-TO-TEXT DIARIZATION FEED (DEEPGRAM NOVA-2 en-IN)</span>
                 <span className="text-emerald-400">Sub-500ms Latency</span>
               </div>
-              <div className="p-4 rounded-xl bg-black border border-zinc-900 space-y-2.5 font-mono text-xs">
-                <div className="p-3 rounded-lg bg-zinc-900/90 text-white border-l-2 border-red-500 space-y-1">
+              <div className="p-3 sm:p-4 rounded-xl bg-black border border-zinc-900 space-y-2 font-mono text-xs">
+                <div className="p-2.5 sm:p-3 rounded-lg bg-zinc-900/90 text-white border-l-2 border-red-500 space-y-1">
                   <div className="flex items-center justify-between text-[11px] text-zinc-400">
                     <span className="font-bold text-zinc-200">{activeHeroScenario.speaker}</span>
                     <span className="text-zinc-500">LIVE AUDIO STREAM</span>
                   </div>
-                  <p className="text-zinc-200 text-sm leading-relaxed">
+                  <p className="text-zinc-200 text-xs sm:text-sm leading-relaxed">
                     &ldquo;{activeHeroScenario.dialog}&rdquo;
                   </p>
                   {activeHeroScenario.risk > 70 && (
@@ -1834,16 +2053,15 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </section>
-
       {/* ========================================================= */}
       {/* 7. INTERACTIVE DEEPFAKE FORENSICS DEMO                    */}
       {/* ========================================================= */}
-      <section id="deepfake" className="py-20 border-t border-white/[0.08] bg-zinc-950/40 scroll-mt-24 sm:scroll-mt-28">
-        <div className="max-w-5xl mx-auto px-6 space-y-8">
-          <div className="scroll-reveal flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div className="space-y-2">
-              <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest">02 • FORENSIC BIOMETRICS</span>
-              <h3 className="font-serif-hero text-3xl sm:text-4xl font-normal text-white tracking-tight">
+      <section id="deepfake" className="py-10 sm:py-16 md:py-20 border-t border-white/[0.08] bg-zinc-950/40 scroll-mt-20 sm:scroll-mt-28">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8">
+          <div className="scroll-reveal flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <span className="text-[11px] sm:text-xs font-mono text-cyan-400 uppercase tracking-widest">02 • FORENSIC BIOMETRICS</span>
+              <h3 className="font-serif-hero text-fluid-section font-normal text-white tracking-tight">
                 Deepfake &amp; Synthetic Voice Biometric Analyzer
               </h3>
               <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
@@ -1854,7 +2072,7 @@ export const LandingPage: React.FC = () => {
             <button
               type="button"
               onClick={() => handleLaunchApp('/scanner')}
-              className="resend-primary-btn rounded-xl px-4 py-2 text-xs font-mono text-white flex items-center gap-1.5 self-start md:self-auto"
+              className="resend-primary-btn rounded-xl px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-mono text-white flex items-center gap-1.5 self-start md:self-auto"
             >
               <span>Open Audio Scanner</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -1862,14 +2080,14 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Interactive Biometrics Box */}
-          <div className="scroll-reveal reveal-delay-150 resend-card butter-card rounded-2xl p-6 space-y-6 relative overflow-hidden">
+          <div className="scroll-reveal reveal-delay-150 resend-card butter-card rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 relative overflow-hidden">
             {/* Butter-Smooth Laser Scanning Beam */}
             <div className="butter-laser-beam" />
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-4 relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-white/[0.08] pb-3 sm:pb-4 relative z-10">
               <div>
                 <span className="text-[11px] font-mono text-zinc-500 uppercase">Target Sample Profile:</span>
-                <div className="text-sm font-semibold text-white">
+                <div className="text-xs sm:text-sm font-semibold text-white">
                   {biometricMode === 'AI_CLONE' ? 'Synthetic Clone (ElevenLabs v2 Synthesizer)' : 'Authentic Human Voice (Natural Vocal Cords)'}
                 </div>
               </div>
@@ -1878,7 +2096,7 @@ export const LandingPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setBiometricMode('HUMAN')}
-                  className={`butter-btn px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`butter-btn px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-all ${
                     biometricMode === 'HUMAN' ? 'bg-white text-black font-semibold shadow-md' : 'text-zinc-400 hover:text-white'
                   }`}
                 >
@@ -1887,7 +2105,7 @@ export const LandingPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setBiometricMode('AI_CLONE')}
-                  className={`butter-btn px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`butter-btn px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-all ${
                     biometricMode === 'AI_CLONE' ? 'bg-red-500 text-white font-semibold shadow-md butter-glow-pulse-danger' : 'text-zinc-400 hover:text-white'
                   }`}
                 >
@@ -1896,51 +2114,51 @@ export const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 relative z-10">
-              <div className="butter-card p-4 rounded-xl bg-black border border-zinc-900 space-y-1.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 relative z-10">
+              <div className="butter-card p-3 sm:p-4 rounded-xl bg-black border border-zinc-900 space-y-1 sm:space-y-1.5">
                 <div className="text-[10px] font-mono text-zinc-500">SPECTRAL DISPERSION</div>
-                <div className={`text-xl font-bold font-mono transition-colors duration-300 ${biometricMode === 'AI_CLONE' ? 'text-red-400' : 'text-emerald-400'}`}>
+                <div className={`text-base sm:text-xl font-bold font-mono transition-colors duration-300 ${biometricMode === 'AI_CLONE' ? 'text-red-400' : 'text-emerald-400'}`}>
                   {biometricMode === 'AI_CLONE' ? '0.94 / 1.00' : '0.14 / 1.00'}
                 </div>
-                <p className="text-[10px] text-zinc-500">
+                <p className="text-[10px] text-zinc-500 line-clamp-2">
                   {biometricMode === 'AI_CLONE' ? 'Extreme high-frequency cutoff.' : 'Natural human harmonic curve.'}
                 </p>
               </div>
 
-              <div className="butter-card p-4 rounded-xl bg-black border border-zinc-900 space-y-1.5">
+              <div className="butter-card p-3 sm:p-4 rounded-xl bg-black border border-zinc-900 space-y-1 sm:space-y-1.5">
                 <div className="text-[10px] font-mono text-zinc-500">VOCODER GLITCH</div>
-                <div className={`text-xl font-bold font-mono transition-colors duration-300 ${biometricMode === 'AI_CLONE' ? 'text-red-400' : 'text-emerald-400'}`}>
+                <div className={`text-base sm:text-xl font-bold font-mono transition-colors duration-300 ${biometricMode === 'AI_CLONE' ? 'text-red-400' : 'text-emerald-400'}`}>
                   {biometricMode === 'AI_CLONE' ? 'HiFi-GAN (98%)' : 'None Detected'}
                 </div>
-                <p className="text-[10px] text-zinc-500">
+                <p className="text-[10px] text-zinc-500 line-clamp-2">
                   {biometricMode === 'AI_CLONE' ? 'Diffusion vocoder mismatch.' : 'Natural micro-tremors.'}
                 </p>
               </div>
 
-              <div className="butter-card p-4 rounded-xl bg-black border border-zinc-900 space-y-1.5">
+              <div className="butter-card p-3 sm:p-4 rounded-xl bg-black border border-zinc-900 space-y-1 sm:space-y-1.5">
                 <div className="text-[10px] font-mono text-zinc-500">BIOLOGICAL RESPIRATION</div>
-                <div className={`text-xl font-bold font-mono transition-colors duration-300 ${biometricMode === 'AI_CLONE' ? 'text-red-400' : 'text-emerald-400'}`}>
+                <div className={`text-base sm:text-xl font-bold font-mono transition-colors duration-300 ${biometricMode === 'AI_CLONE' ? 'text-red-400' : 'text-emerald-400'}`}>
                   {biometricMode === 'AI_CLONE' ? 'Breathing Absent' : 'Natural Inhalation'}
                 </div>
-                <p className="text-[10px] text-zinc-500">
+                <p className="text-[10px] text-zinc-500 line-clamp-2">
                   {biometricMode === 'AI_CLONE' ? 'AI synthesizer artifact.' : 'Human pulmonary cadences.'}
                 </p>
               </div>
 
-              <div className="butter-card p-4 rounded-xl bg-black border border-zinc-900 space-y-1.5">
+              <div className="butter-card p-3 sm:p-4 rounded-xl bg-black border border-zinc-900 space-y-1 sm:space-y-1.5">
                 <div className="text-[10px] font-mono text-zinc-500">OVERALL VERDICT</div>
-                <div className={`text-xl font-bold font-mono transition-colors duration-300 ${biometricMode === 'AI_CLONE' ? 'text-red-400' : 'text-emerald-400'}`}>
+                <div className={`text-base sm:text-xl font-bold font-mono transition-colors duration-300 ${biometricMode === 'AI_CLONE' ? 'text-red-400' : 'text-emerald-400'}`}>
                   {biometricMode === 'AI_CLONE' ? 'SYNTHETIC CLONE' : 'VERIFIED HUMAN'}
                 </div>
-                <p className="text-[10px] text-zinc-500">
+                <p className="text-[10px] text-zinc-500 line-clamp-2">
                   {biometricMode === 'AI_CLONE' ? 'High coercion impersonation.' : 'Zero AI signatures.'}
                 </p>
               </div>
             </div>
 
             {/* Dual Score Confidence Bars (Matching AudioScanner.tsx) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 relative z-10">
-              <div className="butter-card space-y-1.5 p-4 rounded-xl bg-black border border-zinc-900">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-2 relative z-10">
+              <div className="butter-card space-y-1.5 p-3 sm:p-4 rounded-xl bg-black border border-zinc-900">
                 <div className="flex justify-between text-xs font-mono">
                   <span className="text-zinc-400">Scam Intent Probability:</span>
                   <span className={`transition-colors duration-300 ${biometricMode === 'AI_CLONE' ? 'text-red-400 font-bold' : 'text-emerald-400 font-bold'}`}>
@@ -1956,7 +2174,7 @@ export const LandingPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="butter-card space-y-1.5 p-4 rounded-xl bg-black border border-zinc-900">
+              <div className="butter-card space-y-1.5 p-3 sm:p-4 rounded-xl bg-black border border-zinc-900">
                 <div className="flex justify-between text-xs font-mono">
                   <span className="text-zinc-400">Deepfake Voice Likelihood:</span>
                   <span className={`transition-colors duration-300 ${biometricMode === 'AI_CLONE' ? 'text-purple-400 font-bold' : 'text-emerald-400 font-bold'}`}>
@@ -1979,12 +2197,12 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* 8. INTERACTIVE TELECOM CARRIER INTEL                      */}
       {/* ========================================================= */}
-      <section id="carrier" className="py-20 border-t border-white/[0.08] scroll-mt-24 sm:scroll-mt-28">
-        <div className="max-w-5xl mx-auto px-6 space-y-8">
-          <div className="scroll-reveal flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div className="space-y-2">
-              <span className="text-xs font-mono text-purple-400 uppercase tracking-widest">03 • TELECOM INTELLIGENCE</span>
-              <h3 className="font-serif-hero text-3xl sm:text-4xl font-normal text-white tracking-tight">
+      <section id="carrier" className="py-10 sm:py-16 md:py-20 border-t border-white/[0.08] scroll-mt-20 sm:scroll-mt-28">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8">
+          <div className="scroll-reveal flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <span className="text-[11px] sm:text-xs font-mono text-purple-400 uppercase tracking-widest">03 • TELECOM INTELLIGENCE</span>
+              <h3 className="font-serif-hero text-fluid-section font-normal text-white tracking-tight">
                 Telecom HLR Carrier &amp; Number Intelligence
               </h3>
               <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
@@ -1995,23 +2213,23 @@ export const LandingPage: React.FC = () => {
             <button
               type="button"
               onClick={() => handleLaunchApp('/lookup')}
-              className="resend-primary-btn rounded-xl px-4 py-2 text-xs font-mono text-white flex items-center gap-1.5 self-start md:self-auto"
+              className="resend-primary-btn rounded-xl px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-mono text-white flex items-center gap-1.5 self-start md:self-auto"
             >
               <span>Search Number in Console</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <div className="scroll-reveal reveal-delay-150 grid grid-cols-1 md:grid-cols-12 gap-6">
+          <div className="scroll-reveal reveal-delay-150 grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-6">
             {/* Number presets (5 cols) */}
-            <div className="md:col-span-5 resend-card rounded-2xl p-5 space-y-3">
+            <div className="md:col-span-5 resend-card rounded-2xl p-3.5 sm:p-5 space-y-2.5 sm:space-y-3">
               <span className="text-[11px] font-mono text-zinc-500 uppercase">Test Carrier Signatures:</span>
 
               <div className="space-y-2">
                 <button
                   type="button"
                   onClick={() => handleTestNumber('9820012345', 'Vodafone Idea (Vi)', 'Mumbai (MH)', 'Cellular Postpaid', 'FRAUD_SUSPECT', 88, '2 Days (Fresh SIM Swap)', 'VoIP SIP Trunk Masquerade')}
-                  className={`w-full p-3 rounded-xl border text-left text-xs font-mono transition-all flex items-center justify-between ${
+                  className={`w-full p-2.5 sm:p-3 rounded-xl border text-left text-xs font-mono transition-all flex items-center justify-between ${
                     lookupPhone === '9820012345'
                       ? 'bg-zinc-800 border-zinc-600 text-white shadow-sm'
                       : 'bg-black border-zinc-900 text-zinc-400 hover:border-zinc-800'
@@ -2027,7 +2245,7 @@ export const LandingPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleTestNumber('7019844321', 'Reliance Jio', 'Karnataka (KA)', 'Cellular 5G', 'SAFE', 12, '4.2 Years', 'Direct Jio IMS')}
-                  className={`w-full p-3 rounded-xl border text-left text-xs font-mono transition-all flex items-center justify-between ${
+                  className={`w-full p-2.5 sm:p-3 rounded-xl border text-left text-xs font-mono transition-all flex items-center justify-between ${
                     lookupPhone === '7019844321'
                       ? 'bg-zinc-800 border-zinc-600 text-white shadow-sm'
                       : 'bg-black border-zinc-900 text-zinc-400 hover:border-zinc-800'
@@ -2043,7 +2261,7 @@ export const LandingPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleTestNumber('9448123999', 'BSNL', 'Tamil Nadu (TN)', 'Landline / WLL', 'SPAM', 64, '3.8 Years', 'International Gateway Routing')}
-                  className={`w-full p-3 rounded-xl border text-left text-xs font-mono transition-all flex items-center justify-between ${
+                  className={`w-full p-2.5 sm:p-3 rounded-xl border text-left text-xs font-mono transition-all flex items-center justify-between ${
                     lookupPhone === '9448123999'
                       ? 'bg-zinc-800 border-zinc-600 text-white shadow-sm'
                       : 'bg-black border-zinc-900 text-zinc-400 hover:border-zinc-800'
@@ -2059,35 +2277,35 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Dossier Result (7 cols) */}
-            <div className="md:col-span-7 resend-card rounded-2xl p-6 space-y-4">
+            <div className="md:col-span-7 resend-card rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 text-xs font-mono">
                 <span className="text-zinc-400">CARRIER DOSSIER: {carrierData.phone}</span>
                 <span className="text-white font-bold">{carrierData.riskLevel}</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-black border border-zinc-900">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 text-xs">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-black border border-zinc-900">
                   <div className="text-[10px] text-zinc-500 font-mono">OPERATOR</div>
-                  <div className="font-semibold text-white">{carrierData.operator}</div>
+                  <div className="font-semibold text-white truncate">{carrierData.operator}</div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-black border border-zinc-900">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-black border border-zinc-900">
                   <div className="text-[10px] text-zinc-500 font-mono">CIRCLE (LSA)</div>
-                  <div className="font-semibold text-white">{carrierData.circle}</div>
+                  <div className="font-semibold text-white truncate">{carrierData.circle}</div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-black border border-zinc-900">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-black border border-zinc-900">
                   <div className="text-[10px] text-zinc-500 font-mono">SIM AGE</div>
-                  <div className="font-semibold text-white">{carrierData.simAge}</div>
+                  <div className="font-semibold text-white truncate">{carrierData.simAge}</div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-black border border-zinc-900">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-black border border-zinc-900">
                   <div className="text-[10px] text-zinc-500 font-mono">GATEWAY</div>
                   <div className="font-semibold text-zinc-300 truncate">{carrierData.gateway}</div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-black border border-zinc-900 flex justify-between items-center text-xs font-mono">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-black border border-zinc-900 flex justify-between items-center text-xs font-mono">
                 <span className="text-zinc-500">Threat Score:</span>
                 <span className={`font-bold ${carrierData.spamScore > 75 ? 'text-red-400' : 'text-emerald-400'}`}>
                   {carrierData.spamScore} / 100
@@ -2101,12 +2319,12 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* 9. INTERACTIVE EXPLAINABLE AI (XAI) THREAT EVALUATION DIAL */}
       {/* ========================================================= */}
-      <section id="xai" className="py-20 border-t border-white/[0.08] bg-zinc-950/40 scroll-mt-24 sm:scroll-mt-28">
-        <div className="max-w-5xl mx-auto px-6 space-y-8">
-          <div className="scroll-reveal flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div className="space-y-2">
-              <span className="text-xs font-mono text-amber-400 uppercase tracking-widest">04 • EXPLAINABLE AI (XAI) ENGINE</span>
-              <h3 className="font-serif-hero text-3xl sm:text-4xl font-normal text-white tracking-tight">
+      <section id="xai" className="py-10 sm:py-16 md:py-20 border-t border-white/[0.08] bg-zinc-950/40 scroll-mt-20 sm:scroll-mt-28">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8">
+          <div className="scroll-reveal flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <span className="text-[11px] sm:text-xs font-mono text-amber-400 uppercase tracking-widest">04 • EXPLAINABLE AI (XAI) ENGINE</span>
+              <h3 className="font-serif-hero text-fluid-section font-normal text-white tracking-tight">
                 Explainable Threat Classification &amp; Actions
               </h3>
               <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
@@ -2117,14 +2335,14 @@ export const LandingPage: React.FC = () => {
             <button
               type="button"
               onClick={() => handleLaunchApp('/simulation')}
-              className="resend-primary-btn rounded-xl px-4 py-2 text-xs font-mono text-white flex items-center gap-1.5 self-start md:self-auto"
+              className="resend-primary-btn rounded-xl px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-mono text-white flex items-center gap-1.5 self-start md:self-auto"
             >
               <span>Test Live XAI in Simulator</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <div className="scroll-reveal reveal-delay-150 resend-card rounded-2xl p-6 space-y-6">
+          <div className="scroll-reveal reveal-delay-150 resend-card rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6">
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-zinc-400">Simulated Call Threat Score:</span>
@@ -2147,7 +2365,7 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Dynamic Evaluation Card */}
-            <div className={`p-5 rounded-xl border space-y-4 transition-all duration-300 ${threatEval.bg}`}>
+            <div className={`p-3.5 sm:p-5 rounded-xl border space-y-3 sm:space-y-4 transition-all duration-300 ${threatEval.bg}`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-mono text-zinc-400">CLASSIFICATION:</span>
@@ -2162,23 +2380,23 @@ export const LandingPage: React.FC = () => {
 
               <div className="space-y-1">
                 <span className="text-[10px] font-mono text-zinc-400 uppercase">Claude 3.5 Sonnet XAI Verdict:</span>
-                <p className="text-sm font-medium text-white">
+                <p className="text-xs sm:text-sm font-medium text-white">
                   {threatEval.verdict}
                 </p>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 pt-2 text-xs font-mono">
-                <div className="p-2.5 rounded-lg bg-black/60 border border-white/10">
-                  <div className="text-[10px] text-zinc-500">HEURISTIC SCORE</div>
-                  <div className="text-base font-bold text-white">{threatEval.heuristicScore} / 100</div>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-2 text-xs font-mono">
+                <div className="p-2 sm:p-2.5 rounded-lg bg-black/60 border border-white/10">
+                  <div className="text-[9px] sm:text-[10px] text-zinc-500">HEURISTIC SCORE</div>
+                  <div className="text-sm sm:text-base font-bold text-white">{threatEval.heuristicScore} / 100</div>
                 </div>
-                <div className="p-2.5 rounded-lg bg-black/60 border border-white/10">
-                  <div className="text-[10px] text-zinc-500">XAI REASONING</div>
-                  <div className="text-base font-bold text-white">{threatEval.xaiScore} / 100</div>
+                <div className="p-2 sm:p-2.5 rounded-lg bg-black/60 border border-white/10">
+                  <div className="text-[9px] sm:text-[10px] text-zinc-500">XAI REASONING</div>
+                  <div className="text-sm sm:text-base font-bold text-white">{threatEval.xaiScore} / 100</div>
                 </div>
-                <div className="p-2.5 rounded-lg bg-black/60 border border-white/10">
-                  <div className="text-[10px] text-zinc-500">HLR REPUTATION</div>
-                  <div className="text-base font-bold text-white">{threatEval.hlrScore} / 100</div>
+                <div className="p-2 sm:p-2.5 rounded-lg bg-black/60 border border-white/10">
+                  <div className="text-[9px] sm:text-[10px] text-zinc-500">HLR REPUTATION</div>
+                  <div className="text-sm sm:text-base font-bold text-white">{threatEval.hlrScore} / 100</div>
                 </div>
               </div>
             </div>
@@ -2186,129 +2404,127 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-
-
       {/* ========================================================= */}
       {/* 9.1. COMPARISON MATRIX: CALLIX VS LEGACY SOLUTIONS         */}
       {/* ========================================================= */}
-      <section id="matrix" className="py-24 border-t border-white/[0.08] scroll-mt-24 sm:scroll-mt-28 relative">
-        <div className="max-w-6xl mx-auto px-6 space-y-12">
+      <section id="matrix" className="py-10 sm:py-16 md:py-24 border-t border-white/[0.08] scroll-mt-20 sm:scroll-mt-28 relative">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-12">
           
-          <div className="text-center space-y-3 max-w-3xl mx-auto scroll-reveal">
-            <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest">ENTERPRISE VOICE SECURITY BENCHMARK</span>
-            <h2 className="font-serif-hero text-4xl sm:text-5xl font-normal text-white tracking-tight">
+          <div className="text-center space-y-2 sm:space-y-3 max-w-3xl mx-auto scroll-reveal">
+            <span className="text-[11px] sm:text-xs font-mono text-cyan-400 uppercase tracking-widest">ENTERPRISE VOICE SECURITY BENCHMARK</span>
+            <h2 className="font-serif-hero text-fluid-section font-normal text-white tracking-tight">
               Why Callix stands alone in <br />
               <span className="italic font-light text-zinc-300">zero-trust voice defense</span>
             </h2>
-            <p className="text-sm text-zinc-400 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-2xl mx-auto">
               Legacy caller ID apps and telecom filters only check stale databases. Callix inspects the live acoustic waveform and speech semantics in real time.
             </p>
           </div>
 
-          <div className="scroll-reveal reveal-delay-100 resend-card rounded-3xl p-4 sm:p-8 overflow-x-auto border border-white/10">
-            <table className="w-full text-left border-collapse min-w-[640px]">
+          <div className="scroll-reveal reveal-delay-100 resend-card rounded-2xl sm:rounded-3xl p-3 sm:p-8 overflow-x-auto border border-white/10">
+            <table className="w-full text-left border-collapse min-w-[580px]">
               <thead>
                 <tr className="border-b border-white/10 text-xs font-mono">
-                  <th className="py-4 px-4 text-zinc-400 font-medium">DEFENSE CAPABILITY</th>
-                  <th className="py-4 px-4 text-cyan-400 font-bold bg-cyan-950/30 rounded-t-xl">
+                  <th className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-400 font-medium">DEFENSE CAPABILITY</th>
+                  <th className="py-3 sm:py-4 px-3 sm:px-4 text-cyan-400 font-bold bg-cyan-950/30 rounded-t-xl">
                     <div className="flex items-center gap-1.5">
                       <ShieldCheck className="w-4 h-4 text-cyan-400" />
                       <span>CALLIX GUARDIAN</span>
                     </div>
                   </th>
-                  <th className="py-4 px-4 text-zinc-400 font-medium">TRADITIONAL CALLER ID</th>
-                  <th className="py-4 px-4 text-zinc-400 font-medium">TELECOM FILTERS</th>
+                  <th className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-400 font-medium">TRADITIONAL CALLER ID</th>
+                  <th className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-400 font-medium">TELECOM FILTERS</th>
                 </tr>
               </thead>
               <tbody className="text-xs divide-y divide-white/[0.06]">
                 <tr className="hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 px-4 font-medium text-white">
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 font-medium text-white">
                     <div>Real-Time AI Voice Deepfake Detection</div>
-                    <div className="text-[11px] text-zinc-500 font-normal">512-band FFT &amp; vocoder neural footprint scanning</div>
+                    <div className="text-[10px] sm:text-[11px] text-zinc-500 font-normal">512-band FFT &amp; vocoder neural footprint scanning</div>
                   </td>
-                  <td className="py-4 px-4 font-mono font-bold text-emerald-400 bg-cyan-950/20">
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 font-mono font-bold text-emerald-400 bg-cyan-950/20">
                     <div className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                       <span>Sub-18ms Active Scan</span>
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-zinc-500 font-mono">None (Zero audio inspect)</td>
-                  <td className="py-4 px-4 text-zinc-500 font-mono">None</td>
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-500 font-mono">None (Zero audio inspect)</td>
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-500 font-mono">None</td>
                 </tr>
 
                 <tr className="hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 px-4 font-medium text-white">
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 font-medium text-white">
                     <div>Indian Cybercrime Coercion NLP</div>
-                    <div className="text-[11px] text-zinc-500 font-normal">500+ Digital Arrest, Fake CBI, and KYC extortion scripts</div>
+                    <div className="text-[10px] sm:text-[11px] text-zinc-500 font-normal">500+ Digital Arrest, Fake CBI, and KYC extortion scripts</div>
                   </td>
-                  <td className="py-4 px-4 font-mono font-bold text-emerald-400 bg-cyan-950/20">
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 font-mono font-bold text-emerald-400 bg-cyan-950/20">
                     <div className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                       <span>Deepgram Nova-2 en-IN</span>
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-zinc-500 font-mono">User feedback flags only</td>
-                  <td className="py-4 px-4 text-zinc-500 font-mono">SMS keyword filter only</td>
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-500 font-mono">User feedback flags only</td>
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-500 font-mono">SMS keyword filter only</td>
                 </tr>
 
                 <tr className="hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 px-4 font-medium text-white">
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 font-medium text-white">
                     <div>Elder Guardian &lt;140ms Emergency Alert</div>
-                    <div className="text-[11px] text-zinc-500 font-normal">Autonomous SMS &amp; WhatsApp dispatch to family contacts</div>
+                    <div className="text-[10px] sm:text-[11px] text-zinc-500 font-normal">Autonomous SMS &amp; WhatsApp dispatch to family contacts</div>
                   </td>
-                  <td className="py-4 px-4 font-mono font-bold text-emerald-400 bg-cyan-950/20">
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 font-mono font-bold text-emerald-400 bg-cyan-950/20">
                     <div className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                       <span>Automated (&lt;140ms)</span>
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-zinc-500 font-mono">None</td>
-                  <td className="py-4 px-4 text-zinc-500 font-mono">None</td>
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-500 font-mono">None</td>
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-500 font-mono">None</td>
                 </tr>
 
                 <tr className="hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 px-4 font-medium text-white">
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 font-medium text-white">
                     <div>Fresh SIM-Swap &amp; VoIP Proxy Detection</div>
-                    <div className="text-[11px] text-zinc-500 font-normal">Direct HLR / BTS radio tower age verification</div>
+                    <div className="text-[10px] sm:text-[11px] text-zinc-500 font-normal">Direct HLR / BTS radio tower age verification</div>
                   </td>
-                  <td className="py-4 px-4 font-mono font-bold text-emerald-400 bg-cyan-950/20">
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 font-mono font-bold text-emerald-400 bg-cyan-950/20">
                     <div className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                       <span>12ms SS7 / Diameter</span>
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-zinc-500 font-mono">Stale crowdsourced tags</td>
-                  <td className="py-4 px-4 text-zinc-500 font-mono">Delayed 24-48 hours</td>
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-500 font-mono">Stale crowdsourced tags</td>
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-500 font-mono">Delayed 24-48 hours</td>
                 </tr>
 
                 <tr className="hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 px-4 font-medium text-white">
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 font-medium text-white">
                     <div>Autonomous Threat Call Severance</div>
-                    <div className="text-[11px] text-zinc-500 font-normal">Immediate hangup when risk score exceeds 90 / 100</div>
+                    <div className="text-[10px] sm:text-[11px] text-zinc-500 font-normal">Immediate hangup when risk score exceeds 90 / 100</div>
                   </td>
-                  <td className="py-4 px-4 font-mono font-bold text-emerald-400 bg-cyan-950/20">
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 font-mono font-bold text-emerald-400 bg-cyan-950/20">
                     <div className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                       <span>Zero-Touch Auto-Sever</span>
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-zinc-500 font-mono">Manual reject by user</td>
-                  <td className="py-4 px-4 text-zinc-500 font-mono">None</td>
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-500 font-mono">Manual reject by user</td>
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-500 font-mono">None</td>
                 </tr>
 
                 <tr className="hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 px-4 font-medium text-white">
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 font-medium text-white">
                     <div>Zero Audio Retention &amp; Cryptographic Audit</div>
-                    <div className="text-[11px] text-zinc-500 font-normal">Ephemeral memory processing + HMAC-SHA256 signed evidence</div>
+                    <div className="text-[10px] sm:text-[11px] text-zinc-500 font-normal">Ephemeral memory processing + HMAC-SHA256 signed evidence</div>
                   </td>
-                  <td className="py-4 px-4 font-mono font-bold text-emerald-400 bg-cyan-950/20 rounded-b-xl">
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 font-mono font-bold text-emerald-400 bg-cyan-950/20 rounded-b-xl">
                     <div className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                       <span>DPDP &amp; SOC2 Compliant</span>
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-zinc-500 font-mono">Uploads user contact book</td>
-                  <td className="py-4 px-4 text-zinc-500 font-mono">Telco CDR logs only</td>
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-500 font-mono">Uploads user contact book</td>
+                  <td className="py-3 sm:py-4 px-3 sm:px-4 text-zinc-500 font-mono">Telco CDR logs only</td>
                 </tr>
               </tbody>
             </table>
@@ -2319,25 +2535,25 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* 9.2. INTERACTIVE FRAUD LOSS & ROI CALCULATOR               */}
       {/* ========================================================= */}
-      <section id="calculator" className="py-24 border-t border-white/[0.08] bg-zinc-950/40 scroll-mt-24 sm:scroll-mt-28 relative">
-        <div className="max-w-5xl mx-auto px-6 space-y-12">
+      <section id="calculator" className="py-10 sm:py-16 md:py-24 border-t border-white/[0.08] bg-zinc-950/40 scroll-mt-20 sm:scroll-mt-28 relative">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-12">
           
-          <div className="text-center space-y-3 max-w-3xl mx-auto scroll-reveal">
-            <span className="text-xs font-mono text-emerald-400 uppercase tracking-widest">QUANTIFIABLE FINANCIAL IMPACT</span>
-            <h2 className="font-serif-hero text-4xl sm:text-5xl font-normal text-white tracking-tight">
+          <div className="text-center space-y-2 sm:space-y-3 max-w-3xl mx-auto scroll-reveal">
+            <span className="text-[11px] sm:text-xs font-mono text-emerald-400 uppercase tracking-widest">QUANTIFIABLE FINANCIAL IMPACT</span>
+            <h2 className="font-serif-hero text-fluid-section font-normal text-white tracking-tight">
               Calculate your fraud prevention <br />
               <span className="italic font-light text-zinc-300">return on investment</span>
             </h2>
-            <p className="text-sm text-zinc-400 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-2xl mx-auto">
               Simulate the direct financial damages averted across your enterprise or family network by stopping voice cloning and extortion calls in real time.
             </p>
           </div>
 
-          <div className="scroll-reveal reveal-delay-100 resend-card rounded-3xl p-6 sm:p-10 border border-white/10 space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="scroll-reveal reveal-delay-100 resend-card rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 border border-white/10 space-y-5 sm:space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 sm:gap-6 lg:gap-8">
               
               {/* Slider 1: Monthly Calls */}
-              <div className="butter-card space-y-3 p-4 rounded-2xl bg-black/60 border border-zinc-900">
+              <div className="butter-card space-y-2.5 sm:space-y-3 p-3.5 sm:p-4 rounded-2xl bg-black/60 border border-zinc-900">
                 <div className="flex justify-between items-center text-xs font-mono">
                   <span className="text-zinc-400">Monthly Inbound Calls:</span>
                   <span className="text-sm font-bold text-white font-mono">{roiMonthlyCalls.toLocaleString()}</span>
@@ -2359,7 +2575,7 @@ export const LandingPage: React.FC = () => {
               </div>
 
               {/* Slider 2: Scam Attempt Rate */}
-              <div className="butter-card space-y-3 p-4 rounded-2xl bg-black/60 border border-zinc-900">
+              <div className="butter-card space-y-2.5 sm:space-y-3 p-3.5 sm:p-4 rounded-2xl bg-black/60 border border-zinc-900">
                 <div className="flex justify-between items-center text-xs font-mono">
                   <span className="text-zinc-400">Scam/Vishing Rate:</span>
                   <span className="text-sm font-bold text-amber-400 font-mono">{roiScamRate}%</span>
@@ -2381,7 +2597,7 @@ export const LandingPage: React.FC = () => {
               </div>
 
               {/* Slider 3: Average Loss Per Scam */}
-              <div className="butter-card space-y-3 p-4 rounded-2xl bg-black/60 border border-zinc-900">
+              <div className="butter-card space-y-2.5 sm:space-y-3 p-3.5 sm:p-4 rounded-2xl bg-black/60 border border-zinc-900">
                 <div className="flex justify-between items-center text-xs font-mono">
                   <span className="text-zinc-400">Avg Loss Per Scam:</span>
                   <span className="text-sm font-bold text-red-400 font-mono">&#8377;{(roiAvgLoss / 1000).toFixed(0)}k</span>
@@ -2405,47 +2621,47 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Calculated Results Showcase Banner (Butter-Smooth Glowing Impact) */}
-            <div className="butter-card butter-glow-pulse-cyan p-6 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-cyan-950/30 to-black border border-emerald-500/30 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
+            <div className="butter-card butter-glow-pulse-cyan p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-cyan-950/30 to-black border border-emerald-500/30 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-center sm:text-left">
               <div className="space-y-1">
-                <span className="text-[11px] font-mono text-emerald-400 uppercase tracking-wide">
+                <span className="text-[10px] sm:text-[11px] font-mono text-emerald-400 uppercase tracking-wide">
                   ESTIMATED MONTHLY SAVINGS
                 </span>
-                <div className="text-3xl sm:text-4xl font-bold font-mono text-white text-glow-primary">
+                <div className="text-2xl sm:text-4xl font-bold font-mono text-white text-glow-primary">
                   {formattedLossAvoided}
                 </div>
-                <p className="text-[11px] text-zinc-400">Direct financial extortion damages prevented.</p>
+                <p className="text-[10px] sm:text-[11px] text-zinc-400">Direct financial extortion damages prevented.</p>
               </div>
 
               <div className="space-y-1 sm:border-l sm:border-white/10 sm:pl-6">
-                <span className="text-[11px] font-mono text-cyan-400 uppercase tracking-wide">
+                <span className="text-[10px] sm:text-[11px] font-mono text-cyan-400 uppercase tracking-wide">
                   THREAT CALLS NEUTRALIZED
                 </span>
-                <div className="text-3xl sm:text-4xl font-bold font-mono text-white">
-                  {estimatedScamCalls.toLocaleString()} <span className="text-sm font-normal text-zinc-400">/ mo</span>
+                <div className="text-2xl sm:text-4xl font-bold font-mono text-white">
+                  {estimatedScamCalls.toLocaleString()} <span className="text-xs sm:text-sm font-normal text-zinc-400">/ mo</span>
                 </div>
-                <p className="text-[11px] text-zinc-400">AI voice clones &amp; coercive traps intercepted.</p>
+                <p className="text-[10px] sm:text-[11px] text-zinc-400">AI voice clones &amp; coercive traps intercepted.</p>
               </div>
 
               <div className="space-y-1 sm:border-l sm:border-white/10 sm:pl-6">
-                <span className="text-[11px] font-mono text-purple-400 uppercase tracking-wide">
+                <span className="text-[10px] sm:text-[11px] font-mono text-purple-400 uppercase tracking-wide">
                   PROTECTION LATENCY
                 </span>
-                <div className="text-3xl sm:text-4xl font-bold font-mono text-white">
+                <div className="text-2xl sm:text-4xl font-bold font-mono text-white">
                   &lt; 140ms
                 </div>
-                <p className="text-[11px] text-zinc-400">Sub-second autonomous guardian alert time.</p>
+                <p className="text-[10px] sm:text-[11px] text-zinc-400">Sub-second autonomous guardian alert time.</p>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 text-xs font-mono text-zinc-400">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-2 text-xs font-mono text-zinc-400">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>Calculations benchmarked against RBI 2024 Telecom Fraud Whitepaper telemetry.</span>
+                <span className="text-[11px] sm:text-xs">Calculations benchmarked against RBI 2024 Telecom Fraud Whitepaper telemetry.</span>
               </div>
               <button
                 type="button"
                 onClick={() => handleLaunchApp('/dashboard')}
-                className="resend-primary-btn px-5 py-2 rounded-xl text-xs text-black font-semibold"
+                className="resend-primary-btn px-4 sm:px-5 py-2 rounded-xl text-xs text-black font-semibold w-full sm:w-auto"
               >
                 Deploy Protection Now
               </button>
@@ -2457,58 +2673,58 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* 9.3. LIVE CYBERCRIME ATTACK RADAR & INDIAN CARRIER FEED    */}
       {/* ========================================================= */}
-      <section id="radar" className="py-24 border-t border-white/[0.08] scroll-mt-24 sm:scroll-mt-28 relative overflow-hidden">
+      <section id="radar" className="py-10 sm:py-16 md:py-24 border-t border-white/[0.08] scroll-mt-20 sm:scroll-mt-28 relative overflow-hidden">
         
         {/* Subtle Radar Waveform Accent */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-96 h-96 bg-red-500/5 blur-[100px] rounded-full pointer-events-none" />
 
-        <div className="max-w-6xl mx-auto px-6 space-y-12 relative z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-12 relative z-10">
           
-          <div className="text-center space-y-3 max-w-3xl mx-auto scroll-reveal">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/60 border border-red-800/60 text-red-400 text-xs font-mono tracking-widest uppercase">
+          <div className="text-center space-y-2 sm:space-y-3 max-w-3xl mx-auto scroll-reveal">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/60 border border-red-800/60 text-red-400 text-[11px] sm:text-xs font-mono tracking-widest uppercase">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
               LIVE INCIDENT RADAR • INDIAN CARRIER FEEDS
             </div>
-            <h2 className="font-serif-hero text-4xl sm:text-5xl font-normal text-white tracking-tight">
+            <h2 className="font-serif-hero text-fluid-section font-normal text-white tracking-tight">
               Real-time threat interception <br />
               <span className="italic font-light text-zinc-300">across Indian telecom circles</span>
             </h2>
-            <p className="text-sm text-zinc-400 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-2xl mx-auto">
               Live telemetry feed of voice impersonation, fake law enforcement threats, and synthetic AI clones neutralized across telecom circles.
             </p>
           </div>
 
-          <div className="scroll-reveal reveal-delay-100 resend-card rounded-3xl p-6 sm:p-8 border border-white/10 space-y-4">
+          <div className="scroll-reveal reveal-delay-100 resend-card rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-white/10 space-y-3 sm:space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs font-mono">
               <div className="flex items-center gap-2 text-zinc-400">
                 <Radio className="w-4 h-4 text-cyan-400 animate-pulse" />
-                <span>INTERCEPTED CALL TELEMETRY (LSA CIRCLES: MH, KA, DL, TS, TN)</span>
+                <span className="text-[11px] sm:text-xs">INTERCEPTED CALL TELEMETRY (LSA CIRCLES: MH, KA, DL, TS, TN)</span>
               </div>
-              <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+              <span className="text-emerald-400 font-bold flex items-center gap-1.5 text-[11px] sm:text-xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 LIVE RADAR FEED
               </span>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2 sm:space-y-2.5">
               {liveThreatEvents.map((evt, idx) => (
                 <div
                   key={idx}
-                  className="p-3.5 sm:p-4 rounded-xl bg-black/60 border border-zinc-900 hover:border-zinc-800 transition-colors font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  className="p-3 sm:p-4 rounded-xl bg-black/60 border border-zinc-900 hover:border-zinc-800 transition-colors font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-zinc-500 text-[11px] shrink-0 w-16">{evt.time}</span>
-                    <span className="px-2 py-0.5 rounded bg-zinc-900 text-white font-semibold border border-zinc-800 shrink-0">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <span className="text-zinc-500 text-[10px] sm:text-[11px] shrink-0 w-14 sm:w-16">{evt.time}</span>
+                    <span className="px-1.5 sm:px-2 py-0.5 rounded bg-zinc-900 text-white font-semibold border border-zinc-800 shrink-0 text-[11px]">
                       {evt.city}
                     </span>
-                    <span className="text-zinc-300 truncate max-w-[200px] sm:max-w-[280px]">
+                    <span className="text-zinc-300 truncate max-w-[170px] sm:max-w-[280px] text-[11px] sm:text-xs">
                       {evt.threatType}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 self-end sm:self-auto">
-                    <span className="text-[11px] text-zinc-500 hidden md:inline">{evt.carrier}</span>
-                    <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-bold ${evt.statusColor}`}>
+                  <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto">
+                    <span className="text-[10px] sm:text-[11px] text-zinc-500 hidden md:inline">{evt.carrier}</span>
+                    <span className={`px-2 sm:px-2.5 py-0.5 rounded-full border text-[10px] sm:text-[11px] font-bold ${evt.statusColor}`}>
                       Risk: {evt.risk}/100 • {evt.action}
                     </span>
                   </div>
@@ -2516,7 +2732,7 @@ export const LandingPage: React.FC = () => {
               ))}
             </div>
 
-            <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-zinc-500">
+            <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[10px] sm:text-[11px] font-mono text-zinc-500">
               <span>Encrypted Carrier Relay: TLS 1.3 &bull; SHA-256 Verified</span>
               <Link to="/analytics" className="text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1">
                 <span>View Full Forensic Stream &rarr;</span>
@@ -2530,42 +2746,42 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* 9.4. INTERACTIVE FAQ ACCORDION                            */}
       {/* ========================================================= */}
-      <section id="faq" className="py-24 border-t border-white/[0.08] bg-zinc-950/40 scroll-mt-24 sm:scroll-mt-28 relative">
-        <div className="max-w-4xl mx-auto px-6 space-y-12">
+      <section id="faq" className="py-10 sm:py-16 md:py-24 border-t border-white/[0.08] bg-zinc-950/40 scroll-mt-20 sm:scroll-mt-28 relative">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-12">
           
-          <div className="text-center space-y-3 max-w-2xl mx-auto scroll-reveal">
-            <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest">KNOWLEDGE BASE &amp; ARCHITECTURE</span>
-            <h2 className="font-serif-hero text-4xl sm:text-5xl font-normal text-white tracking-tight">
+          <div className="text-center space-y-2 sm:space-y-3 max-w-2xl mx-auto scroll-reveal">
+            <span className="text-[11px] sm:text-xs font-mono text-cyan-400 uppercase tracking-widest">KNOWLEDGE BASE &amp; ARCHITECTURE</span>
+            <h2 className="font-serif-hero text-fluid-section font-normal text-white tracking-tight">
               Frequently asked questions
             </h2>
-            <p className="text-sm text-zinc-400 leading-relaxed">
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
               Everything you need to know about Callix voice intelligence, deepfake biometrics, and zero-retention privacy.
             </p>
           </div>
 
-          <div className="scroll-reveal reveal-delay-100 space-y-3">
+          <div className="scroll-reveal reveal-delay-100 space-y-2.5 sm:space-y-3">
             {faqs.map((faq, fIdx) => {
               const isOpen = activeFaqIndex === fIdx;
               return (
                 <div
                   key={fIdx}
-                  className="resend-card rounded-2xl border border-white/10 overflow-hidden transition-all duration-200"
+                  className="resend-card rounded-xl sm:rounded-2xl border border-white/10 overflow-hidden transition-all duration-200"
                 >
                   <button
                     type="button"
                     onClick={() => setActiveFaqIndex(isOpen ? null : fIdx)}
-                    className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 select-none cursor-pointer"
+                    className="w-full p-3.5 sm:p-5 text-left flex items-center justify-between gap-3 sm:gap-4 select-none cursor-pointer"
                   >
-                    <span className="text-sm sm:text-base font-medium text-white tracking-tight">
+                    <span className="text-xs sm:text-base font-medium text-white tracking-tight">
                       {faq.q}
                     </span>
-                    <div className={`w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-white bg-white/10' : ''}`}>
-                      <ChevronDown className="w-4 h-4" />
+                    <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-white bg-white/10' : ''}`}>
+                      <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
                   </button>
 
                   {isOpen && (
-                    <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-xs sm:text-sm text-zinc-300 leading-relaxed border-t border-white/[0.06] pt-4">
+                    <div className="px-3.5 pb-3.5 sm:px-5 sm:pb-5 text-xs sm:text-sm text-zinc-300 leading-relaxed border-t border-white/[0.06] pt-3 sm:pt-4">
                       {faq.a}
                     </div>
                   )}
@@ -2574,8 +2790,8 @@ export const LandingPage: React.FC = () => {
             })}
           </div>
 
-          <div className="scroll-reveal text-center pt-4">
-            <p className="text-xs text-zinc-400">
+          <div className="scroll-reveal text-center pt-3 sm:pt-4">
+            <p className="text-[11px] sm:text-xs text-zinc-400">
               Have specific carrier or enterprise requirements?{' '}
               <a href="#hero" onClick={(e) => handleSmoothScroll(e, 'hero')} className="text-cyan-400 hover:text-cyan-300 underline underline-offset-4">
                 Talk to our voice security architects
@@ -2589,18 +2805,18 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* 10. BOTTOM CALL TO ACTION                                 */}
       {/* ========================================================= */}
-      <section className="scroll-reveal py-24 border-t border-white/[0.08] text-center px-6 max-w-4xl mx-auto space-y-6">
-        <h3 className="font-serif-hero text-4xl sm:text-5xl font-normal text-white tracking-tight">
+      <section className="scroll-reveal py-10 sm:py-16 md:py-24 border-t border-white/[0.08] text-center px-4 sm:px-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
+        <h3 className="font-serif-hero text-fluid-section font-normal text-white tracking-tight">
           Ready to secure your voice streams?
         </h3>
-        <p className="text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
           Start detecting synthetic voice clones and fraudulent callers in minutes with Callix.
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-1 sm:pt-2">
           <button
             type="button"
             onClick={() => handleLaunchApp('/dashboard')}
-            className="resend-primary-btn rounded-2xl px-6 py-3 text-sm flex items-center gap-2 cursor-pointer"
+            className="resend-primary-btn rounded-xl sm:rounded-2xl px-5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm flex items-center gap-2 cursor-pointer"
           >
             <span>Get Started</span>
             <ChevronRight className="w-4 h-4" />
@@ -2609,7 +2825,7 @@ export const LandingPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleLaunchApp('/dashboard')}
-            className="resend-frosted-btn rounded-2xl px-5 py-3 text-sm font-medium text-zinc-300 hover:text-white cursor-pointer"
+            className="resend-frosted-btn rounded-xl sm:rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-zinc-300 hover:text-white cursor-pointer"
           >
             Sign In &rarr;
           </button>
