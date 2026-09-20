@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Application } from '@splinetool/runtime';
 
 export const ResendCube3D: React.FC<{ className?: string }> = ({ className = '' }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -13,18 +13,13 @@ export const ResendCube3D: React.FC<{ className?: string }> = ({ className = '' 
     let isMounted = true;
 
     try {
+      // Direct Spline WebGL 3D Application - pure 3D canvas from millisecond 0
       app = new Application(canvas);
-      app.load('/cube.splinecode')
-        .then(() => {
-          if (isMounted) {
-            setLoaded(true);
-          }
-        })
-        .catch((err) => {
-          console.warn('Spline load warning, using fallback:', err);
-        });
-    } catch (e) {
-      console.warn('Spline runtime initialization error:', e);
+      app.load('/cube.splinecode').catch((err) => {
+        console.warn('Spline load error:', err);
+      });
+    } catch (err) {
+      console.warn('Spline init error:', err);
     }
 
     return () => {
@@ -40,26 +35,25 @@ export const ResendCube3D: React.FC<{ className?: string }> = ({ className = '' 
   }, []);
 
   return (
-    <div className={`relative flex items-center justify-center select-none pointer-events-auto ${className}`}>
-      {/* 100% Official Resend Spline 3D Scene */}
-      <canvas
-        ref={canvasRef}
-        className={`w-full h-full object-contain transition-opacity duration-700 ${
-          loaded ? 'opacity-100' : 'opacity-0'
-        }`}
-        style={{ background: 'transparent' }}
+    <div 
+      ref={containerRef}
+      className={`relative flex items-center justify-center select-none pointer-events-auto ${className}`}
+    >
+      {/* Soft ambient glow backdrop behind 3D cube */}
+      <div 
+        className="absolute w-[85%] h-[85%] rounded-full bg-radial from-cyan-500/15 via-purple-500/10 to-transparent blur-3xl pointer-events-none -z-10" 
       />
 
-      {/* Fallback while loading */}
-      {!loaded && (
-        <img
-          src="/cube-fallback.jpg"
-          alt="Resend 3D Cube"
-          className="absolute inset-0 m-auto w-4/5 h-4/5 object-contain pointer-events-none opacity-80"
-        />
-      )}
+      {/* Pure 100% 3D WebGL Canvas - direct 3D model with zero photo delay */}
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full object-contain"
+        style={{ background: 'transparent' }}
+      />
     </div>
   );
 };
 
 export default ResendCube3D;
+
+

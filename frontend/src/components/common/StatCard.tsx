@@ -30,13 +30,13 @@ export const StatCard: React.FC<StatCardProps> = ({
   };
 
   return (
-    <Card hover className="relative overflow-hidden group">
+    <Card hover className="relative overflow-hidden group butter-card">
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">{title}</p>
-          <h4 className="text-2xl font-semibold text-white tracking-tight font-mono">{value}</h4>
+          <h4 className="text-2xl font-semibold text-white tracking-tight font-mono group-hover:text-cyan-300 transition-colors duration-300">{value}</h4>
         </div>
-        <div className={cn('p-2.5 rounded-xl border transition-all duration-300 group-hover:scale-105', iconVariants[variant] || iconVariants.neutral)}>
+        <div className={cn('p-2.5 rounded-xl border transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110 group-hover:rotate-3 shadow-sm', iconVariants[variant] || iconVariants.neutral)}>
           {icon}
         </div>
       </div>

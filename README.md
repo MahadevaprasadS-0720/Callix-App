@@ -1,5 +1,7 @@
 # Callix · Enterprise Real-Time AI Voice Security & Scam Interception Platform
 
+<!-- markdownlint-disable MD013 -->
+<!-- markdownlint-disable MD033 -->
 <p align="center">
   <img src="frontend/public/vite.svg" alt="Callix Logo" width="80" height="80" />
 </p>
@@ -17,6 +19,7 @@
   <a href="https://scikit-learn.org/"><img src="https://img.shields.io/badge/ML_Ensemble-5_Models-F7931E.svg?logo=scikitlearn&logoColor=white" alt="ML Ensemble" /></a>
   <a href="https://firebase.google.com/"><img src="https://img.shields.io/badge/Auth-Firebase_(Google_|_GitHub_|_Email)-FFCA28.svg?logo=firebase&logoColor=black" alt="Firebase Auth" /></a>
 </p>
+<!-- markdownlint-enable MD033 -->
 
 ---
 
@@ -30,7 +33,7 @@ Designed specifically to tackle modern fraud vectors—including **Digital Arres
 
 ## 🏛️ System Architecture
 
-```
+```text
                                   ┌─────────────────────────────────────────────────────────┐
                                   │            Callix React 18 + Vite Frontend              │
                                   │  (Security Dashboard, Scanner, Simulator, Forensics)    │
@@ -68,6 +71,7 @@ Designed specifically to tackle modern fraud vectors—including **Digital Arres
 ## ✨ Core Features & Modules
 
 ### 1. 🎙️ Live Call Simulation Engine
+
 - Interactive audio waveform visualizer and diarized speaker timeline (Caller vs. Receiver).
 - Preset real-world threat scenarios:
   - **Bank KYC Expiry & OTP Extortion**
@@ -77,6 +81,7 @@ Designed specifically to tackle modern fraud vectors—including **Digital Arres
 - Dynamic risk gauge calculating instantaneous danger levels with automated safety recommendations.
 
 ### 2. 🤖 5-Model Machine Learning Ensemble
+
 - **Random Forest Classifier**: Non-linear ensemble model with multi-feature bagging.
 - **Support Vector Machine (SVM)**: High-margin hyperplane separation for acoustic variance.
 - **1D Convolutional Neural Network (CNN)**: Temporal spectral feature kernel extraction.
@@ -85,6 +90,7 @@ Designed specifically to tackle modern fraud vectors—including **Digital Arres
 - Real-time consensus voting yielding unified threat confidence scores.
 
 ### 3. 🔬 Audio Forensics & Synthetic Voice (Deepfake) Detection
+
 - Computes acoustic features:
   - **MFCCs** (Mel-Frequency Cepstral Coefficients)
   - **Spectral Centroid & Rolloff**
@@ -94,6 +100,7 @@ Designed specifically to tackle modern fraud vectors—including **Digital Arres
 - Flags artificial audio lacking human micro-tremors and biological acoustic variations.
 
 ### 4. 🧠 Linguistic & Psychological Threat Analysis (NLP)
+
 - 100+ categorized scam phrase signatures across Indian English, Hindi transliterated loan words, and financial terms.
 - Real-time detection of coercion tactics:
   - Fake legal intimidation ("Arrest Warrant", "CBI", "Narcotics Control Bureau")
@@ -101,13 +108,16 @@ Designed specifically to tackle modern fraud vectors—including **Digital Arres
   - Credential extortion ("Read the OTP", "Screen share with AnyDesk")
 
 ### 5. 🛡️ Elder Shield Hub
+
 - Designated family guardian delegation for senior citizen accounts.
 - Automated instant alert dispatch when critical threats (>75% risk) target protected contacts.
 
 ### 6. 📞 Telephony Lookup & Spam Intelligence
+
 - Carrier circle lookup, line type (GSM / VoLTE) classification, and live threat verification.
 
 ### 7. 🔐 Production Authentication
+
 - Complete **Firebase Authentication** integration:
   - **Google OAuth** (with automatic avatar and profile image rendering)
   - **GitHub OAuth**
@@ -150,6 +160,7 @@ The Python backend runs on `http://127.0.0.1:5001`.
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
+
 - **Node.js**: v18.0 or higher
 - **Python**: v3.10 or higher
 - **npm** or **yarn**
@@ -158,6 +169,7 @@ The Python backend runs on `http://127.0.0.1:5001`.
 ---
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/MahadevaprasadS-0720/Callix-App.git
 cd Callix-App
@@ -168,9 +180,11 @@ cd Callix-App
 ### 2. Start the Python AI Backend
 
 #### Option A: Quick Launch (Windows)
+
 Double-click [`start_backend.bat`](start_backend.bat) in the root directory.
 
 #### Option B: Terminal Setup
+
 ```bash
 cd backend/python
 
@@ -187,6 +201,7 @@ pip install -r requirements.txt
 # Launch Flask API server
 python run.py
 ```
+
 > Server runs at `http://127.0.0.1:5001` with auto-reloading enabled.
 
 ---
@@ -194,6 +209,7 @@ python run.py
 ### 3. Start the React Frontend
 
 Open a new terminal window:
+
 ```bash
 cd frontend
 
@@ -203,22 +219,26 @@ npm install
 # Start Vite development server
 npm run dev
 ```
+
 > Open your browser at `http://localhost:5173` to access the Callix console.
 
 ---
 
 ### 4. Running Backend Unit Tests
+
 To verify all database schemas, ML models, NLP engines, audio forensics, and report generators:
+
 ```bash
 python -m unittest backend/python/tests/test_backend.py
 ```
+
 All 9 unit test suites will execute and validate the complete pipeline.
 
 ---
 
 ## 📂 Project Structure
 
-```
+```text
 Callix/
 ├── backend/
 │   ├── python/
@@ -294,6 +314,8 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
+<!-- markdownlint-disable MD033 -->
 <p align="center">
   Built with ❤️ for Telephony Security & Scam Defense.
 </p>
+<!-- markdownlint-enable MD033 -->

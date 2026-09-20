@@ -23,7 +23,7 @@ export const DashboardLayout: React.FC = () => {
           onMenuToggle={() => setSidebarOpen((prev: boolean) => !prev)} 
           onProfileClick={() => setProfileOpen(true)}
         />
-        <main className="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto space-y-6 animate-fade-in-up">
           <Outlet />
         </main>
       </div>

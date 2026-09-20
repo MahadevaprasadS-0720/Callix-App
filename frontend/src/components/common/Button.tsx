@@ -20,16 +20,16 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:opacity-40 disabled:cursor-not-allowed select-none cursor-pointer active:scale-[0.98]';
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:active:scale-100 select-none cursor-pointer will-change-transform';
 
   const variants: Record<string, string> = {
-    primary: 'bg-white text-black font-semibold hover:bg-zinc-200 shadow-sm border border-white/90',
-    secondary: 'bg-zinc-900/90 text-zinc-200 hover:text-white hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700',
+    primary: 'bg-white text-black font-semibold hover:bg-zinc-100 hover:shadow-[0_4px_20px_rgba(255,255,255,0.3)] border border-white/90',
+    secondary: 'bg-zinc-900/90 text-zinc-200 hover:text-white hover:bg-zinc-800 hover:border-zinc-600 hover:shadow-lg border border-zinc-800',
     frosted: 'resend-frosted-btn text-white',
-    danger: 'bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:text-red-300',
-    success: 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300',
-    outline: 'border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 hover:bg-zinc-900/50',
-    ghost: 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60',
+    danger: 'bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.3)]',
+    success: 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]',
+    outline: 'border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-900/60',
+    ghost: 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60 hover:translate-y-0',
   };
 
   const sizes: Record<string, string> = {

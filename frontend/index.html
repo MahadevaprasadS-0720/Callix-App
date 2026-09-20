@@ -8,6 +8,19 @@
     <meta name="color-scheme" content="dark" />
     <title>Callix · Voice AI Security for developers</title>
     <meta name="description" content="The best way to protect users from synthetic voice scams and impersonation fraud. Deliver real-time telecommunication AI security at scale." />
+    <!-- Preload 3D Spline Cube Scene immediately so it's ready at millisecond 0 -->
+    <link rel="preload" href="/cube.splinecode" as="fetch" crossorigin="anonymous" />
+    <script>
+      window.__splineCubePromise = fetch('/cube.splinecode')
+        .then(function(res) {
+          if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+          return res.arrayBuffer();
+        })
+        .catch(function(err) {
+          console.warn('Spline early prefetch error:', err);
+          return null;
+        });
+    </script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
