@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { 
@@ -139,10 +140,11 @@ export const LandingPage: React.FC = () => {
   const [activeHoloTab, setActiveHoloTab] = useState<number>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navbarRef = React.useRef<HTMLDivElement>(null);
+  const modalRef = React.useRef<HTMLDivElement>(null);
 
-  // Prevent background scrolling when mobile navigation drawer is open
+  // Prevent background scrolling when mobile navigation drawer or modal is open
   useEffect(() => {
-    if (mobileMenuOpen) {
+    if (mobileMenuOpen || activeDropdown) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -150,10 +152,13 @@ export const LandingPage: React.FC = () => {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, activeDropdown]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      if (modalRef.current && modalRef.current.contains(e.target as Node)) {
+        return;
+      }
       if (navbarRef.current && !navbarRef.current.contains(e.target as Node)) {
         setActiveDropdown(null);
       }
@@ -161,6 +166,7 @@ export const LandingPage: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setActiveDropdown(null);
+        setMobileMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -183,9 +189,10 @@ export const LandingPage: React.FC = () => {
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
     setActiveDropdown(null);
+    setMobileMenuOpen(false);
     const elem = document.getElementById(targetId);
     if (elem) {
-      elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      elem.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
     }
   };
 
@@ -833,6 +840,10 @@ export const LandingPage: React.FC = () => {
 
   const threatEval = getThreatEvaluation(threatSlider);
 
+  const activeFeat = activeDropdown 
+    ? (holoModalData[activeDropdown]?.subFeatures[activeHoloTab] || holoModalData[activeDropdown]?.subFeatures[0]) 
+    : null;
+
   return (
     <div className="min-h-screen bg-black text-[#EDEDED] font-sans antialiased selection:bg-white/20 selection:text-white relative overflow-x-hidden">
       
@@ -858,17 +869,17 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Static Brand Name (Pure Identity - Non-Clickable, No Button Effect) */}
-          <div className="flex items-center gap-4 sm:gap-8 z-10">
-            <div className="py-1 flex items-center gap-2 select-none cursor-default">
+          <div className="flex items-center gap-4 sm:gap-8 z-10 shrink-0">
+            <div className="py-1 flex items-center gap-2 select-none cursor-default shrink-0">
               <span className="font-bold text-lg sm:text-xl tracking-tight text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
                 Callix
               </span>
             </div>
 
             {/* Desktop Navigation Links with 3D Press & Active Glass Indicator */}
-            <ul className="hidden md:flex items-center gap-1">
+            <ul className="hidden md:flex items-center gap-1 flex-nowrap shrink-0">
               {/* Features */}
-              <li className="relative">
+              <li className="relative shrink-0">
                 <button 
                   type="button" 
                   onClick={() => toggleDropdown('features')}
@@ -885,7 +896,7 @@ export const LandingPage: React.FC = () => {
               </li>
 
               {/* Simulator */}
-              <li className="relative">
+              <li className="relative shrink-0">
                 <a 
                   href="#waveform" 
                   onClick={(e) => handleSmoothScroll(e, 'waveform')}
@@ -896,7 +907,7 @@ export const LandingPage: React.FC = () => {
               </li>
 
               {/* Scanner */}
-              <li className="relative">
+              <li className="relative shrink-0">
                 <a 
                   href="#deepfake" 
                   onClick={(e) => handleSmoothScroll(e, 'deepfake')}
@@ -907,7 +918,7 @@ export const LandingPage: React.FC = () => {
               </li>
 
               {/* Intelligence */}
-              <li className="relative">
+              <li className="relative shrink-0">
                 <a 
                   href="#carrier" 
                   onClick={(e) => handleSmoothScroll(e, 'carrier')}
@@ -918,7 +929,7 @@ export const LandingPage: React.FC = () => {
               </li>
 
               {/* AI & XAI */}
-              <li className="relative">
+              <li className="relative shrink-0">
                 <button 
                   type="button" 
                   onClick={() => toggleDropdown('ai')}
@@ -1234,148 +1245,7 @@ export const LandingPage: React.FC = () => {
           </div>
         )}
 
-        {/* ========================================================= */}
-        {/* VISIONOS HOLOGRAPHIC DROPDOWN MODAL                       */}
-        {/* ========================================================= */}
-        {activeDropdown && (
-          <>
-            <div 
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
-              onClick={() => setActiveDropdown(null)}
-            />
-            <div className="visionos-glass-modal absolute top-full left-0 right-0 mt-3 p-6 rounded-3xl z-50 animate-fade-in-up">
-              <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
-                  <h3 className="font-semibold text-base text-white">
-                    {holoModalData[activeDropdown]?.categoryTitle}
-                  </h3>
-                  <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-white/10 text-zinc-300 border border-white/15">
-                    {holoModalData[activeDropdown]?.visionBadge}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveDropdown(null)}
-                  className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4">
-                {/* Left Column: Live Optical Telemetry Readout */}
-                <div className="lg:col-span-5 p-4 rounded-2xl bg-black/50 border border-white/10 flex flex-col justify-between space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
-                      <span>VOICE TELEMETRY</span>
-                      <span className="text-cyan-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                        LIVE STREAM
-                      </span>
-                    </div>
-
-                    {/* Holographic 32-band Audio Visualizer Spectrum */}
-                    <div className="h-28 rounded-xl bg-zinc-950/80 border border-white/10 p-3 flex flex-col justify-between overflow-hidden relative">
-                      <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 via-transparent to-transparent pointer-events-none" />
-                      <div className="flex items-end justify-between gap-1 h-14 z-10">
-                        {Array.from({ length: 28 }).map((_, i) => (
-                          <div
-                            key={i}
-                            className="flex-1 bg-gradient-to-t from-cyan-500 to-white rounded-t-sm animate-pulse"
-                            style={{ 
-                              height: `${20 + Math.sin(i * 0.4) * 50 + ((i * 13) % 30)}%`,
-                              animationDelay: `${i * 0.08}s` 
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column: Feature Navigation Tabs & Deep Specs */}
-                <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
-                  {/* Selectable Feature Tabs */}
-                  <div className="space-y-2">
-                    <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider block">
-                      Select Forensic Module:
-                    </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {holoModalData[activeDropdown]?.subFeatures.map((feat, index) => {
-                        const IconComponent = feat.icon;
-                        const isSelected = activeHoloTab === index;
-                        return (
-                          <button
-                            key={feat.id}
-                            type="button"
-                            onClick={() => setActiveHoloTab(index)}
-                            className={`visionos-tab-btn p-3 flex items-start gap-3 text-left ${isSelected ? 'active' : ''}`}
-                          >
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-all ${
-                              isSelected ? 'bg-white/20 border-white/60 text-white shadow-inner' : 'bg-white/5 border-white/15 text-zinc-400'
-                            }`}>
-                              <IconComponent className="w-4 h-4" />
-                            </div>
-                            <div className="min-w-0">
-                              <h4 className={`text-xs font-medium truncate ${isSelected ? 'text-white font-semibold' : 'text-zinc-300'}`}>
-                                {feat.title}
-                              </h4>
-                              <p className="text-[11px] text-zinc-400 truncate mt-0.5">
-                                {feat.tagline}
-                              </p>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Active Subfeature Detail Card */}
-                  <div className="p-4 rounded-2xl bg-white/[0.05] border border-white/15 backdrop-blur-md space-y-2">
-                    <h4 className="text-sm font-semibold text-white flex items-center gap-1.5">
-                      {holoModalData[activeDropdown]?.subFeatures[activeHoloTab]?.title}
-                    </h4>
-                    <p className="text-xs text-zinc-300 leading-relaxed">
-                      {holoModalData[activeDropdown]?.subFeatures[activeHoloTab]?.description}
-                    </p>
-                  </div>
-
-                  {/* Footer CTAs */}
-                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-white/10">
-                    <span className="text-xs text-zinc-400 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      Carrier Hook Active
-                    </span>
-
-                    <div className="flex items-center gap-2.5 w-full sm:w-auto">
-                      <a
-                        href={holoModalData[activeDropdown]?.subFeatures[activeHoloTab]?.link}
-                        onClick={() => setActiveDropdown(null)}
-                        className="visionos-tab-btn px-4 py-2 text-xs font-medium text-zinc-300 hover:text-white rounded-xl flex items-center justify-center gap-1 flex-1 sm:flex-initial"
-                      >
-                        <span>Learn more</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveDropdown(null);
-                          handleLaunchApp('/dashboard');
-                        }}
-                        className="glass-pill px-5 py-2 text-xs font-semibold text-white rounded-xl shadow-lg flex items-center justify-center gap-1.5 flex-1 sm:flex-initial"
-                      >
-                        <span>{holoModalData[activeDropdown]?.subFeatures[activeHoloTab]?.ctaText}</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </>
-        )}
       </header>
       
       {/* Spacer to preserve initial hero spacing with fixed navbar */}
@@ -1386,23 +1256,29 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       <div id="hero" className="relative z-20 w-full flex items-center pt-1 md:pt-3 overflow-hidden landscape-hero">
         
-        {/* Floor background */}
+        {/* Floor background - feathered in all directions for 100% seamless blending into #000000 */}
         <img 
           alt="Floor background" 
           width="1920" 
           height="1080" 
-          className="pointer-events-none absolute top-0 left-0 right-0 mx-auto hidden h-screen w-full select-none md:block opacity-80 transition-opacity duration-500" 
-          style={{ maskImage: 'linear-gradient(to top, transparent 15%, black 25%)' }} 
+          className="pointer-events-none absolute top-0 left-0 right-0 mx-auto hidden h-screen w-full select-none md:block opacity-60 transition-opacity duration-500" 
+          style={{ 
+            WebkitMaskImage: 'radial-gradient(ellipse 75% 55% at 50% 30%, black 25%, transparent 80%)',
+            maskImage: 'radial-gradient(ellipse 75% 55% at 50% 30%, black 25%, transparent 80%)' 
+          }} 
           src="/bg-hero-1.jpg" 
         />
 
-        {/* Light ray background */}
+        {/* Light ray background - feathered softly into the dark background */}
         <img 
           alt="Light ray background" 
           width="1920" 
           height="1080" 
           className="pointer-events-none absolute -top-20 left-0 right-0 mx-auto hidden h-screen w-full select-none md:block transition-all duration-500" 
-          style={{ maskImage: 'linear-gradient(to top, transparent 15%, black 25%)' }} 
+          style={{ 
+            WebkitMaskImage: 'radial-gradient(ellipse 75% 55% at 50% 30%, black 25%, transparent 80%)',
+            maskImage: 'radial-gradient(ellipse 75% 55% at 50% 30%, black 25%, transparent 80%)' 
+          }} 
           src="/bg-light.png" 
         />
 
@@ -1410,8 +1286,16 @@ export const LandingPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 items-center justify-between w-full gap-4 sm:gap-8 lg:gap-16">
             
             {/* Text column - Always order-1 (first on mobile and desktop) */}
-            <div className="order-1 w-full animate-hero-text-slide-up-fade flex flex-col items-start text-left max-w-xl lg:max-w-2xl z-10">
+            <div className="order-1 w-full animate-hero-text-slide-up-fade flex flex-col items-start text-left max-w-xl lg:max-w-2xl z-10 relative">
               
+              {/* Soft ambient background glow behind headline and text - seamless integration */}
+              <div 
+                className="absolute -top-12 -left-12 w-[350px] sm:w-[500px] h-[350px] sm:h-[500px] rounded-full pointer-events-none -z-10"
+                style={{
+                  background: 'radial-gradient(circle, rgba(56,189,248,0.07) 0%, rgba(236,72,153,0.04) 45%, transparent 70%)'
+                }}
+              />
+
               {/* Rainbow badge with subtle voice frequency micro-animation */}
               <div className="flex items-center justify-start mb-2 sm:mb-4">
                 <a 
@@ -1463,7 +1347,7 @@ export const LandingPage: React.FC = () => {
             
             {/* 3D Cube Column - Order-2 on mobile, right column on desktop (side-by-side from md:). Exact aspect-square prevents any clipping */}
             <div className="duration-300 relative order-2 flex items-center justify-center md:justify-end w-full overflow-visible pointer-events-auto mt-1 sm:mt-2 md:mt-0">
-              <div className="w-[180px] h-[180px] xs:w-[210px] xs:h-[210px] sm:w-[260px] sm:h-[260px] md:w-[360px] md:h-[360px] lg:w-[460px] lg:h-[460px] xl:w-[520px] xl:h-[520px] aspect-square relative flex items-center justify-center landscape-cube-scale">
+              <div className="w-[300px] h-[300px] xs:w-[320px] xs:h-[320px] sm:w-[360px] sm:h-[360px] md:w-[420px] md:h-[420px] lg:w-[480px] lg:h-[480px] xl:w-[540px] xl:h-[540px] max-w-[88vw] aspect-square relative flex items-center justify-center landscape-cube-scale">
                 <ResendCube3D className="w-full h-full" />
               </div>
             </div>
@@ -2903,6 +2787,223 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* VisionOS Holographic Dropdown Modal (Portal directly into document.body) */}
+      {activeDropdown && createPortal(
+        <div className="fixed inset-0 z-[999] overflow-y-auto">
+          {/* Dark Ambient Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity cursor-pointer"
+            onClick={() => setActiveDropdown(null)}
+          />
+
+          {/* Centering Wrapper */}
+          <div className="flex min-h-full items-center justify-center p-3 sm:p-5 md:p-6 text-center">
+            {/* Centered Holographic Modal Card */}
+            <div 
+              ref={modalRef}
+              className="visionos-glass-modal relative z-10 w-full max-w-4xl p-4 sm:p-6 md:p-7 text-left my-auto"
+            >
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping shrink-0" />
+                <h3 className="font-semibold text-sm sm:text-base text-white truncate">
+                  {holoModalData[activeDropdown]?.categoryTitle}
+                </h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 border border-white/15 shrink-0 hidden sm:inline-block">
+                  {holoModalData[activeDropdown]?.visionBadge}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveDropdown(null)}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer shrink-0 ml-2"
+                aria-label="Close modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 mt-4">
+              {/* Left Column: Live Forensic Telemetry & Audio Spectrum */}
+              <div className="lg:col-span-5 p-3.5 sm:p-4 rounded-2xl bg-black/50 border border-white/10 flex flex-col justify-between space-y-3">
+                {/* Audio Spectrum Visualizer */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
+                    <span className="flex items-center gap-1.5 font-semibold text-zinc-300">
+                      <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                      VOICE TELEMETRY
+                    </span>
+                    <span className="text-cyan-400 flex items-center gap-1 text-[11px] font-mono">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                      LIVE STREAM
+                    </span>
+                  </div>
+
+                  {/* Equalizer Spectrum Chamber */}
+                  <div className="rounded-xl bg-zinc-950/90 border border-white/10 p-3 flex flex-col justify-between overflow-hidden relative shadow-inner">
+                    <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 via-transparent to-transparent pointer-events-none" />
+                    
+                    {/* 32-band Spectrum with realistic speech frequency distribution */}
+                    <div className="flex items-end justify-between gap-[2px] sm:gap-1 h-20 sm:h-24 z-10 py-1">
+                      {Array.from({ length: 32 }).map((_, i) => {
+                        const centerDist = Math.abs(i - 15.5) / 16;
+                        const baseHeight = Math.max(18, Math.round((1 - centerDist * 0.65) * 80 + Math.sin(i * 0.9) * 15));
+                        return (
+                          <div
+                            key={i}
+                            className="flex-1 bg-gradient-to-t from-cyan-500 via-teal-400 to-white rounded-t-[1.5px] transition-all duration-300"
+                            style={{
+                              height: `${baseHeight}%`,
+                              opacity: 0.8 + (i % 3) * 0.08,
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Frequency Axis Markers */}
+                    <div className="flex items-center justify-between text-[9px] font-mono text-zinc-500 pt-1.5 border-t border-white/5 z-10">
+                      <span>32Hz</span>
+                      <span>250Hz</span>
+                      <span className="text-cyan-400/80 font-medium">1kHz (Vocal)</span>
+                      <span>4kHz</span>
+                      <span>16kHz</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dynamic Forensic Telemetry Metric Card (Reactively updates with active module) */}
+                <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between text-[11px] font-mono">
+                    <span className="text-zinc-400 uppercase tracking-wider text-[10px]">Active Inspection</span>
+                    <span className={`px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-semibold ${activeFeat?.telemetry.scoreColor || 'text-cyan-400'}`}>
+                      {activeFeat?.telemetry.scoreValue}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="text-xs font-semibold text-white flex items-center justify-between">
+                      <span>{activeFeat?.telemetry.scoreLabel}</span>
+                    </div>
+                    <p className="text-[10px] font-mono text-cyan-300/90 truncate">
+                      {activeFeat?.telemetry.status}
+                    </p>
+                    <div className="text-[10px] font-mono text-zinc-400 flex items-center gap-1.5 pt-1 border-t border-white/5">
+                      <span className="w-1 h-1 rounded-full bg-zinc-500 shrink-0" />
+                      <span className="truncate">{activeFeat?.telemetry.channel}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Callix Defense Engine Architecture Status Card */}
+                <div className="grid grid-cols-3 gap-1.5 p-2.5 rounded-xl bg-black/40 border border-white/10 text-[10px] font-mono">
+                  <div className="text-center p-1 rounded-lg bg-white/[0.02]">
+                    <span className="text-zinc-500 block text-[9px]">DSP LATENCY</span>
+                    <span className="text-emerald-400 font-semibold">&lt; 12ms</span>
+                  </div>
+                  <div className="text-center p-1 rounded-lg bg-white/[0.02]">
+                    <span className="text-zinc-500 block text-[9px]">SAMPLING</span>
+                    <span className="text-cyan-400 font-semibold">48kHz PCM</span>
+                  </div>
+                  <div className="text-center p-1 rounded-lg bg-white/[0.02]">
+                    <span className="text-zinc-500 block text-[9px]">PROTECTION</span>
+                    <span className="text-amber-400 font-semibold">Auto-Sever</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Feature Navigation Tabs & Deep Specs */}
+              <div className="lg:col-span-7 flex flex-col justify-between space-y-3 sm:space-y-4">
+                {/* Selectable Feature Tabs */}
+                <div className="space-y-2">
+                  <span className="text-[11px] sm:text-xs font-mono text-zinc-400 uppercase tracking-wider block">
+                    Select Forensic Module:
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {holoModalData[activeDropdown]?.subFeatures.map((feat, index) => {
+                      const IconComponent = feat.icon;
+                      const isSelected = activeHoloTab === index;
+                      return (
+                        <button
+                          key={feat.id}
+                          type="button"
+                          onClick={() => setActiveHoloTab(index)}
+                          className={`visionos-tab-btn p-2.5 sm:p-3 flex items-start gap-2.5 sm:gap-3 text-left cursor-pointer ${isSelected ? 'active' : ''}`}
+                        >
+                          <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 border transition-all ${
+                            isSelected ? 'bg-white/20 border-white/60 text-white shadow-inner' : 'bg-white/5 border-white/15 text-zinc-400'
+                          }`}>
+                            <IconComponent className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className={`text-xs font-medium truncate ${isSelected ? 'text-white font-semibold' : 'text-zinc-300'}`}>
+                              {feat.title}
+                            </h4>
+                            <p className="text-[10px] sm:text-[11px] text-zinc-400 truncate mt-0.5">
+                              {feat.tagline}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Active Subfeature Detail Card */}
+                <div className="p-3 sm:p-4 rounded-2xl bg-white/[0.05] border border-white/15 backdrop-blur-md space-y-1.5 sm:space-y-2 min-h-[82px] flex flex-col justify-center">
+                  <h4 className="text-xs sm:text-sm font-semibold text-white flex items-center gap-1.5">
+                    {activeFeat?.title}
+                  </h4>
+                  <p className="text-[11px] sm:text-xs text-zinc-300 leading-relaxed line-clamp-3">
+                    {activeFeat?.description}
+                  </p>
+                </div>
+
+                {/* Footer CTAs */}
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 border-t border-white/10">
+                  <span className="text-[11px] sm:text-xs text-zinc-400 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Carrier Hook Active
+                  </span>
+
+                  <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+                    <a
+                      href={activeFeat?.link}
+                      onClick={(e) => {
+                        setActiveDropdown(null);
+                        const link = activeFeat?.link;
+                        if (link?.startsWith('#')) {
+                          handleSmoothScroll(e, link.replace('#', ''));
+                        }
+                      }}
+                      className="visionos-tab-btn px-3.5 sm:px-4 py-2 text-xs font-medium text-zinc-300 hover:text-white rounded-xl flex items-center justify-center gap-1 flex-1 sm:flex-initial cursor-pointer"
+                    >
+                      <span>Learn more</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveDropdown(null);
+                        handleLaunchApp('/dashboard');
+                      }}
+                      className="glass-pill px-4 sm:px-5 py-2 text-xs font-semibold text-white rounded-xl shadow-lg flex items-center justify-center gap-1.5 flex-1 sm:flex-initial cursor-pointer min-w-[170px]"
+                    >
+                      <span>{activeFeat?.ctaText}</span>
+                      <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
 
       {/* Sleek Dark-Themed Firebase Auth Modal */}
       <AuthModal

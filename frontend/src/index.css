@@ -16,6 +16,12 @@
     text-rendering: optimizeLegibility;
   }
 
+  @supports (scrollbar-gutter: stable) {
+    html {
+      scrollbar-gutter: stable;
+    }
+  }
+
   body {
     background-color: #000000;
     color: #EDEDED;
@@ -26,8 +32,7 @@
   }
 
   /* Butter-Smooth Hardware Acceleration without GPU Layer Bloat */
-  .crystal-glass-capsule,
-  .visionos-glass-modal {
+  .crystal-glass-capsule {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     transform: translateZ(0);
@@ -392,13 +397,23 @@
   to { opacity: 1; }
 }
 
-.visionos-glass-modal {
+.visionos-modal-overlay {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 94vw;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.visionos-glass-modal {
+  position: relative;
+  width: 100%;
   max-width: 880px;
+  margin-left: auto;
+  margin-right: auto;
   background: linear-gradient(
     145deg,
     rgba(255, 255, 255, 0.16) 0%,
@@ -415,8 +430,8 @@
     inset 0 2px 1.5px 0 rgba(255, 255, 255, 0.95),
     inset 0 -1.5px 1.5px 0 rgba(255, 255, 255, 0.3),
     inset 0 0 30px rgba(255, 255, 255, 0.05);
-  z-index: 100;
-  animation: visionos-enter 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 10;
+  animation: visionos-enter 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   overflow: hidden;
 }
 
@@ -442,11 +457,11 @@
 @keyframes visionos-enter {
   0% {
     opacity: 0;
-    transform: translate(-50%, -48%) scale(0.94);
+    transform: scale(0.95);
   }
   100% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
   }
 }
 
