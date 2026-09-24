@@ -502,16 +502,16 @@ export const Settings: React.FC = () => {
         </form>
       </Card>
 
-      {/* 6. Factory Reset Demo Database */}
+      {/* 6. Clear Local Call Logs & Cache */}
       <Card className="p-6 space-y-3 bg-red-950/10 border border-red-500/30">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h3 className="font-bold text-sm text-white flex items-center gap-2">
               <Database className="w-4 h-4 text-red-400" />
-              Reset Local Demo Call Database
+              Clear Local Call Logs &amp; Telemetry Cache
             </h3>
             <p className="text-xs text-cyber-muted">
-              Restore default sample scam transcripts, CBI digital arrest calls, and statistics.
+              Purge locally cached call records, session transcripts, and temporary forensic logs.
             </p>
           </div>
 
@@ -521,7 +521,7 @@ export const Settings: React.FC = () => {
             leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
             onClick={handleResetData}
           >
-            {resetDone ? 'Restored!' : 'Reset Demo Records'}
+            {resetDone ? 'Cache Cleared!' : 'Purge Local Cache'}
           </Button>
         </div>
       </Card>

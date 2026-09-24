@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { StatCard } from '../components/common/StatCard';
-import { MOCK_ANALYTICS_DATA } from '../services/mockDataService';
+import { useCallHistory } from '../hooks/useCallHistory';
 import { 
   BarChart, 
   Bar, 
@@ -22,21 +22,19 @@ import {
   ShieldAlert, 
   AlertTriangle, 
   Clock, 
-  Filter, 
-  Download, 
   TrendingUp, 
-  Calendar,
-  Zap
+  Zap 
 } from 'lucide-react';
 
 export const Analytics: React.FC = () => {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d');
+  const { calls, totalCalls, scamsIntercepted, suspiciousCalls } = useCallHistory();
 
-  const kpis = [
+  const kpis = useMemo(() => [
     {
       title: 'Total Calls Monitored',
-      value: '1,428',
-      change: '+14.2% vs last week',
+      value: totalCalls.toLocaleString(),
+      change: totalCalls > 0 ? `${totalCalls} active streams` : '0 recorded',
       isPositive: true,
       subtitle: '100% Speech Stream Coverage',
       icon: <BarChart3 className="w-5 h-5" />,
@@ -44,8 +42,8 @@ export const Analytics: React.FC = () => {
     },
     {
       title: 'Scams Intercepted',
-      value: '84',
-      change: '100% Intercepted',
+      value: scamsIntercepted.toLocaleString(),
+      change: scamsIntercepted > 0 ? '100% Intercepted' : '0 detected',
       isPositive: true,
       subtitle: 'Zero Financial Breaches',
       icon: <ShieldAlert className="w-5 h-5 text-threat-fraud" />,
@@ -53,7 +51,7 @@ export const Analytics: React.FC = () => {
     },
     {
       title: 'Suspicious Calls Flagged',
-      value: '142',
+      value: suspiciousCalls.toLocaleString(),
       change: 'Score 40-74 / 100',
       isPositive: true,
       subtitle: 'Heuristic Review Recommended',
@@ -62,14 +60,82 @@ export const Analytics: React.FC = () => {
     },
     {
       title: 'AI Response Benchmark',
-      value: '1.24s',
-      change: 'Target < 4.0s SLA',
+      value: calls.length > 0 
+        ? `${(calls.reduce((acc, c) => acc + (c.latencyMs || 840), 0) / calls.length / 1000).toFixed(2)}s` 
+        : '0.00s',
+      change: 'Target < 2.0s SLA',
       isPositive: true,
-      subtitle: 'Sub-second STT + Claude NLP',
+      subtitle: 'Sub-second STT + ML models',
       icon: <Zap className="w-5 h-5 text-amber-400" />,
       variant: 'safe' as const,
     },
-  ];
+  ], [calls, totalCalls, scamsIntercepted, suspiciousCalls]);
+
+  const analyticsData = useMemo(() => {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    const dayCounts = days.map((day) => ({
+      day,
+      legitimate: 0,
+      suspicious: 0,
+      fraud: 0,
+    }));
+
+    calls.forEach((call) => {
+      const date = new Date(call.createdAt || Date.now());
+      const dayIndex = (date.getDay() + 6) % 7; // Monday = 0
+      if (call.verdict === 'Fraudulent' || call.finalScore >= 75) {
+        dayCounts[dayIndex].fraud += 1;
+      } else if (call.verdict === 'Suspicious' || call.finalScore >= 40) {
+        dayCounts[dayIndex].suspicious += 1;
+      } else {
+        dayCounts[dayIndex].legitimate += 1;
+      }
+    });
+
+    const catMap: Record<string, { count: number; color: string }> = {
+      'Customs / Police Scam': { count: 0, color: '#DC2626' },
+      'Bank KYC & OTP Theft': { count: 0, color: '#EF4444' },
+      'UPI Refund Trap': { count: 0, color: '#F59E0B' },
+      'KYC Expiry Threats': { count: 0, color: '#F97316' },
+      'Authority Impersonation': { count: 0, color: '#6366F1' },
+    };
+
+    calls.forEach((c) => {
+      const cat = c.primaryCategory || '';
+      if (cat === 'CUSTOMS_PARCEL_SCAM' || cat.includes('Customs')) catMap['Customs / Police Scam'].count += 1;
+      else if (cat === 'OTP_THEFT' || cat.includes('OTP')) catMap['Bank KYC & OTP Theft'].count += 1;
+      else if (cat === 'UPI_FRAUD' || cat.includes('UPI')) catMap['UPI Refund Trap'].count += 1;
+      else if (cat === 'KYC_EXPIRY' || cat.includes('KYC')) catMap['KYC Expiry Threats'].count += 1;
+      else if (cat && cat !== 'SAFE' && cat !== 'NONE') catMap['Authority Impersonation'].count += 1;
+    });
+
+    const totalCategoryHits = Object.values(catMap).reduce((a, b) => a + b.count, 0);
+    const categoryBreakdown = Object.entries(catMap).map(([name, data]) => ({
+      name,
+      value: totalCategoryHits > 0 ? Math.round((data.count / totalCategoryHits) * 100) : 0,
+      count: data.count,
+      color: data.color,
+    }));
+
+    const hours = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00', '21:00', '23:00'];
+    const hourlyDistribution = hours.map((h) => ({ hour: h, threats: 0 }));
+    calls.forEach((c) => {
+      if (c.verdict === 'Fraudulent' || c.finalScore >= 75) {
+        const d = new Date(c.createdAt || Date.now());
+        const hr = d.getHours();
+        const slotIndex = Math.min(Math.floor(hr / 3), hours.length - 1);
+        hourlyDistribution[slotIndex].threats += 1;
+      }
+    });
+
+    return {
+      weeklyThreats: dayCounts,
+      categoryBreakdown,
+      hourlyDistribution,
+      totalCategoryHits,
+    };
+  }, [calls]);
 
   return (
     <div className="space-y-6">
@@ -88,39 +154,28 @@ export const Analytics: React.FC = () => {
         {/* Timeframe Filter Buttons */}
         <div className="flex items-center gap-2">
           <div className="flex items-center bg-slate-900 border border-cyber-border rounded-lg p-1 text-xs font-mono">
-            <button
-              onClick={() => setTimeRange('7d')}
-              className={`px-3 py-1.5 rounded-md font-semibold transition-colors ${
-                timeRange === '7d' ? 'bg-brand-primary text-white shadow-glow-primary' : 'text-cyber-muted hover:text-white'
-              }`}
-            >
-              Last 7 Days
-            </button>
-            <button
-              onClick={() => setTimeRange('30d')}
-              className={`px-3 py-1.5 rounded-md font-semibold transition-colors ${
-                timeRange === '30d' ? 'bg-brand-primary text-white shadow-glow-primary' : 'text-cyber-muted hover:text-white'
-              }`}
-            >
-              Last 30 Days
-            </button>
-            <button
-              onClick={() => setTimeRange('90d')}
-              className={`px-3 py-1.5 rounded-md font-semibold transition-colors ${
-                timeRange === '90d' ? 'bg-brand-primary text-white shadow-glow-primary' : 'text-cyber-muted hover:text-white'
-              }`}
-            >
-              Year to Date
-            </button>
+            {(['7d', '30d', '90d'] as const).map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`px-3 py-1.5 rounded-md font-semibold transition-colors ${
+                  timeRange === range
+                    ? 'bg-brand-primary text-white shadow-glow-primary'
+                    : 'text-cyber-muted hover:text-white'
+                }`}
+              >
+                {range === '7d' ? 'Last 7 Days' : range === '30d' ? 'Last 30 Days' : 'Last 90 Days'}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* KPI Stats Row */}
+      {/* KPI Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map((kpi, idx) => (
+        {kpis.map((kpi) => (
           <StatCard
-            key={idx}
+            key={kpi.title}
             title={kpi.title}
             value={kpi.value}
             change={kpi.change}
@@ -132,10 +187,10 @@ export const Analytics: React.FC = () => {
         ))}
       </div>
 
-      {/* Row 1: Weekly Threat Trends & Categories Breakdown */}
+      {/* Row 1: Threat Trends & Categories Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left Column: Call Threat Trends Over Time (7 cols) */}
+        {/* Left Column: Call Threat Trends Over Time */}
         <div className="lg:col-span-7">
           <Card className="p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-cyber-border pb-3">
@@ -148,14 +203,14 @@ export const Analytics: React.FC = () => {
                 </p>
               </div>
               <Badge variant="cyan" size="sm">
-                Live Data Stream
+                Live Dynamic Feed
               </Badge>
             </div>
 
             <div className="h-72 w-full pt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={MOCK_ANALYTICS_DATA.weeklyThreats}
+                  data={analyticsData.weeklyThreats}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
                   <defs>
@@ -173,7 +228,7 @@ export const Analytics: React.FC = () => {
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="day" stroke="#64748B" fontSize={12} tickLine={false} />
-                  <YAxis stroke="#64748B" fontSize={12} tickLine={false} />
+                  <YAxis stroke="#64748B" fontSize={12} tickLine={false} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#0F172A',
@@ -214,21 +269,21 @@ export const Analytics: React.FC = () => {
             <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-mono pt-2 border-t border-cyber-border/60">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-emerald-500" />
-                <span className="text-cyber-muted">Legitimate (86%)</span>
+                <span className="text-cyber-muted">Legitimate ({calls.length > 0 ? Math.round((calls.filter(c => c.finalScore < 40).length / calls.length) * 100) : 0}%)</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-amber-500" />
-                <span className="text-cyber-muted">Suspicious (9%)</span>
+                <span className="text-cyber-muted">Suspicious ({calls.length > 0 ? Math.round((suspiciousCalls / calls.length) * 100) : 0}%)</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-red-500" />
-                <span className="text-cyber-muted">Fraud Scams (5%)</span>
+                <span className="text-cyber-muted">Fraud Scams ({calls.length > 0 ? Math.round((scamsIntercepted / calls.length) * 100) : 0}%)</span>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Right Column: Scam Categories Breakdown (5 cols) */}
+        {/* Right Column: Scam Categories Breakdown */}
         <div className="lg:col-span-5">
           <Card className="p-5 space-y-4 h-full flex flex-col justify-between">
             <div className="border-b border-cyber-border pb-3">
@@ -240,43 +295,55 @@ export const Analytics: React.FC = () => {
               </p>
             </div>
 
-            <div className="h-60 w-full flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={MOCK_ANALYTICS_DATA.categoryBreakdown}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
-                    paddingAngle={4}
-                    dataKey="value"
-                  >
-                    {MOCK_ANALYTICS_DATA.categoryBreakdown.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#0F172A',
-                      borderColor: '#334155',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            {analyticsData.totalCategoryHits === 0 ? (
+              <div className="h-60 w-full flex flex-col items-center justify-center text-center p-4">
+                <ShieldCheck className="w-8 h-8 text-emerald-400 mb-2" />
+                <p className="text-sm font-semibold text-white">No Scam Vectors Recorded</p>
+                <p className="text-xs text-cyber-muted mt-1 max-w-xs">
+                  Threat vector categories will automatically chart here as suspicious calls are intercepted.
+                </p>
+              </div>
+            ) : (
+              <div className="h-60 w-full flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={analyticsData.categoryBreakdown.filter(c => c.count > 0)}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={85}
+                      paddingAngle={4}
+                      dataKey="value"
+                    >
+                      {analyticsData.categoryBreakdown.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#0F172A',
+                        borderColor: '#334155',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
 
             {/* Custom Legend */}
             <div className="space-y-2 pt-2 border-t border-cyber-border/60">
-              {MOCK_ANALYTICS_DATA.categoryBreakdown.map((item: any) => (
+              {analyticsData.categoryBreakdown.map((item) => (
                 <div key={item.name} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                     <span className="text-cyber-text font-medium">{item.name}</span>
                   </div>
-                  <span className="font-mono font-bold text-cyber-subtle">{item.value}%</span>
+                  <span className="font-mono font-bold text-cyber-subtle">
+                    {item.value}% ({item.count})
+                  </span>
                 </div>
               ))}
             </div>
@@ -285,33 +352,33 @@ export const Analytics: React.FC = () => {
 
       </div>
 
-      {/* Row 2: Peak Scam-Call Hours (24 Hour Bar Chart) */}
+      {/* Row 2: Peak Scam-Call Hours */}
       <Card className="p-5 space-y-4">
         <div className="flex items-center justify-between border-b border-cyber-border pb-3">
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-brand-cyan" />
             <div>
               <h3 className="font-bold text-base text-cyber-text tracking-wide">
-                Peak Attack Hours Distribution (24-Hour Time Profile)
+                Peak Attack Hours Distribution (24-Hour Profile)
               </h3>
               <p className="text-xs text-cyber-muted">
                 Observed concentration of social engineering calls across Indian Standard Time (IST)
               </p>
             </div>
           </div>
-          <span className="text-xs font-mono text-threat-fraud font-semibold bg-red-950/80 px-2.5 py-1 rounded-md border border-red-500/30">
-            Peak Danger Window: 17:00 – 21:00 IST
+          <span className="text-xs font-mono text-cyan-400 font-semibold bg-cyan-950/80 px-2.5 py-1 rounded-md border border-cyan-500/30">
+            {scamsIntercepted > 0 ? 'Telemetry Active' : 'Standing By'}
           </span>
         </div>
 
         <div className="h-64 w-full pt-2">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={MOCK_ANALYTICS_DATA.hourlyDistribution}
+              data={analyticsData.hourlyDistribution}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
             >
               <XAxis dataKey="hour" stroke="#64748B" fontSize={12} tickLine={false} />
-              <YAxis stroke="#64748B" fontSize={12} tickLine={false} />
+              <YAxis stroke="#64748B" fontSize={12} tickLine={false} allowDecimals={false} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: '#0F172A',
@@ -329,10 +396,10 @@ export const Analytics: React.FC = () => {
         <div className="p-3 rounded-lg bg-slate-900/60 border border-cyber-border/80 flex flex-wrap items-center justify-between gap-4 text-xs">
           <div className="flex items-center gap-2 text-cyber-muted">
             <ShieldCheck className="w-4 h-4 text-threat-safe" />
-            <span>Behavioral Pattern Insight:</span>
+            <span>Behavioral Pattern Status:</span>
           </div>
           <span className="text-slate-300 font-normal">
-            Attackers predominantly target victims in the late afternoon and evening hours (5 PM – 9 PM) exploiting end-of-day fatigue and bank branch closing panics.
+            Real-time heuristic models continuously map time signatures from incoming audio streams without simulated bias.
           </span>
         </div>
       </Card>

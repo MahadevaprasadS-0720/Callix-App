@@ -36,26 +36,16 @@ export const VoicePlayground: React.FC<{ id?: string }> = ({ id = 'playground' }
   // Audio state
   const [isRecording, setIsRecording] = useState(false);
   const [recordTimer, setRecordTimer] = useState(0);
-  const [selectedSample, setSelectedSample] = useState<'human' | 'clone' | 'custom' | null>('human');
-  const [fileName, setFileName] = useState<string>('authentic_human_sample.wav');
-  const [fileSize, setFileSize] = useState<string>('1.4 MB');
+  const [selectedSample, setSelectedSample] = useState<'human' | 'clone' | 'custom' | null>(null);
+  const [fileName, setFileName] = useState<string>('');
+  const [fileSize, setFileSize] = useState<string>('');
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Scan state
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
-  const [scanResult, setScanResult] = useState<ScanResult | null>({
-    riskScore: 4,
-    verdict: 'HUMAN',
-    metrics: {
-      latency: '64ms',
-      pitchVariance: '98.4% Natural Laryngeal Resonance',
-      syntheticArtifacts: 'Zero Phase Discontinuities Detected',
-      neuralSignature: 'Organic Biometric Vocal Fold Pattern',
-      snr: '44.8 dB High Fidelity'
-    }
-  });
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
 
   // Drag & drop state
   const [isDragging, setIsDragging] = useState(false);
@@ -226,7 +216,7 @@ export const VoicePlayground: React.FC<{ id?: string }> = ({ id = 'playground' }
     setIsRecording(false);
     clearInterval(timerIntervalRef.current);
     if (type === 'human') {
-      setFileName('authentic_human_sample.wav');
+      setFileName('authentic_human_speech.wav');
       setFileSize('1.4 MB');
       setScanResult({
         riskScore: 4,
@@ -273,6 +263,11 @@ export const VoicePlayground: React.FC<{ id?: string }> = ({ id = 'playground' }
     setScanProgress(0);
 
     const type = overrideType || selectedSample || 'human';
+    if (!fileName && !selectedSample) {
+      setSelectedSample('human');
+      setFileName('authentic_human_speech.wav');
+      setFileSize('1.4 MB');
+    }
 
     const interval = setInterval(() => {
       setScanProgress(prev => {
@@ -333,7 +328,7 @@ export const VoicePlayground: React.FC<{ id?: string }> = ({ id = 'playground' }
         </h2>
 
         <p className="text-sm sm:text-base text-zinc-400 leading-relaxed font-normal">
-          Record live speech or load synthetic audio samples. Our deep learning acoustic engine analyzes micro-cadence jitter, vocoder artifacts, and neural signatures in under 85ms.
+          Record live speech or inspect synthetic audio streams. Our deep learning acoustic engine analyzes micro-cadence jitter, vocoder artifacts, and neural signatures in under 85ms.
         </p>
       </div>
 
@@ -353,7 +348,7 @@ export const VoicePlayground: React.FC<{ id?: string }> = ({ id = 'playground' }
                 </span>
               </div>
 
-              {/* Sample Selector Tabs */}
+              {/* Audio Profile Selector Tabs */}
               <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-950 border border-white/[0.08] text-xs font-mono">
                 <button
                   type="button"
@@ -364,7 +359,7 @@ export const VoicePlayground: React.FC<{ id?: string }> = ({ id = 'playground' }
                       : 'text-zinc-400 hover:text-white'
                   }`}
                 >
-                  Human Sample
+                  Natural Human Voice
                 </button>
                 <button
                   type="button"
@@ -375,7 +370,7 @@ export const VoicePlayground: React.FC<{ id?: string }> = ({ id = 'playground' }
                       : 'text-zinc-400 hover:text-white'
                   }`}
                 >
-                  AI Clone Sample
+                  Synthetic AI Voice
                 </button>
               </div>
             </div>
@@ -410,14 +405,24 @@ export const VoicePlayground: React.FC<{ id?: string }> = ({ id = 'playground' }
               </div>
 
               {/* Active Audio File Tag */}
-              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] font-mono text-zinc-400 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/5">
-                <div className="flex items-center gap-2 truncate">
-                  <FileAudio className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span className="truncate text-white">{fileName}</span>
-                  <span className="text-zinc-600">({fileSize})</span>
+              {fileName ? (
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] font-mono text-zinc-400 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/5">
+                  <div className="flex items-center gap-2 truncate">
+                    <FileAudio className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                    <span className="truncate text-white">{fileName}</span>
+                    {fileSize && <span className="text-zinc-600">({fileSize})</span>}
+                  </div>
+                  <span className="text-zinc-500 shrink-0 hidden sm:inline">16-bit Mono · Deepgram Diarized</span>
                 </div>
-                <span className="text-zinc-500 shrink-0 hidden sm:inline">16-bit Mono · Deepgram Diarized</span>
-              </div>
+              ) : (
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] font-mono text-zinc-500 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/5">
+                  <span className="flex items-center gap-2">
+                    <Activity className="w-3.5 h-3.5 text-zinc-500" />
+                    <span>No audio loaded · Standby</span>
+                  </span>
+                  <span className="hidden sm:inline">Record live audio or pick voice profile</span>
+                </div>
+              )}
             </div>
 
             {/* Input Action Controls */}
@@ -523,6 +528,21 @@ export const VoicePlayground: React.FC<{ id?: string }> = ({ id = 'playground' }
                 CLAUDE 3.5 NLP + NOVA-2
               </span>
             </div>
+
+            {/* Standby State when no scan has been initiated */}
+            {!scanResult && !isScanning && (
+              <div className="py-12 px-6 rounded-2xl bg-zinc-950/60 border border-white/[0.08] text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 mx-auto flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-cyan-400" />
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-white">Standby: Awaiting Audio Stream</div>
+                  <p className="text-xs text-zinc-400 max-w-xs mx-auto leading-relaxed">
+                    Record live speech, pick a voice profile, or drop an audio file to run neural defense telemetry.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Dial / Gauge & Verdict Header */}
             {scanResult && (

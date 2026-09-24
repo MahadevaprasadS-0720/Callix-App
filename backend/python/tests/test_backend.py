@@ -254,5 +254,45 @@ class TestCallixBackend(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertIn("callSessionsCount", res.json)
 
+    def test_firebase_admin_integration(self):
+        """Test Firebase Admin SDK, Auth, and Firestore db initialization."""
+        import firebase_admin
+        from python.app import db, auth, firestore_db, firebase_auth
+
+        # Verify SDK app initialization
+        self.assertTrue(len(firebase_admin._apps) > 0)
+        self.assertIsNotNone(db)
+        self.assertIsNotNone(auth)
+        self.assertEqual(db, firestore_db)
+        self.assertEqual(auth, firebase_auth)
+
+        # Verify Firebase status endpoint
+        res = self.client.get("/api/firebase/status")
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(res.json["initialized"])
+        self.assertTrue(res.json["firestoreReady"])
+        self.assertTrue(res.json["authReady"])
+        self.assertEqual(res.json["credentialsLoaded"], "serviceAccountKey.json")
+
+        # Verify Health endpoint reports operational subsystems
+        health = self.client.get("/api/health")
+        self.assertEqual(health.status_code, 200)
+        subsystems = health.json.get("subsystems", {})
+        self.assertEqual(subsystems.get("firebase_admin"), "operational")
+        self.assertEqual(subsystems.get("firestore"), "operational")
+
+    def test_analytics_and_calls_endpoints(self):
+        """Test /api/analytics/overview and /api/calls dynamic endpoints."""
+        res_analytics = self.client.get("/api/analytics/overview")
+        self.assertEqual(res_analytics.status_code, 200)
+        self.assertIn("totalCalls", res_analytics.json)
+        self.assertIn("scamsIntercepted", res_analytics.json)
+        self.assertIn("guardianAlerts", res_analytics.json)
+
+        res_calls = self.client.get("/api/calls")
+        self.assertEqual(res_calls.status_code, 200)
+        self.assertIn("calls", res_calls.json)
+        self.assertIn("count", res_calls.json)
+
 if __name__ == "__main__":
     unittest.main()

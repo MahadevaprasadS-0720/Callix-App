@@ -1,24 +1,116 @@
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  setDoc, 
+  deleteDoc, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  limit 
+} from 'firebase/firestore';
+import { db } from '../config/firebaseConfig';
 import { CallRecord, RiskEvent } from '../types/call.types';
 import { NumberReputation, ScamCategory } from '../types/fraud.types';
-import { MOCK_CALLS, MOCK_NUMBER_REPUTATION_DB } from './mockDataService';
-import { db } from '../config/firebaseConfig';
 import { analyzeTelecomNumber } from '../utils/telecomIntelligence';
 
 const CALLS_STORAGE_KEY = 'audio_guardian_calls_db';
 const RISK_EVENTS_STORAGE_KEY = 'audio_guardian_risk_events_db';
 const NUMBER_REPUTATION_KEY = 'audio_guardian_number_reputation_db';
 
+// Clean out legacy hardcoded mock calls so new installations start with accurate zero state
+const purgeLegacyMockCalls = () => {
+  try {
+    const raw = localStorage.getItem(CALLS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        const cleanCalls = parsed.filter(
+          (c: any) => !['call_1', 'call_2', 'call_3', 'call_4', 'call_5'].includes(c.callId)
+        );
+        if (cleanCalls.length !== parsed.length) {
+          localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(cleanCalls));
+        }
+      }
+    }
+  } catch {}
+};
+
+purgeLegacyMockCalls();
+
 export const firestoreService = {
+  /**
+   * Fetch all calls from Firestore or local persistent cache.
+   * Returns empty array [] if no calls exist (never returns mock data).
+   */
   getCalls: async (): Promise<CallRecord[]> => {
+    let localCalls: CallRecord[] = [];
     const stored = localStorage.getItem(CALLS_STORAGE_KEY);
     if (stored) {
       try {
-        const parsed: CallRecord[] = JSON.parse(stored);
-        if (parsed && parsed.length > 0) return parsed;
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          localCalls = parsed.filter(
+            (c: any) => !['call_1', 'call_2', 'call_3', 'call_4', 'call_5'].includes(c.callId)
+          );
+        }
       } catch {}
     }
-    localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(MOCK_CALLS));
-    return MOCK_CALLS;
+
+    try {
+      if (db) {
+        const callsCol = collection(db, 'calls');
+        const q = query(callsCol, orderBy('createdAt', 'desc'), limit(50));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const remoteCalls: CallRecord[] = snapshot.docs.map((d) => ({
+            callId: d.id,
+            ...(d.data() as Omit<CallRecord, 'callId'>),
+          }));
+          localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(remoteCalls));
+          return remoteCalls;
+        }
+      }
+    } catch (err) {
+      // Graceful fallback to local storage
+    }
+
+    return localCalls;
+  },
+
+  /**
+   * Subscribe to real-time call collection updates with instant local callback
+   */
+  subscribeToCalls: (callback: (calls: CallRecord[]) => void): (() => void) => {
+    // Immediately emit current local state
+    firestoreService.getCalls().then(callback);
+
+    if (db) {
+      try {
+        const callsCol = collection(db, 'calls');
+        const q = query(callsCol, orderBy('createdAt', 'desc'), limit(50));
+        const unsubscribe = onSnapshot(
+          q,
+          (snapshot) => {
+            const calls: CallRecord[] = snapshot.docs.map((d) => ({
+              callId: d.id,
+              ...(d.data() as Omit<CallRecord, 'callId'>),
+            }));
+            localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(calls));
+            callback(calls);
+          },
+          () => {
+            // If offline, maintain local calls
+          }
+        );
+        return unsubscribe;
+      } catch {
+        // Fallback
+      }
+    }
+
+    return () => {};
   },
 
   getCallById: async (callId: string): Promise<CallRecord | null> => {
@@ -37,6 +129,15 @@ export const firestoreService = {
       updatedCalls = [call, ...calls];
     }
     localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(updatedCalls));
+
+    if (db) {
+      try {
+        const docRef = doc(db, 'calls', call.callId);
+        await setDoc(docRef, call, { merge: true });
+      } catch (err) {
+        console.warn('Firestore write note:', err);
+      }
+    }
   },
 
   saveCall: async (call: CallRecord): Promise<void> => {
@@ -47,11 +148,22 @@ export const firestoreService = {
     const calls = await firestoreService.getCalls();
     const updatedCalls = calls.filter((c: CallRecord) => c.callId !== callId);
     localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(updatedCalls));
+
+    if (db) {
+      try {
+        await deleteDoc(doc(db, 'calls', callId));
+      } catch {}
+    }
+  },
+
+  clearCallRecords: (): CallRecord[] => {
+    localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify([]));
+    return [];
   },
 
   resetDemoCalls: (): CallRecord[] => {
-    localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(MOCK_CALLS));
-    return MOCK_CALLS;
+    localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify([]));
+    return [];
   },
 
   saveRiskEvent: async (callId: string, event: RiskEvent): Promise<void> => {
@@ -67,6 +179,13 @@ export const firestoreService = {
     }
     events.push(event);
     localStorage.setItem(key, JSON.stringify(events));
+
+    if (db) {
+      try {
+        const ref = doc(db, 'calls', callId, 'riskEvents', event.eventId || `evt_${Date.now()}`);
+        await setDoc(ref, event, { merge: true });
+      } catch {}
+    }
   },
 
   /**
@@ -74,36 +193,26 @@ export const firestoreService = {
    */
   getNumberReputation: async (rawPhone: string): Promise<NumberReputation> => {
     const cleanedDigits = rawPhone.replace(/[^\d+]/g, '');
-    const normalizedDigitsOnly = rawPhone.replace(/\D/g, '');
 
     // 1. Check local persistent repository
     const storedDb = localStorage.getItem(NUMBER_REPUTATION_KEY);
-    let localReputationMap: Record<string, NumberReputation> = { ...MOCK_NUMBER_REPUTATION_DB };
+    let localReputationMap: Record<string, NumberReputation> = {};
     if (storedDb) {
       try {
-        localReputationMap = { ...localReputationMap, ...JSON.parse(storedDb) };
+        localReputationMap = JSON.parse(storedDb);
       } catch {}
     }
 
-    // Direct lookup in known blacklist
     if (localReputationMap[cleanedDigits]) {
       return localReputationMap[cleanedDigits];
     }
 
-    // Check with/without +91 prefix
-    for (const key of Object.keys(localReputationMap)) {
-      const keyDigits = key.replace(/\D/g, '');
-      if (keyDigits.endsWith(normalizedDigitsOnly) || normalizedDigitsOnly.endsWith(keyDigits)) {
-        return localReputationMap[key];
-      }
-    }
-
     // 2. Query Firestore if online
-    if (db && typeof (db as any).collection === 'function') {
+    if (db) {
       try {
-        const doc = await (db as any).collection('numberReputation').doc(cleanedDigits).get();
-        if (doc.exists) {
-          return doc.data() as NumberReputation;
+        const docSnap = await getDoc(doc(db, 'numberReputation', cleanedDigits));
+        if (docSnap.exists()) {
+          return docSnap.data() as NumberReputation;
         }
       } catch (err) {
         console.warn('Firestore number reputation query fallback', err);
@@ -137,8 +246,6 @@ export const firestoreService = {
     authorName?: string;
   }): Promise<NumberReputation> => {
     const cleanedDigits = payload.phoneNumber.replace(/[^\d+]/g, '');
-
-    // Get current record
     const existing = await firestoreService.getNumberReputation(cleanedDigits);
 
     const newComment = {
@@ -159,27 +266,32 @@ export const firestoreService = {
       totalReports: updatedTotalReports,
       lastReportedCategory: payload.category,
       isBlacklisted: true,
-      tags: Array.from(new Set([...existing.tags.filter(t => !t.includes('Clean')), 'Reported Fraudster', 'Community Flagged', payload.category])),
+      tags: Array.from(
+        new Set([
+          ...existing.tags.filter((t) => !t.includes('Clean')),
+          'Reported Fraudster',
+          'Community Flagged',
+          payload.category,
+        ])
+      ),
       communityComments: [newComment, ...(existing.communityComments || [])],
     };
 
-    // Save to local storage
     const storedDb = localStorage.getItem(NUMBER_REPUTATION_KEY);
-    let localMap: Record<string, NumberReputation> = { ...MOCK_NUMBER_REPUTATION_DB };
+    let localMap: Record<string, NumberReputation> = {};
     if (storedDb) {
       try {
-        localMap = { ...localMap, ...JSON.parse(storedDb) };
+        localMap = JSON.parse(storedDb);
       } catch {}
     }
     localMap[cleanedDigits] = updatedProfile;
     localStorage.setItem(NUMBER_REPUTATION_KEY, JSON.stringify(localMap));
 
-    // Save to Firestore if online
-    if (db && typeof (db as any).collection === 'function') {
+    if (db) {
       try {
-        await (db as any).collection('numberReputation').doc(cleanedDigits).set(updatedProfile);
+        await setDoc(doc(db, 'numberReputation', cleanedDigits), updatedProfile, { merge: true });
       } catch (err) {
-        console.warn('Firestore report write fallback to local storage', err);
+        console.warn('Firestore report write note', err);
       }
     }
 
@@ -190,19 +302,21 @@ export const firestoreService = {
    * Subscribe to real-time updates for a single Call document
    */
   subscribeToCall: (callId: string, callback: (call: CallRecord | null) => void): (() => void) => {
-    if (db && typeof (db as any).collection === 'function') {
+    if (db) {
       try {
-        const unsub = (db as any).collection('calls').doc(callId).onSnapshot((doc: any) => {
-          if (doc.exists) {
-            callback(doc.data() as CallRecord);
-          } else {
-            callback(null);
-          }
-        });
+        const unsub = onSnapshot(
+          doc(db, 'calls', callId),
+          (snap) => {
+            if (snap.exists()) {
+              callback({ callId: snap.id, ...snap.data() } as CallRecord);
+            } else {
+              callback(null);
+            }
+          },
+          () => {}
+        );
         return unsub;
-      } catch (err) {
-        console.warn('Firestore live listener fallback', err);
-      }
+      } catch {}
     }
 
     const interval = setInterval(async () => {
@@ -217,21 +331,22 @@ export const firestoreService = {
    * Subscribe to real-time RiskEvents subcollection
    */
   subscribeToRiskEvents: (callId: string, callback: (events: RiskEvent[]) => void): (() => void) => {
-    if (db && typeof (db as any).collection === 'function') {
+    if (db) {
       try {
-        const unsub = (db as any)
-          .collection('calls')
-          .doc(callId)
-          .collection('riskEvents')
-          .orderBy('createdAt', 'asc')
-          .onSnapshot((snap: any) => {
-            const evts = snap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+        const q = query(collection(db, 'calls', callId, 'riskEvents'), orderBy('createdAt', 'asc'));
+        const unsub = onSnapshot(
+          q,
+          (snap) => {
+            const evts = snap.docs.map((d) => ({
+              eventId: d.id,
+              ...(d.data() as Omit<RiskEvent, 'eventId'>),
+            }));
             callback(evts);
-          });
+          },
+          () => {}
+        );
         return unsub;
-      } catch (err) {
-        console.warn('Firestore risk events listener fallback', err);
-      }
+      } catch {}
     }
 
     return () => {};

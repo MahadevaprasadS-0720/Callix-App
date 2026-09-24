@@ -95,11 +95,6 @@ export const AudioScanner: React.FC = () => {
     };
   }, [audioSourceUrl]);
 
-  // Initial load: start with sample benchmark
-  useEffect(() => {
-    handleLoadPreset('preset-kyc-clone');
-  }, []);
-
   // Sync current playback time & active sentence highlight
   const handleTimeUpdate = () => {
     if (!audioRef.current) return;
@@ -174,7 +169,7 @@ export const AudioScanner: React.FC = () => {
     }
 
     setIsScanning(true);
-    setScanStage('Loading sample benchmark audio preset...');
+    setScanStage('Loading forensic audio preset...');
     setScanProgress(30);
     setIsPlaying(false);
     setCurrentTime(0);
@@ -184,7 +179,7 @@ export const AudioScanner: React.FC = () => {
     try {
       const preset = SAMPLE_PRESETS.find(p => p.id === presetId);
       const report = await apiService.analyzeAudioFile({
-        fileName: preset ? `${preset.title}.mp3` : 'sample.mp3',
+        fileName: preset ? `${preset.title}.mp3` : 'audio_capture.mp3',
         presetId,
       });
 
@@ -391,8 +386,8 @@ export const AudioScanner: React.FC = () => {
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <span className="px-4 py-2 rounded-lg bg-brand-primary hover:bg-indigo-600 text-white text-xs font-semibold shadow-glow-primary transition-all inline-flex items-center gap-2">
-                <FileAudio className="w-4 h-4" /> Browse Your Audio File
+              <span className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-semibold shadow-lg transition-all inline-flex items-center gap-2 cursor-pointer active:scale-95">
+                <FileAudio className="w-4 h-4 text-black" /> Browse Your Audio File
               </span>
             </label>
           </Card>
@@ -404,12 +399,12 @@ export const AudioScanner: React.FC = () => {
             <div>
               <div className="flex items-center justify-between border-b border-cyber-border pb-2.5 mb-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-cyber-muted flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-brand-cyan" /> Load Sample Demo Audio
+                  <Sparkles className="w-3.5 h-3.5 text-brand-cyan" /> Reference Threat Audio Profiles
                 </span>
-                <span className="text-[10px] font-mono text-cyber-subtle">Reference Scenarios</span>
+                <span className="text-[10px] font-mono text-cyber-subtle">Reference Threats</span>
               </div>
               <p className="text-xs text-cyber-muted leading-relaxed">
-                Want to test standard scam scenarios? Click a benchmark preset below:
+                Select an active telephony threat profile to run deep neural biometric scanning:
               </p>
             </div>
 
@@ -449,6 +444,23 @@ export const AudioScanner: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Idle Standby State when no file has been uploaded yet */}
+      {!currentReport && !isScanning && (
+        <Card className="p-8 sm:p-12 text-center border border-white/[0.08] bg-[#09090B]/60 rounded-3xl space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 mx-auto flex items-center justify-center shadow-[0_0_25px_rgba(6,182,212,0.15)]">
+            <Radio className="w-6 h-6 animate-pulse" />
+          </div>
+          <div className="space-y-1.5 max-w-md mx-auto">
+            <h4 className="text-base font-bold text-white tracking-tight">
+              Ready for Audio Ingest &amp; Neural Biometrics
+            </h4>
+            <p className="text-xs text-zinc-400 leading-relaxed font-normal">
+              Upload an audio recording above or select a reference threat profile to initiate real-time vocoder analysis, pitch variance detection, and scam forensics.
+            </p>
+          </div>
+        </Card>
+      )}
 
       {/* Dynamic Processing Loading Stage */}
       {isScanning && (
@@ -545,7 +557,7 @@ export const AudioScanner: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <Volume2 className="w-4 h-4 text-brand-cyan" />
                   <span className="text-xs font-bold text-white font-mono">
-                    {selectedFile ? `Active Audio Track: ${selectedFile.name}` : 'Sample Preset Audio Track'}
+                    {selectedFile ? `Active Audio Track: ${selectedFile.name}` : 'Forensic Audio Track'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs font-mono text-cyber-muted">

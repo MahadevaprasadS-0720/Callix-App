@@ -15,18 +15,18 @@ export const Card: React.FC<CardProps> = ({
 }) => {
   const glows: Record<string, string> = {
     none: '',
-    primary: 'hover:border-zinc-400/60 hover:shadow-[0_0_30px_rgba(255,255,255,0.18)]',
-    cyan: 'hover:border-cyan-400/60 hover:shadow-[0_0_30px_rgba(6,182,212,0.25)]',
-    danger: 'hover:border-red-400/60 hover:shadow-[0_0_30px_rgba(239,68,68,0.25)]',
-    safe: 'hover:border-emerald-400/60 hover:shadow-[0_0_30px_rgba(16,185,129,0.25)]',
+    primary: 'hover:border-white/40 hover:shadow-[0_0_30px_rgba(255,255,255,0.18)]',
+    cyan: 'hover:border-cyan-400/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.22)]',
+    danger: 'hover:border-red-500/50 hover:shadow-[0_0_30px_rgba(239,68,68,0.25)]',
+    safe: 'hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.25)]',
   };
 
   return (
     <div
       className={cn(
-        'bg-[#09090B] border border-white/[0.08] rounded-2xl p-5 shadow-2xl',
-        'transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu',
-        hover && 'hover:bg-[#0E0E12] hover:border-white/[0.2] hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.9)] cursor-pointer',
+        'liquid-glass-card rounded-2xl p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] relative overflow-hidden transform-gpu',
+        'transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
+        hover && 'hover:border-white/30 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.85)] cursor-pointer',
         glows[glow] || '',
         className
       )}
@@ -37,3 +37,4 @@ export const Card: React.FC<CardProps> = ({
     </div>
   );
 };
+

@@ -432,7 +432,7 @@ export const LandingPage: React.FC = () => {
   // -------------------------------------------------------------
   // INTERACTIVE DEMO 1: Real-Time Live Mic Interceptor Simulation
   // -------------------------------------------------------------
-  const [micActive, setMicActive] = useState<boolean>(true);
+  const [micActive, setMicActive] = useState<boolean>(false);
   const [micDb, setMicDb] = useState<number>(68);
   const [activeSpeechIndex, setActiveSpeechIndex] = useState<number>(1);
 
@@ -1791,7 +1791,7 @@ export const LandingPage: React.FC = () => {
                 Live Call Interceptor &amp; Diarization Simulator
               </h3>
               <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
-                Test real-time Indian cybercrime call scenarios. Experience how Callix monitors speech-to-text streams, spots extortion keywords, and dynamically calculates threat scores.
+                Inspect real-time Indian cybercrime call scenarios. Experience how Callix monitors speech-to-text streams, spots extortion keywords, and dynamically calculates threat scores.
               </p>
             </div>
 
@@ -1970,7 +1970,7 @@ export const LandingPage: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-white/[0.08] pb-3 sm:pb-4 relative z-10">
               <div>
-                <span className="text-[11px] font-mono text-zinc-500 uppercase">Target Sample Profile:</span>
+                <span className="text-[11px] font-mono text-zinc-500 uppercase">Target Audio Profile:</span>
                 <div className="text-xs sm:text-sm font-semibold text-white">
                   {biometricMode === 'AI_CLONE' ? 'Synthetic Clone (ElevenLabs v2 Synthesizer)' : 'Authentic Human Voice (Natural Vocal Cords)'}
                 </div>

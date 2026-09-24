@@ -22,6 +22,8 @@ import {
   Camera
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '../../utils/cn';
+
 
 export interface UserProfileModalProps {
   isOpen: boolean;
@@ -130,28 +132,40 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
         onClick={onClose}
       />
 
-      {/* Modal Window */}
-      <div className="relative w-full max-w-2xl bg-[#09090B] border border-white/[0.12] rounded-3xl shadow-[0_0_80px_rgba(0,0,0,0.95)] overflow-hidden z-10 text-[#EDEDED]">
+      {/* Modal Window (Apple macOS / iOS Liquid Sheet) */}
+      <div className="relative w-full max-w-2xl liquid-modal-sheet rounded-3xl overflow-hidden z-10 text-[#EDEDED] animate-scale-in">
         
         {/* Top Cover Banner */}
-        <div className="relative h-28 sm:h-32 bg-gradient-to-r from-zinc-900 via-neutral-900 to-zinc-950 border-b border-white/[0.08] overflow-hidden p-4 sm:p-6 flex items-start justify-between">
-          {/* Ambient Glows */}
-          <div className="pointer-events-none absolute -top-12 -left-12 w-48 h-48 bg-cyan-500/10 blur-3xl rounded-full" />
-          <div className="pointer-events-none absolute -bottom-12 right-12 w-48 h-48 bg-indigo-500/10 blur-3xl rounded-full" />
+        <div className="relative h-28 sm:h-32 bg-gradient-to-r from-cyan-950/40 via-zinc-900/60 to-indigo-950/40 border-b border-white/10 overflow-hidden p-4 sm:p-6 flex items-start justify-between">
+          {/* Ambient Specular Highlights */}
+          <div className="pointer-events-none absolute -top-12 -left-12 w-56 h-56 bg-cyan-500/15 blur-3xl rounded-full" />
+          <div className="pointer-events-none absolute -bottom-12 right-12 w-56 h-56 bg-indigo-500/15 blur-3xl rounded-full" />
           
-          {/* Status Badge */}
-          <div className="relative z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 border border-white/10 backdrop-blur-md text-[11px] font-mono text-zinc-300">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-            <span>ACTIVE SECURITY AGENT</span>
+          {/* macOS Traffic Lights + Status Badge */}
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="flex items-center gap-1.5 mr-1">
+              <button 
+                onClick={onClose} 
+                className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]/60 hover:opacity-80 transition-opacity cursor-pointer shadow-sm"
+                title="Close"
+              />
+              <div className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]/60 shadow-sm" />
+              <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]/60 shadow-sm" />
+            </div>
+
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/50 border border-white/10 backdrop-blur-md text-[11px] font-mono text-zinc-300 shadow-inner">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span>ACTIVE SECURITY AGENT</span>
+            </div>
           </div>
 
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="relative z-10 w-8 h-8 rounded-full bg-black/60 hover:bg-white/10 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            className="relative z-10 w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.15] border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer backdrop-blur-md"
             aria-label="Close Profile"
           >
             <X className="w-4 h-4" />
@@ -159,12 +173,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
         </div>
 
         {/* Profile Identity Bar */}
-        <div className="px-6 sm:px-8 -mt-12 sm:-mt-14 pb-4 border-b border-white/[0.08] relative">
+        <div className="px-6 sm:px-8 -mt-12 sm:-mt-14 pb-4 border-b border-white/10 relative">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             
             {/* Avatar & Names */}
             <div className="flex items-end gap-4">
-              <div className="group relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl ring-4 ring-[#09090B] bg-zinc-900 border border-white/15 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center text-xl font-bold text-white">
+              <div className="group relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl ring-4 ring-[#080B11] bg-zinc-900 border border-white/20 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center text-xl font-bold text-white">
                 {user.photoURL ? (
                   <img 
                     src={user.photoURL.includes('googleusercontent.com') ? user.photoURL.replace(/=s\d+(-c)?$/, '=s256-c') : user.photoURL} 
@@ -179,7 +193,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                   </span>
                 )}
                 {/* Active Indicator dot */}
-                <div className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#09090B] rounded-full z-10" />
+                <div className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#080B11] rounded-full z-10 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
 
                 {/* Change photo hover button */}
                 <label 
@@ -205,19 +219,19 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="bg-black border border-zinc-700 rounded-lg px-2.5 py-1 text-sm font-semibold text-white outline-none focus:border-white"
+                      className="liquid-input rounded-xl px-3 py-1 text-sm font-semibold text-white outline-none"
                       autoFocus
                     />
                     <button
                       onClick={handleSaveName}
-                      className="p-1.5 rounded-lg bg-white text-black hover:bg-zinc-200 transition-colors"
+                      className="p-1.5 rounded-lg bg-white text-black hover:bg-zinc-200 transition-colors cursor-pointer"
                       title="Save Name"
                     >
                       <Save className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setIsEditingName(false)}
-                      className="p-1.5 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                      className="p-1.5 rounded-lg bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
                       title="Cancel"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -230,7 +244,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                     </h2>
                     <button
                       onClick={() => { setEditName(user.displayName || ''); setIsEditingName(true); }}
-                      className="p-1 text-zinc-500 hover:text-zinc-300 transition-colors rounded"
+                      className="p-1 text-zinc-400 hover:text-white transition-colors rounded cursor-pointer"
                       title="Edit Display Name"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
@@ -242,7 +256,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                 <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400 font-mono">
                   <span>{user.email || 'developer@callix.ai'}</span>
                   <span className="text-zinc-600">·</span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-[10px] text-zinc-300">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.05] border border-white/10 text-[10px] text-zinc-300 shadow-sm">
                     {user.authProvider === 'google' ? (
                       <>
                         <svg className="w-2.5 h-2.5" viewBox="0 0 24 24">
@@ -270,7 +284,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
 
             {/* Plan Badge */}
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-white/10 to-white/5 border border-white/15 text-xs font-semibold text-white shadow-sm flex items-center gap-1.5">
+              <span className="px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-xs font-semibold text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.15)] flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
                 <span>{user.plan || 'PRO SHIELD'}</span>
               </span>
@@ -280,61 +294,66 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
 
           {/* Success Toast */}
           {saveSuccess && (
-            <div className="mt-3 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2 animate-fade-in font-mono">
+            <div className="mt-3 p-2.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-fade-in font-mono shadow-sm">
               <Check className="w-3.5 h-3.5" />
               <span>Profile preferences updated successfully.</span>
             </div>
           )}
         </div>
 
-        {/* Tab Selector */}
-        <div className="px-6 sm:px-8 pt-3 flex items-center gap-2 border-b border-white/[0.06] text-xs font-medium">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`pb-2.5 px-2 border-b-2 transition-colors cursor-pointer ${
-              activeTab === 'overview'
-                ? 'border-white text-white font-semibold'
-                : 'border-transparent text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            Account Overview
-          </button>
-          <button
-            onClick={() => setActiveTab('preferences')}
-            className={`pb-2.5 px-2 border-b-2 transition-colors cursor-pointer ${
-              activeTab === 'preferences'
-                ? 'border-white text-white font-semibold'
-                : 'border-transparent text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            Voice AI Preferences
-          </button>
-          <button
-            onClick={() => setActiveTab('security')}
-            className={`pb-2.5 px-2 border-b-2 transition-colors cursor-pointer ${
-              activeTab === 'security'
-                ? 'border-white text-white font-semibold'
-                : 'border-transparent text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            API Credentials & Keys
-          </button>
+        {/* Tab Selector (Apple iOS Segmented Control) */}
+        <div className="px-6 sm:px-8 pt-4 pb-1">
+          <div className="ios-segmented-bar p-1 flex items-center gap-1">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={cn(
+                "flex-1 py-1.5 px-3 text-xs font-semibold rounded-full transition-all cursor-pointer text-center",
+                activeTab === 'overview'
+                  ? "ios-segmented-active text-white"
+                  : "text-zinc-400 hover:text-white"
+              )}
+            >
+              Account Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('preferences')}
+              className={cn(
+                "flex-1 py-1.5 px-3 text-xs font-semibold rounded-full transition-all cursor-pointer text-center",
+                activeTab === 'preferences'
+                  ? "ios-segmented-active text-white"
+                  : "text-zinc-400 hover:text-white"
+              )}
+            >
+              Voice AI Preferences
+            </button>
+            <button
+              onClick={() => setActiveTab('security')}
+              className={cn(
+                "flex-1 py-1.5 px-3 text-xs font-semibold rounded-full transition-all cursor-pointer text-center",
+                activeTab === 'security'
+                  ? "ios-segmented-active text-white"
+                  : "text-zinc-400 hover:text-white"
+              )}
+            >
+              API Credentials & Keys
+            </button>
+          </div>
         </div>
 
         {/* Modal Body / Tab Content */}
-        <div className="p-6 sm:p-8 max-h-[60vh] overflow-y-auto space-y-5">
+        <div className="p-6 sm:p-8 max-h-[58vh] overflow-y-auto space-y-4">
           
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="space-y-4 animate-fade-in">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* UID Card */}
-                <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-white/[0.08] space-y-1.5">
-                  <div className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between">
+                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-1.5 shadow-sm">
+                  <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center justify-between">
                     <span>Account UID</span>
                     <button
                       onClick={handleCopyUid}
-                      className="text-zinc-400 hover:text-white transition-colors"
+                      className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
                       title="Copy UID"
                     >
                       {copiedUid ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -346,8 +365,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                 </div>
 
                 {/* Role / Clearance Card */}
-                <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-white/[0.08] space-y-1.5">
-                  <div className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider">
+                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-1.5 shadow-sm">
+                  <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
                     Security Clearance
                   </div>
                   <div className="text-xs font-medium text-white flex items-center gap-1.5">
@@ -357,9 +376,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                 </div>
 
                 {/* Member Since Card */}
-                <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-white/[0.08] space-y-1.5">
-                  <div className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
+                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-1.5 shadow-sm">
+                  <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+                    <Calendar className="w-3 h-3 text-zinc-400" />
                     <span>Member Since</span>
                   </div>
                   <div className="text-xs font-mono text-zinc-200">
@@ -368,9 +387,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                 </div>
 
                 {/* Server Region Card */}
-                <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-white/[0.08] space-y-1.5">
-                  <div className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider flex items-center gap-1">
-                    <Globe className="w-3 h-3" />
+                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-1.5 shadow-sm">
+                  <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+                    <Globe className="w-3 h-3 text-emerald-400" />
                     <span>Edge Region</span>
                   </div>
                   <div className="text-xs font-mono text-emerald-400 flex items-center gap-1.5">
@@ -381,13 +400,13 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
               </div>
 
               {/* Connected Telephony Protection Status */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-zinc-950 to-zinc-900 border border-white/[0.08] space-y-2">
+              <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-2 shadow-sm">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-white flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
                     <span>Real-Time Voice Scam Shield</span>
                   </span>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono">
                     ONLINE & PROTECTED
                   </span>
                 </div>
@@ -403,7 +422,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
             <div className="space-y-4 animate-fade-in">
               
               {/* Sensitivity Selector */}
-              <div className="p-4 rounded-2xl bg-zinc-950/80 border border-white/[0.08] space-y-2">
+              <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-2.5 shadow-sm">
                 <label className="block text-xs font-medium text-zinc-300">
                   Risk Sensitivity Level
                 </label>
@@ -413,11 +432,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                       key={level}
                       type="button"
                       onClick={() => setRiskSensitivity(level)}
-                      className={`py-2 px-3 rounded-xl text-xs font-mono transition-all text-center cursor-pointer border ${
+                      className={cn(
+                        "py-2 px-3 rounded-xl text-xs font-mono transition-all text-center cursor-pointer border",
                         riskSensitivity === level
-                          ? 'bg-white text-black border-white font-semibold shadow-sm'
-                          : 'bg-zinc-900/60 text-zinc-400 border-white/10 hover:border-white/20 hover:text-white'
-                      }`}
+                          ? "bg-white text-black border-white font-bold shadow-[0_4px_16px_rgba(255,255,255,0.2)]"
+                          : "bg-white/[0.04] text-zinc-400 border-white/10 hover:border-white/20 hover:text-white"
+                      )}
                     >
                       {level}
                     </button>
@@ -430,67 +450,79 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                 </p>
               </div>
 
-              {/* Toggles */}
+              {/* iOS Frosted Sliding Switches */}
               <div className="space-y-2.5">
                 {/* Auto Block */}
-                <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-white/[0.08] flex items-center justify-between">
+                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 flex items-center justify-between shadow-sm">
                   <div>
-                    <div className="text-xs font-medium text-white">Auto-Block High-Risk Scams</div>
-                    <div className="text-[11px] text-zinc-500">Automatically disconnect calls when threat score hits 80+</div>
+                    <div className="text-xs font-semibold text-white">Auto-Block High-Risk Scams</div>
+                    <div className="text-[11px] text-zinc-400">Automatically disconnect calls when threat score hits 80+</div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setAutoBlock(!autoBlock)}
-                    className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                      autoBlock ? 'bg-cyan-500' : 'bg-zinc-800'
-                    }`}
+                    className={cn(
+                      "w-12 h-6.5 rounded-full transition-all duration-300 relative cursor-pointer border shadow-inner shrink-0",
+                      autoBlock 
+                        ? "bg-emerald-500 border-emerald-400/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]" 
+                        : "bg-white/10 border-white/15"
+                    )}
                   >
                     <span 
-                      className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                        autoBlock ? 'left-6' : 'left-1'
-                      }`}
+                      className={cn(
+                        "absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-300 shadow-md",
+                        autoBlock ? "left-6" : "left-1"
+                      )}
                     />
                   </button>
                 </div>
 
                 {/* SMS Alerts */}
-                <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-white/[0.08] flex items-center justify-between">
+                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 flex items-center justify-between shadow-sm">
                   <div>
-                    <div className="text-xs font-medium text-white">SMS Emergency Dispatch</div>
-                    <div className="text-[11px] text-zinc-500">Send emergency SMS alerts to designated family guardians</div>
+                    <div className="text-xs font-semibold text-white">SMS Emergency Dispatch</div>
+                    <div className="text-[11px] text-zinc-400">Send emergency SMS alerts to designated family guardians</div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setSmsAlerts(!smsAlerts)}
-                    className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                      smsAlerts ? 'bg-cyan-500' : 'bg-zinc-800'
-                    }`}
+                    className={cn(
+                      "w-12 h-6.5 rounded-full transition-all duration-300 relative cursor-pointer border shadow-inner shrink-0",
+                      smsAlerts 
+                        ? "bg-cyan-500 border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.3)]" 
+                        : "bg-white/10 border-white/15"
+                    )}
                   >
                     <span 
-                      className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                        smsAlerts ? 'left-6' : 'left-1'
-                      }`}
+                      className={cn(
+                        "absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-300 shadow-md",
+                        smsAlerts ? "left-6" : "left-1"
+                      )}
                     />
                   </button>
                 </div>
 
                 {/* Push Alerts */}
-                <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-white/[0.08] flex items-center justify-between">
+                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 flex items-center justify-between shadow-sm">
                   <div>
-                    <div className="text-xs font-medium text-white">Browser Push Notifications</div>
-                    <div className="text-[11px] text-zinc-500">Instant audio scanner and deepfake warning toasts</div>
+                    <div className="text-xs font-semibold text-white">Browser Push Notifications</div>
+                    <div className="text-[11px] text-zinc-400">Instant audio scanner and deepfake warning toasts</div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setPushAlerts(!pushAlerts)}
-                    className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                      pushAlerts ? 'bg-cyan-500' : 'bg-zinc-800'
-                    }`}
+                    className={cn(
+                      "w-12 h-6.5 rounded-full transition-all duration-300 relative cursor-pointer border shadow-inner shrink-0",
+                      pushAlerts 
+                        ? "bg-cyan-500 border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.3)]" 
+                        : "bg-white/10 border-white/15"
+                    )}
                   >
                     <span 
-                      className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                        pushAlerts ? 'left-6' : 'left-1'
-                      }`}
+                      className={cn(
+                        "absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-300 shadow-md",
+                        pushAlerts ? "left-6" : "left-1"
+                      )}
                     />
                   </button>
                 </div>
@@ -500,7 +532,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
               <button
                 type="button"
                 onClick={handleSavePreferences}
-                className="w-full py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-semibold transition-all shadow-md cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-semibold transition-all shadow-[0_4px_16px_rgba(6,182,212,0.3)] cursor-pointer active:scale-98"
               >
                 Save Preferences
               </button>
@@ -510,13 +542,13 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
           {/* TAB 3: API KEYS */}
           {activeTab === 'security' && (
             <div className="space-y-4 animate-fade-in">
-              <div className="p-4 rounded-2xl bg-zinc-950/80 border border-white/[0.08] space-y-3">
+              <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-3 shadow-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-white flex items-center gap-1.5">
                     <Key className="w-3.5 h-3.5 text-cyan-400" />
                     <span>Live Telephony API Key</span>
                   </span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-400">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
                     Production
                   </span>
                 </div>
@@ -525,24 +557,24 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                     type="password"
                     readOnly
                     value="cx_live_98a7b6c5d4e3f210a9b8c7d6e5"
-                    className="w-full bg-black border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-zinc-300"
+                    className="w-full liquid-input rounded-xl px-3 py-2 text-xs font-mono text-zinc-300"
                   />
                   <button
                     onClick={handleCopyApiKey}
-                    className="px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-medium text-white transition-colors shrink-0 flex items-center gap-1.5"
+                    className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-semibold text-white transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
                   >
                     {copiedApiKey ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedApiKey ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
-                <p className="text-[11px] text-zinc-500">
+                <p className="text-[11px] text-zinc-400">
                   Use this key in Authorization headers for carrier SIP trunk webhooks and real-time audio socket streams.
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-zinc-950/80 border border-white/[0.08] space-y-2 text-xs">
+              <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-2 text-xs shadow-sm">
                 <div className="font-semibold text-white">SDK Quickstart</div>
-                <pre className="p-3 rounded-xl bg-black border border-white/10 text-[11px] font-mono text-zinc-300 overflow-x-auto">
+                <pre className="p-3 rounded-xl bg-black/60 border border-white/10 text-[11px] font-mono text-zinc-300 overflow-x-auto shadow-inner">
 {`curl -X POST https://api.callix.ai/v1/telecom/stream \\
   -H "Authorization: Bearer cx_live_..." \\
   -H "Content-Type: audio/x-raw"`}
@@ -554,11 +586,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
         </div>
 
         {/* Footer Actions Bar */}
-        <div className="p-4 sm:p-6 bg-zinc-950 border-t border-white/[0.08] flex items-center justify-between">
+        <div className="p-4 sm:p-5 bg-black/40 border-t border-white/10 flex items-center justify-between backdrop-blur-md">
           <button
             type="button"
             onClick={handleSignOut}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 text-xs font-semibold transition-colors cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
@@ -567,7 +599,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-medium text-white transition-colors cursor-pointer"
+            className="ios-frosted-btn px-5 py-2 text-xs font-semibold text-white cursor-pointer"
           >
             Done
           </button>
@@ -579,3 +611,4 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
 };
 
 export default UserProfileModal;
+

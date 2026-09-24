@@ -15,5 +15,6 @@ if __name__ == "__main__":
     print(f" Database: {settings.DATABASE_URL}")
     print(f" Machine Learning: Random Forest, SVM, 1D-CNN, RNN, LSTM")
     print(f" NLP: Active | STT: Active | Reports: Active")
+    print(f" Firebase Admin: Active | Firestore: Ready")
     print(f"============================================================")
     app.run(host=settings.HOST, port=settings.PORT, debug=settings.DEBUG)

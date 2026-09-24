@@ -39,11 +39,14 @@ backend/functions/.env
 backend/functions/.env.local
 *.env
 
-# Firebase cache
+# Firebase cache & Service Account Credentials
 .firebase/
 firestore-debug.log
 ui-debug.log
 firebase-debug.log
+serviceAccountKey*.json
+backend/python/serviceAccountKey*.json
+**/serviceAccountKey*.json
 
 # Build outputs
 lib/

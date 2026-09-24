@@ -24,10 +24,10 @@ export const MetricsCard: React.FC<MetricsCardProps> = ({ metrics }) => {
 
   const getVariant = (index: number): 'primary' | 'cyan' | 'safe' | 'fraud' | 'neutral' => {
     switch (index) {
-      case 0: return 'primary';
-      case 1: return 'safe';
-      case 2: return 'fraud';
-      case 3: return 'cyan';
+      case 0: return 'safe';     // Protected Voice Calls -> Emerald/Teal
+      case 1: return 'fraud';    // Scams Intercepted -> Ruby/Red
+      case 2: return 'neutral';  // Elder Guardian Alerts -> Amber
+      case 3: return 'cyan';     // Detection Latency -> Cyan/Electric Blue
       default: return 'neutral';
     }
   };

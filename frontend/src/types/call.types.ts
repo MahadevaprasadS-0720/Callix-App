@@ -44,6 +44,8 @@ export interface CallRecord {
   summaryExplanation: string;
   audioStorageUrl?: string;
   guardianNotified: boolean;
+  carrier?: string;
+  latencyMs?: number;
   transcript: TranscriptSegment[];
   riskEvents: RiskEvent[];
   confidence: number;

@@ -28,7 +28,7 @@ import {
 
 export const CallHistory: React.FC = () => {
   const navigate = useNavigate();
-  const { calls, loading, deleteCall, resetCalls } = useCallHistory();
+  const { calls, loading, deleteCall, fetchCalls } = useCallHistory();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [verdictFilter, setVerdictFilter] = useState<'ALL' | CallVerdict>('ALL');
@@ -82,10 +82,10 @@ export const CallHistory: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={resetCalls}
+            onClick={fetchCalls}
             leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
           >
-            Reset Demo Data
+            Refresh Records
           </Button>
         </div>
       </div>
