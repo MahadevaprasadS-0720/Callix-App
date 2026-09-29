@@ -27,8 +27,11 @@ import {
   CreditCard,
   Plus,
   Trash2,
-  Camera
+  Camera,
+  AlertTriangle,
+  Phone
 } from 'lucide-react';
+import { TelecomOnboardingModal } from '../components/profile/TelecomOnboardingModal';
 
 export const Settings: React.FC = () => {
   const { user, updateProfile, addGuardian, removeGuardian } = useAuth();
@@ -38,6 +41,9 @@ export const Settings: React.FC = () => {
   const [claudeKey, setClaudeKey] = useState('');
   const [deepgramKey, setDeepgramKey] = useState('');
   const [savedKeys, setSavedKeys] = useState(false);
+
+  // Telecom Onboarding / Phone Number modal state
+  const [isTelecomModalOpen, setIsTelecomModalOpen] = useState(false);
 
   // Add guardian modal state
   const [isAddGuardianOpen, setIsAddGuardianOpen] = useState(false);
@@ -248,13 +254,38 @@ export const Settings: React.FC = () => {
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-white">{user?.displayName || 'Arjun Sharma'}</h3>
+                <h3 className="text-lg font-bold text-white">{user?.displayName || 'Callix User'}</h3>
                 <Badge variant="primary" size="sm">
                   {user?.plan || 'PRO_SHIELD'}
                 </Badge>
               </div>
-              <p className="text-xs font-mono text-brand-cyan">{maskPhoneNumber(user?.phoneNumber || '+91 98112 00412')}</p>
-              <p className="text-xs text-cyber-muted">{maskEmail(user?.email || 'arjun.sharma@guardian.ai')}</p>
+              {user?.phoneNumber ? (
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-mono text-brand-cyan font-semibold">{maskPhoneNumber(user.phoneNumber)}</p>
+                  <button
+                    type="button"
+                    onClick={() => setIsTelecomModalOpen(true)}
+                    className="text-[11px] font-mono text-zinc-400 hover:text-white underline cursor-pointer transition-colors"
+                  >
+                    Edit Number
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 py-0.5">
+                  <span className="text-xs font-mono text-amber-400 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                    No mobile number linked
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsTelecomModalOpen(true)}
+                    className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 font-semibold cursor-pointer transition-all"
+                  >
+                    + Link Number
+                  </button>
+                </div>
+              )}
+              <p className="text-xs text-cyber-muted">{maskEmail(user?.email || 'user@callix.ai')}</p>
             </div>
           </div>
 
@@ -636,6 +667,12 @@ export const Settings: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Telecom Onboarding & Phone Number Modal */}
+      <TelecomOnboardingModal
+        isOpen={isTelecomModalOpen}
+        onClose={() => setIsTelecomModalOpen(false)}
+      />
     </div>
   );
 };

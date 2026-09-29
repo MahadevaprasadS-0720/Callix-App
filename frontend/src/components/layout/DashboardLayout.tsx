@@ -1,12 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { UserProfileModal } from '../profile/UserProfileModal';
+import { TelecomOnboardingModal } from '../profile/TelecomOnboardingModal';
+import { useAuth } from '../../context/AuthContext';
 
 export const DashboardLayout: React.FC = () => {
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [profileOpen, setProfileOpen] = useState<boolean>(false);
+  const [telecomModalOpen, setTelecomModalOpen] = useState<boolean>(false);
+
+  // Automatically prompt for Truecaller-style phone number onboarding if user is logged in,
+  // has no phone number, and hasn't explicitly dismissed it in this browser session.
+  useEffect(() => {
+    if (user && !user.phoneNumber && !user.isSimulationUser) {
+      const dismissed = sessionStorage.getItem('dismissed_phone_onboarding');
+      if (!dismissed) {
+        const timer = setTimeout(() => {
+          setTelecomModalOpen(true);
+        }, 800);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user]);
+
+  // Listen for custom trigger to open phone modal from anywhere
+  useEffect(() => {
+    const handleOpen = () => setTelecomModalOpen(true);
+    window.addEventListener('open-telecom-onboarding', handleOpen);
+    return () => window.removeEventListener('open-telecom-onboarding', handleOpen);
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-cyber-text flex flex-col antialiased relative selection:bg-cyan-500/30 selection:text-white">
@@ -44,6 +69,12 @@ export const DashboardLayout: React.FC = () => {
       <UserProfileModal 
         isOpen={profileOpen} 
         onClose={() => setProfileOpen(false)} 
+      />
+
+      {/* Telecom Onboarding / Phone Number Setup Modal */}
+      <TelecomOnboardingModal
+        isOpen={telecomModalOpen}
+        onClose={() => setTelecomModalOpen(false)}
       />
     </div>
   );

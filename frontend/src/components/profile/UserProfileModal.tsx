@@ -19,11 +19,12 @@ import {
   Sliders, 
   Sparkles,
   ExternalLink,
-  Camera
+  Camera,
+  Phone
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../../utils/cn';
-
+import { TelecomOnboardingModal } from './TelecomOnboardingModal';
 
 export interface UserProfileModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
   const [activeTab, setActiveTab] = useState<'overview' | 'preferences' | 'security'>('overview');
   const [copiedUid, setCopiedUid] = useState(false);
   const [copiedApiKey, setCopiedApiKey] = useState(false);
+  const [isTelecomOpen, setIsTelecomOpen] = useState(false);
 
   // Editable display name state
   const [isEditingName, setIsEditingName] = useState(false);
@@ -278,6 +280,34 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                       <span>Direct Credential</span>
                     )}
                   </span>
+
+                  {/* Phone Number Pill / Link Button */}
+                  {user.phoneNumber ? (
+                    <>
+                      <span className="text-zinc-600">·</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsTelecomOpen(true)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/25 text-[10px] text-cyan-300 font-mono transition-colors cursor-pointer"
+                        title="Click to edit mobile number"
+                      >
+                        <Phone className="w-2.5 h-2.5 text-cyan-400" />
+                        <span>{user.phoneNumber}</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-zinc-600">·</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsTelecomOpen(true)}
+                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-[10px] text-amber-300 font-mono transition-colors cursor-pointer"
+                      >
+                        <Phone className="w-2.5 h-2.5 text-amber-400" />
+                        <span>+ Link Mobile</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -347,6 +377,37 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
           {activeTab === 'overview' && (
             <div className="space-y-4 animate-fade-in">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Verified Mobile Number Card */}
+                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-1.5 shadow-sm col-span-1 sm:col-span-2">
+                  <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Verified Telephony Line</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsTelecomOpen(true)}
+                      className="text-xs font-mono text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer underline flex items-center gap-1"
+                    >
+                      {user.phoneNumber ? 'Update Number' : '+ Link Number'}
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-mono text-white font-semibold">
+                      {user.phoneNumber || (
+                        <span className="text-amber-400 text-xs font-normal">
+                          ⚠️ No Indian mobile number linked to this account
+                        </span>
+                      )}
+                    </div>
+                    {user.phoneNumber && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                        TRAI STIR/SHAKEN A
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 {/* UID Card */}
                 <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-1.5 shadow-sm">
                   <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center justify-between">
@@ -606,6 +667,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
         </div>
 
       </div>
+
+      {/* Telecom Onboarding & Phone Number Modal */}
+      <TelecomOnboardingModal
+        isOpen={isTelecomOpen}
+        onClose={() => setIsTelecomOpen(false)}
+      />
     </div>
   );
 };

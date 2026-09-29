@@ -73,8 +73,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             displayName: googleName,
             photoURL: photo,
             plan: existing?.plan || 'PRO_SHIELD',
+            phoneNumber: existing?.phoneNumber || fbUser.phoneNumber || undefined,
             authProvider: (fbUser.providerData[0]?.providerId.includes('github') ? 'github' : fbUser.providerData[0]?.providerId.includes('google') ? 'google' : 'password'),
-            guardianLinks: existing?.guardianLinks || MOCK_USER.guardianLinks,
+            guardianLinks: existing?.guardianLinks || [],
             preferences: existing?.preferences || MOCK_USER.preferences,
             createdAt: existing?.createdAt || Date.now(),
           };

@@ -142,6 +142,11 @@ export const authService = {
           localStorage.removeItem(USER_STORAGE_KEY);
           return null;
         }
+        // If a real user has the legacy mock phone number, clear it so they are prompted to link their real number
+        if (parsed?.phoneNumber === '+91 98112 00412' && !parsed?.isSimulationUser && parsed?.authProvider !== 'demo') {
+          delete parsed.phoneNumber;
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(parsed));
+        }
         return parsed;
       } catch {
         return null;
@@ -154,6 +159,12 @@ export const authService = {
     const current = authService.getCurrentUser() || MOCK_USER;
     const updated = { ...current, ...updates };
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updated));
+    if (updated.email) {
+      const stored = findStoredAccount(updated.email);
+      if (stored) {
+        saveAccount({ ...stored, ...updates });
+      }
+    }
     return updated;
   },
 
@@ -192,15 +203,19 @@ export const authService = {
                          fbUser.email?.split('@')[0] || 
                          'Authorized Callix Agent';
 
+      const existing = authService.getCurrentUser();
+      const existingPhone = (existing?.email?.toLowerCase() === fbUser.email?.toLowerCase()) ? existing?.phoneNumber : undefined;
+
       const appUser: User = {
         uid: fbUser.uid,
         email: fbUser.email || 'user@callix.ai',
         displayName: googleName,
         photoURL: photo,
+        phoneNumber: existingPhone,
         plan: 'PRO_SHIELD',
         authProvider: 'google',
-        guardianLinks: MOCK_USER.guardianLinks,
-        preferences: MOCK_USER.preferences,
+        guardianLinks: existing?.guardianLinks || [],
+        preferences: existing?.preferences || MOCK_USER.preferences,
         createdAt: Date.now(),
       };
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(appUser));
