@@ -23,10 +23,8 @@ import {
 import { 
   resolveCarrier, 
   searchCallerDirectory, 
-  PRESET_NUMBERS, 
   LookupResult, 
-  DirectoryContact, 
-  PresetNumber 
+  DirectoryContact 
 } from '../../utils/numberResolver';
 import { useCallSimulation } from '../../context/CallSimulationContext';
 import { useCallHistory } from '../../hooks/useCallHistory';
@@ -135,17 +133,6 @@ export const HeaderNumberLookup: React.FC = () => {
       setSelectedResult(data);
       recordRecentLookup(data);
       setQuery(contact.phone);
-    } catch {
-      // ignore
-    }
-  };
-
-  const handleSelectPreset = (preset: PresetNumber) => {
-    try {
-      const data = resolveCarrier(preset.number, preset.name);
-      setSelectedResult(data);
-      recordRecentLookup(data);
-      setQuery(preset.number);
     } catch {
       // ignore
     }
@@ -483,7 +470,7 @@ export const HeaderNumberLookup: React.FC = () => {
 
             {/* 4. Empty State Prompt when no query and no recent searches */}
             {!query.trim() && recentLookups.length === 0 && !activeDisplayResult && (
-              <div className="p-4 text-center space-y-1 rounded-2xl bg-white/[0.02] border border-dashed border-white/10">
+              <div className="p-5 text-center space-y-1.5 rounded-2xl bg-white/[0.02] border border-dashed border-white/10 my-1">
                 <p className="text-xs text-zinc-300 font-medium">
                   Enter a 10-digit Indian mobile number or name
                 </p>
@@ -492,33 +479,6 @@ export const HeaderNumberLookup: React.FC = () => {
                 </p>
               </div>
             )}
-
-            {/* 5. One-Click Indian Telecom Test Vectors */}
-            <div className="pt-2 border-t border-white/[0.08] space-y-1.5">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 px-1">
-                One-Click Indian Telecom Test Vectors
-              </span>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                {PRESET_NUMBERS.map((preset) => (
-                  <button
-                    key={preset.number}
-                    type="button"
-                    onClick={() => handleSelectPreset(preset)}
-                    className="p-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-left transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-200 group-hover:text-white">
-                      <span>{preset.label}</span>
-                      <span className={`w-1.5 h-1.5 rounded-full ${
-                        preset.type === 'safe' ? 'bg-emerald-400' : preset.type === 'spam' ? 'bg-amber-400' : 'bg-red-400 animate-pulse'
-                      }`} />
-                    </div>
-                    <div className="text-[10px] font-mono text-zinc-500 group-hover:text-zinc-400 truncate">
-                      {preset.op}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Footer Bar */}
@@ -545,7 +505,7 @@ export const HeaderNumberLookup: React.FC = () => {
           isOpen={isDossierModalOpen}
           onClose={() => setIsDossierModalOpen(false)}
           title="Subscriber Identity & Telecom Dossier"
-          maxWidth="xl"
+          maxWidth="2xl"
         >
           <div className="space-y-5 text-white">
             {/* Top Identity Capsule */}

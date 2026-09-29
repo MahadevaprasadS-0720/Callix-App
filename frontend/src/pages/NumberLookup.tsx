@@ -338,37 +338,6 @@ export const NumberLookup: React.FC = () => {
             </div>
           </form>
 
-          {/* Fast Preset Number Selector Pills (Apple iOS Style) */}
-          <div className="pt-2">
-            <div className="text-[11px] font-mono text-zinc-400 mb-2 flex items-center justify-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-cyan-400" />
-              <span>Click a test preset to preview instant liquid evaluation:</span>
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {PRESET_NUMBERS.map((preset, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleSelectPreset(preset.number)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-sm",
-                    preset.type === 'safe'
-                      ? "bg-white/[0.04] hover:bg-white/[0.1] border-white/10 text-zinc-300 hover:text-white hover:border-white/25"
-                      : preset.type === 'spam'
-                      ? "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-300 hover:border-amber-500/50"
-                      : "bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-300 hover:border-red-500/50"
-                  )}
-                >
-                  <span className={cn(
-                    "w-1.5 h-1.5 rounded-full",
-                    preset.type === 'safe' ? "bg-emerald-400" : preset.type === 'spam' ? "bg-amber-400" : "bg-red-400"
-                  )} />
-                  <span className="font-semibold">{preset.label}</span>
-                  <span className="font-mono text-[10px] opacity-70">{preset.number}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
         {error && (

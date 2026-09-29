@@ -30,7 +30,6 @@ export const Card: React.FC<CardProps> = ({
         glows[glow] || '',
         className
       )}
-      style={{ willChange: 'transform, box-shadow' }}
       {...props}
     >
       {children}
