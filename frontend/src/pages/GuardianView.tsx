@@ -41,32 +41,20 @@ export const GuardianView: React.FC = () => {
   const { user, addGuardian, removeGuardian } = useAuth();
   const { calls } = useCallHistory();
 
-  // Multi-account switcher state
-  const protectedAccounts: ProtectedAccount[] = [
-    {
-      id: 'acc_1',
-      name: 'Ramesh Sharma (Father)',
-      relation: 'Father - Senior Citizen',
-      phone: '+91 98112 00412',
-      status: 'ARMED',
-      lastRiskScore: 94,
-      lastCallTime: '15 mins ago',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    },
-    {
-      id: 'acc_2',
-      name: 'Sunita Sharma (Mother)',
-      relation: 'Mother - Senior Citizen',
-      phone: '+91 98200 44912',
-      status: 'ARMED',
-      lastRiskScore: 12,
-      lastCallTime: '2 hours ago',
-      avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-    }
-  ];
+  // Multi-account switcher state - dynamically derived from user's actual guardianLinks
+  const protectedAccounts: ProtectedAccount[] = (user?.guardianLinks || []).map((link, idx) => ({
+    id: link.guardianId || `guard_${idx}`,
+    name: link.name,
+    relation: link.relationship || 'Family Member',
+    phone: link.phone,
+    status: 'ARMED',
+    lastRiskScore: 4,
+    lastCallTime: 'Protected & Active',
+    avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(link.name)}`,
+  }));
 
-  const [selectedAccountId, setSelectedAccountId] = useState<string>(protectedAccounts[0].id);
-  const currentAccount = protectedAccounts.find(a => a.id === selectedAccountId) || protectedAccounts[0];
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+  const currentAccount = protectedAccounts.find(a => a.id === selectedAccountId) || protectedAccounts[0] || null;
 
   // Add guardian modal state
   const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
@@ -127,55 +115,76 @@ export const GuardianView: React.FC = () => {
         </Button>
       </div>
 
-      {/* Account Switcher Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {protectedAccounts.map((acc) => {
-          const isSelected = acc.id === selectedAccountId;
-          return (
-            <Card
-              key={acc.id}
-              onClick={() => setSelectedAccountId(acc.id)}
-              className={`p-4 cursor-pointer transition-all duration-200 border ${
-                isSelected
-                  ? 'bg-gradient-to-r from-slate-900 to-indigo-950/40 border-brand-cyan shadow-glow-cyan/20'
-                  : 'bg-cyber-card border-cyber-border hover:bg-cyber-cardHover'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={acc.avatarUrl}
-                    alt={acc.name}
-                    className="w-11 h-11 rounded-full object-cover border-2 border-brand-primary/40"
-                  />
-                  <div>
-                    <div className="font-bold text-sm text-white flex items-center gap-2">
-                      {acc.name}
-                      {isSelected && (
-                        <span className="w-2 h-2 rounded-full bg-brand-cyan animate-pulse" />
-                      )}
+      {protectedAccounts.length === 0 ? (
+        <Card className="p-8 sm:p-12 text-center space-y-4 border border-dashed border-white/20 bg-white/[0.02] rounded-3xl">
+          <div className="w-16 h-16 mx-auto rounded-3xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_25px_rgba(6,182,212,0.25)]">
+            <Users className="w-8 h-8" />
+          </div>
+          <div className="max-w-md mx-auto space-y-2">
+            <h3 className="text-xl font-bold text-white">No Family Guardians Linked Yet</h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Add your elderly parents or dependents to activate 24/7 AI scam interception. You will receive automated SMS and emergency notifications whenever a digital arrest, fake customs, or banking OTP fraud attempt is detected on their line.
+            </p>
+          </div>
+          <Button
+            variant="primary"
+            onClick={() => setIsAddOpen(true)}
+            leftIcon={<Plus className="w-4 h-4" />}
+          >
+            Link First Family Member
+          </Button>
+        </Card>
+      ) : currentAccount && (
+        <>
+          {/* Account Switcher Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {protectedAccounts.map((acc) => {
+              const isSelected = acc.id === (selectedAccountId || currentAccount.id);
+              return (
+                <Card
+                  key={acc.id}
+                  onClick={() => setSelectedAccountId(acc.id)}
+                  className={`p-4 cursor-pointer transition-all duration-200 border ${
+                    isSelected
+                      ? 'bg-gradient-to-r from-slate-900 to-indigo-950/40 border-brand-cyan shadow-glow-cyan/20'
+                      : 'bg-cyber-card border-cyber-border hover:bg-cyber-cardHover'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={acc.avatarUrl}
+                        alt={acc.name}
+                        className="w-11 h-11 rounded-full object-cover border-2 border-brand-primary/40"
+                      />
+                      <div>
+                        <div className="font-bold text-sm text-white flex items-center gap-2">
+                          {acc.name}
+                          {isSelected && (
+                            <span className="w-2 h-2 rounded-full bg-brand-cyan animate-pulse" />
+                          )}
+                        </div>
+                        <p className="text-xs text-cyber-subtle font-mono">{acc.phone}</p>
+                        <p className="text-[11px] text-cyber-muted">{acc.relation}</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-cyber-subtle font-mono">{acc.phone}</p>
-                    <p className="text-[11px] text-cyber-muted">{acc.relation}</p>
-                  </div>
-                </div>
 
-                <div className="text-right space-y-1">
-                  <Badge variant="safe" size="sm">
-                    {acc.status}
-                  </Badge>
-                  <div className="text-[10px] font-mono text-cyber-subtle">
-                    Last Call: {acc.lastCallTime}
+                    <div className="text-right space-y-1">
+                      <Badge variant="safe" size="sm">
+                        {acc.status}
+                      </Badge>
+                      <div className="text-[10px] font-mono text-cyber-subtle">
+                        Last Call: {acc.lastCallTime}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+                </Card>
+              );
+            })}
+          </div>
 
-      {/* Main Protection Hub Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Main Protection Hub Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left 7 Columns: Active Monitoring Status & Flagged Threat Stream */}
         <div className="lg:col-span-7 space-y-6">
@@ -372,6 +381,8 @@ export const GuardianView: React.FC = () => {
         </div>
 
       </div>
+        </>
+      )}
 
       {/* Add Guardian Modal */}
       <Modal

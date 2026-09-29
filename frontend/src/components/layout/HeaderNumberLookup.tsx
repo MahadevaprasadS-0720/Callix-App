@@ -7,21 +7,18 @@ import {
   ShieldAlert, 
   AlertTriangle, 
   Phone, 
-  PhoneCall, 
   Copy, 
   Check, 
   ExternalLink, 
-  Sparkles, 
-  Cpu, 
-  Radio, 
-  MapPin, 
   Fingerprint, 
   Play,
   ArrowRight,
   Clock,
   UserCheck,
   Building2,
-  CheckCircle2
+  Trash2,
+  Sparkles,
+  MapPin
 } from 'lucide-react';
 import { 
   resolveCarrier, 
@@ -33,12 +30,22 @@ import {
 } from '../../utils/numberResolver';
 import { useCallSimulation } from '../../context/CallSimulationContext';
 import { useCallHistory } from '../../hooks/useCallHistory';
+import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../common/Modal';
-import { Badge } from '../common/Badge';
-import { Button } from '../common/Button';
+
+export interface RecentLookupItem {
+  number: string;
+  formatted: string;
+  operator: string;
+  threatLevel: string;
+  riskScore: number;
+  name?: string;
+  timestamp: number;
+}
 
 export const HeaderNumberLookup: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { startSimulation } = useCallSimulation();
   const { calls } = useCallHistory();
 
@@ -47,6 +54,16 @@ export const HeaderNumberLookup: React.FC = () => {
   const [selectedResult, setSelectedResult] = useState<LookupResult | null>(null);
   const [isDossierModalOpen, setIsDossierModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Recent lookups saved in localStorage
+  const [recentLookups, setRecentLookups] = useState<RecentLookupItem[]>(() => {
+    try {
+      const stored = localStorage.getItem('callix_recent_lookups');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -80,13 +97,43 @@ export const HeaderNumberLookup: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Perform directory search
-  const { contacts, resolved } = searchCallerDirectory(query, calls);
+  // Add to recent search history
+  const recordRecentLookup = (result: LookupResult) => {
+    setRecentLookups(prev => {
+      const filtered = prev.filter(r => r.number !== result.phone);
+      const updated: RecentLookupItem[] = [
+        {
+          number: result.phone,
+          formatted: result.formatted,
+          operator: result.operator,
+          threatLevel: result.threatLevel,
+          riskScore: result.riskScore,
+          name: result.name,
+          timestamp: Date.now()
+        },
+        ...filtered
+      ].slice(0, 8);
+      try {
+        localStorage.setItem('callix_recent_lookups', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const handleClearAllRecent = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentLookups([]);
+    localStorage.removeItem('callix_recent_lookups');
+  };
+
+  // Perform directory search on real user contacts and call logs
+  const { contacts, resolved } = searchCallerDirectory(query, user?.guardianLinks || [], calls || []);
 
   const handleSelectContact = (contact: DirectoryContact) => {
     try {
       const data = resolveCarrier(contact.phone, contact.name);
       setSelectedResult(data);
+      recordRecentLookup(data);
       setQuery(contact.phone);
     } catch {
       // ignore
@@ -97,21 +144,21 @@ export const HeaderNumberLookup: React.FC = () => {
     try {
       const data = resolveCarrier(preset.number, preset.name);
       setSelectedResult(data);
+      recordRecentLookup(data);
       setQuery(preset.number);
     } catch {
       // ignore
     }
   };
 
-  const handleLookupCurrentDigits = () => {
-    const digits = query.replace(/\D/g, '').slice(-10);
-    if (digits.length === 10) {
-      try {
-        const data = resolveCarrier(digits);
-        setSelectedResult(data);
-      } catch {
-        // ignore
-      }
+  const handleSelectRecent = (item: RecentLookupItem) => {
+    try {
+      const digits = item.number.replace(/\D/g, '').slice(-10);
+      const data = resolveCarrier(digits, item.name);
+      setSelectedResult(data);
+      setQuery(item.number);
+    } catch {
+      // ignore
     }
   };
 
@@ -122,6 +169,7 @@ export const HeaderNumberLookup: React.FC = () => {
       try {
         const data = resolveCarrier(digits);
         setSelectedResult(data);
+        recordRecentLookup(data);
         setIsDossierModalOpen(true);
         setIsOpen(false);
         return;
@@ -152,10 +200,10 @@ export const HeaderNumberLookup: React.FC = () => {
   const activeDisplayResult = resolved || selectedResult;
 
   return (
-    <div ref={containerRef} className="relative flex-1 max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-1 sm:mx-3">
+    <div ref={containerRef} className="relative w-full">
       {/* Search Input Bar (Truecaller Style) */}
       <form onSubmit={handleSubmit} className="relative flex items-center w-full">
-        <div className="absolute left-3 sm:left-3.5 flex items-center pointer-events-none text-zinc-400">
+        <div className="absolute left-3.5 flex items-center pointer-events-none text-zinc-400">
           <Search className="w-3.5 h-3.5 text-cyan-400/90" />
         </div>
 
@@ -195,7 +243,7 @@ export const HeaderNumberLookup: React.FC = () => {
 
           <button
             type="submit"
-            className="px-2 sm:px-2.5 py-1 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+            className="px-2.5 py-1 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
             title="Search Directory"
           >
             <span>Check</span>
@@ -315,11 +363,11 @@ export const HeaderNumberLookup: React.FC = () => {
               </div>
             )}
 
-            {/* 2. Matched Contacts / Calls in Directory */}
-            {contacts.length > 0 && (
+            {/* 2. Matched Contacts / Calls in Directory (Only when user types query) */}
+            {query.trim().length > 0 && contacts.length > 0 && (
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400 px-1">
-                  <span>SAVED CONTACTS &amp; RECENT NUMBERS</span>
+                  <span>MATCHING CONTACTS &amp; LOGS</span>
                   <span className="text-[10px] text-zinc-500 font-mono">{contacts.length} found</span>
                 </div>
 
@@ -378,7 +426,74 @@ export const HeaderNumberLookup: React.FC = () => {
               </div>
             )}
 
-            {/* 3. Quick Indian Carrier Presets */}
+            {/* 3. Search History (Only after user has searched or inspected numbers) */}
+            {!query.trim() && recentLookups.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between px-1 text-[11px] font-semibold text-zinc-400">
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3 h-3 text-cyan-400" />
+                    <span>RECENT SEARCH HISTORY</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleClearAllRecent}
+                    className="text-[10px] text-zinc-400 hover:text-red-400 transition-colors font-mono cursor-pointer flex items-center gap-1"
+                    title="Clear search history"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Clear All</span>
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  {recentLookups.map((item, idx) => (
+                    <div
+                      key={`${item.number}_${idx}`}
+                      onClick={() => handleSelectRecent(item)}
+                      className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-transparent hover:border-white/10 text-xs flex items-center justify-between transition-all cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2.5 truncate">
+                        <div className="w-6 h-6 rounded-md bg-white/[0.06] flex items-center justify-center text-zinc-400 text-[10px] shrink-0">
+                          <Phone className="w-3 h-3" />
+                        </div>
+                        <div className="truncate">
+                          <div className="font-semibold text-zinc-200 group-hover:text-white truncate">
+                            {item.name || item.formatted}
+                          </div>
+                          <div className="text-[10px] text-zinc-500 font-mono">
+                            {item.formatted} • {item.operator}
+                          </div>
+                        </div>
+                      </div>
+
+                      <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full border shrink-0 ${
+                        item.threatLevel === 'SAFE'
+                          ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                          : item.threatLevel === 'SPAM'
+                          ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                          : 'bg-red-500/10 text-red-300 border-red-500/30'
+                      }`}>
+                        {item.threatLevel}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 4. Empty State Prompt when no query and no recent searches */}
+            {!query.trim() && recentLookups.length === 0 && !activeDisplayResult && (
+              <div className="p-4 text-center space-y-1 rounded-2xl bg-white/[0.02] border border-dashed border-white/10">
+                <p className="text-xs text-zinc-300 font-medium">
+                  Enter a 10-digit Indian mobile number or name
+                </p>
+                <p className="text-[11px] text-zinc-500">
+                  Instant live carrier diagnostics, circle lookup, and TRAI threat assessment
+                </p>
+              </div>
+            )}
+
+            {/* 5. One-Click Indian Telecom Test Vectors */}
             <div className="pt-2 border-t border-white/[0.08] space-y-1.5">
               <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 px-1">
                 One-Click Indian Telecom Test Vectors

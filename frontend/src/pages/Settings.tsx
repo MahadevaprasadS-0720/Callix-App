@@ -46,6 +46,9 @@ export const Settings: React.FC = () => {
   const [newGuardianEmail, setNewGuardianEmail] = useState('');
   const [newGuardianRelation, setNewGuardianRelation] = useState<'Parent' | 'Child' | 'Spouse' | 'Other'>('Child');
 
+  // Theme & Appearance state
+  const [selectedTheme, setSelectedTheme] = useState<string>(() => localStorage.getItem('callix_theme') || 'cyber-dark');
+
   // Permission settings per guardian state (persisted locally)
   const [transcriptAccess, setTranscriptAccess] = useState<Record<string, boolean>>({
     guard_1: true,
@@ -164,6 +167,52 @@ export const Settings: React.FC = () => {
           Manage user profile, family guardian access delegation, in-call detection sensitivity, and privacy exports.
         </p>
       </div>
+
+      {/* 0. Project Theme & UI Appearance Card */}
+      <Card className="p-6 bg-gradient-to-r from-slate-900 via-neutral-900 to-slate-900 border border-white/15 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-white">Project Theme &amp; Visual Aesthetics</h3>
+              <p className="text-xs text-zinc-400">Customize the application palette, liquid glass refraction, and UI accents</p>
+            </div>
+          </div>
+          <span className="text-[10px] font-mono uppercase px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 w-fit">
+            Theme Active
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {[
+            { id: 'cyber-dark', label: 'Cyber Noir (Pure Dark)', desc: 'Ultra-deep contrast with liquid glass glow', accent: 'bg-cyan-500' },
+            { id: 'midnight-navy', label: 'Midnight Blue (Refraction)', desc: 'Deep indigo tone with subtle acrylic blur', accent: 'bg-indigo-500' },
+            { id: 'emerald-shield', label: 'Emerald Matrix (Shield)', desc: 'High security green telemetry palette', accent: 'bg-emerald-500' },
+          ].map((theme) => (
+            <button
+              key={theme.id}
+              type="button"
+              onClick={() => {
+                setSelectedTheme(theme.id);
+                localStorage.setItem('callix_theme', theme.id);
+              }}
+              className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative group ${
+                selectedTheme === theme.id
+                  ? 'bg-white/[0.08] border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.2)]'
+                  : 'bg-white/[0.03] hover:bg-white/[0.06] border-white/10'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold text-white group-hover:text-cyan-200 transition-colors">{theme.label}</span>
+                <span className={`w-2.5 h-2.5 rounded-full ${theme.accent}`} />
+              </div>
+              <p className="text-[11px] text-zinc-400 leading-snug">{theme.desc}</p>
+            </button>
+          ))}
+        </div>
+      </Card>
 
       {/* 1. Account & Subscription Profile Card */}
       <Card className="p-6 bg-gradient-to-r from-slate-900 via-cyber-card to-slate-900 border border-cyber-border space-y-6">

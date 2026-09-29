@@ -57,7 +57,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onProfileClic
     { to: '/analytics', label: 'Threat Metrics', icon: <BarChart3 className="w-4 h-4" /> },
     { to: '/guardian', label: 'Elder Shield', icon: <Users className="w-4 h-4" /> },
     { to: '/phrases', label: 'Scam Heuristics', icon: <BookOpen className="w-4 h-4" /> },
-    { to: '/settings', label: 'API Keys & Config', icon: <Settings className="w-4 h-4" /> },
+    { to: '/settings', label: 'Settings & Preferences', icon: <Settings className="w-4 h-4" /> },
   ];
 
   return (

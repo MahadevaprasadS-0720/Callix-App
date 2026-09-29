@@ -11,28 +11,7 @@ export const MOCK_USER: User = {
   photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
   plan: 'PRO_SHIELD',
   isSimulationUser: true,
-  guardianLinks: [
-    {
-      guardianId: 'guard_1',
-      name: 'Pooja Sharma (Daughter)',
-      phone: '+91 99201 55431',
-      email: 'pooja.sharma@gmail.com',
-      relationship: 'Child',
-      notificationsEnabled: true,
-      alertOnThreshold: 75,
-      createdAt: Date.now() - 86400000 * 30,
-    },
-    {
-      guardianId: 'guard_2',
-      name: 'Ramesh Sharma (Brother)',
-      phone: '+91 98200 12890',
-      email: 'ramesh.s@yahoo.com',
-      relationship: 'Other',
-      notificationsEnabled: true,
-      alertOnThreshold: 85,
-      createdAt: Date.now() - 86400000 * 15,
-    }
-  ],
+  guardianLinks: [],
   preferences: {
     autoBlockHighRisk: true,
     smsAlerts: true,
