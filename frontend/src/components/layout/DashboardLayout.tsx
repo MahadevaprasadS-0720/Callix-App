@@ -28,7 +28,7 @@ export const DashboardLayout: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0 relative z-10">
         {/* Apple macOS Centered Floating Glass Capsule Navbar Wrapper */}
-        <div className="sticky top-2 sm:top-3.5 z-30 px-3 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto transition-all duration-300">
+        <div className="sticky top-2 sm:top-3.5 z-30 px-3 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto transition-all duration-300 mb-5 sm:mb-7">
           <Header 
             onMenuToggle={() => setSidebarOpen((prev: boolean) => !prev)} 
             onProfileClick={() => setProfileOpen(true)}
@@ -36,7 +36,7 @@ export const DashboardLayout: React.FC = () => {
         </div>
 
         {/* Dashboard Pages Content */}
-        <main className="flex-1 px-3 sm:px-6 lg:px-8 py-3 sm:py-5 max-w-7xl w-full mx-auto space-y-6 animate-fade-in-up">
+        <main className="flex-1 px-3 sm:px-6 lg:px-8 pt-2 sm:pt-3 pb-8 sm:pb-12 max-w-7xl w-full mx-auto space-y-6 animate-fade-in-up">
           <Outlet />
         </main>
       </div>

@@ -6,7 +6,6 @@ import {
   Radio, 
   PhoneCall, 
   BarChart3, 
-  Search, 
   Users, 
   BookOpen, 
   Settings,
@@ -56,7 +55,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onProfileClic
     },
     { to: '/calls', label: 'Call Logs', icon: <PhoneCall className="w-4 h-4" /> },
     { to: '/analytics', label: 'Threat Metrics', icon: <BarChart3 className="w-4 h-4" /> },
-    { to: '/lookup', label: 'Number Lookup', icon: <Search className="w-4 h-4" /> },
     { to: '/guardian', label: 'Elder Shield', icon: <Users className="w-4 h-4" /> },
     { to: '/phrases', label: 'Scam Heuristics', icon: <BookOpen className="w-4 h-4" /> },
     { to: '/settings', label: 'API Keys & Config', icon: <Settings className="w-4 h-4" /> },
@@ -172,27 +170,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onProfileClic
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
           </button>
-        </div>
-
-        {/* Footer Engine Info Widget */}
-        <div className="px-3 pb-3 pt-1">
-          <div className="p-2.5 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-md space-y-1.5 shadow-sm">
-            <div className="flex items-center justify-between text-[10px]">
-              <span className="text-zinc-500 font-mono">STT:</span>
-              <span className="text-zinc-300 font-medium font-mono">nova-2 en-IN</span>
-            </div>
-            <div className="flex items-center justify-between text-[10px]">
-              <span className="text-zinc-500 font-mono">XAI:</span>
-              <span className="text-zinc-300 font-medium font-mono">Claude 3.5</span>
-            </div>
-            <div className="pt-1.5 border-t border-white/[0.06] flex items-center gap-1.5 text-[9px] text-emerald-400 font-mono">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-              </span>
-              <span className="tracking-wide">All Systems Operational</span>
-            </div>
-          </div>
         </div>
       </aside>
     </>

@@ -1,5 +1,5 @@
-import React, { useState, useId } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useId } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Search, 
   ShieldCheck, 
@@ -56,6 +56,7 @@ const PRESET_NUMBERS = [
 
 export const NumberLookup: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const searchInputId = useId();
 
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -233,6 +234,18 @@ export const NumberLookup: React.FC = () => {
       }
     }, 350);
   };
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) {
+      const digits = q.replace(/\D/g, '').slice(-10);
+      if (digits && digits.length === 10) {
+        handleSelectPreset(digits);
+      } else {
+        setPhoneNumber(q);
+      }
+    }
+  }, [searchParams]);
 
   const handleCopy = () => {
     if (result) {
