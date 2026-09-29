@@ -79,14 +79,13 @@ export const CallHistory: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={fetchCalls}
-            leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium text-zinc-300 hover:text-white bg-white/[0.05] hover:bg-white/[0.12] border border-white/15 hover:border-white/30 backdrop-blur-md transition-all duration-200 cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95 shadow-sm"
           >
-            Refresh Records
-          </Button>
+            <RotateCcw className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white transition-colors" />
+            <span>Refresh Records</span>
+          </button>
         </div>
       </div>
 
@@ -103,21 +102,32 @@ export const CallHistory: React.FC = () => {
           </div>
 
           {/* Quick Filter Buttons */}
-          <div className="flex items-center gap-1.5 flex-wrap w-full md:w-auto">
-            <span className="text-xs font-semibold text-cyber-muted mr-1">Filter:</span>
-            {(['ALL', 'Fraudulent', 'Suspicious', 'Legitimate'] as const).map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setVerdictFilter(filter)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors ${
-                  verdictFilter === filter
-                    ? 'bg-brand-primary text-white shadow-glow-primary'
-                    : 'bg-slate-800 text-cyber-muted hover:text-cyber-text hover:bg-slate-700'
-                }`}
-              >
-                {filter === 'ALL' ? 'All Calls' : filter}
-              </button>
-            ))}
+          <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
+            <span className="text-xs font-mono font-semibold text-cyber-muted uppercase tracking-wider mr-1">Filter:</span>
+            {(
+              [
+                { id: 'ALL', label: 'All Calls', activeClasses: 'bg-white text-zinc-950 font-bold border-white shadow-[0_0_16px_rgba(255,255,255,0.35)]', inactiveClasses: 'bg-white/[0.04] text-zinc-400 border-white/10 hover:border-white/25 hover:text-white hover:bg-white/[0.08]', dot: null },
+                { id: 'Fraudulent', label: 'Fraudulent', activeClasses: 'bg-red-500/25 text-red-200 border-red-500/60 shadow-[0_0_18px_rgba(239,68,68,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] font-semibold', inactiveClasses: 'bg-red-500/[0.08] text-red-400/90 border-red-500/25 hover:border-red-500/50 hover:text-red-200 hover:bg-red-500/[0.16]', dot: 'bg-red-400 animate-pulse' },
+                { id: 'Suspicious', label: 'Suspicious', activeClasses: 'bg-amber-500/25 text-amber-200 border-amber-500/60 shadow-[0_0_18px_rgba(245,158,11,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] font-semibold', inactiveClasses: 'bg-amber-500/[0.08] text-amber-400/90 border-amber-500/25 hover:border-amber-500/50 hover:text-amber-200 hover:bg-amber-500/[0.16]', dot: 'bg-amber-400' },
+                { id: 'Legitimate', label: 'Legitimate', activeClasses: 'bg-emerald-500/25 text-emerald-200 border-emerald-500/60 shadow-[0_0_18px_rgba(16,185,129,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] font-semibold', inactiveClasses: 'bg-emerald-500/[0.08] text-emerald-400/90 border-emerald-500/25 hover:border-emerald-500/50 hover:text-emerald-200 hover:bg-emerald-500/[0.16]', dot: 'bg-emerald-400' },
+              ] as const
+            ).map((item) => {
+              const isActive = verdictFilter === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setVerdictFilter(item.id as any)}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono border backdrop-blur-md transition-all duration-200 cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95 ${
+                    isActive ? item.activeClasses : item.inactiveClasses
+                  }`}
+                >
+                  {item.dot && (
+                    <span className={`w-1.5 h-1.5 rounded-full ${item.dot}`} />
+                  )}
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </Card>
@@ -219,25 +229,23 @@ export const CallHistory: React.FC = () => {
 
                       <td className="py-3.5 px-5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            variant="secondary"
-                            size="sm"
+                          <button
                             onClick={() => navigate(`/calls/${call.callId}`)}
-                            leftIcon={<Eye className="w-3.5 h-3.5" />}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-zinc-200 hover:text-white bg-white/[0.05] hover:bg-white/[0.12] border border-white/10 hover:border-white/25 transition-all cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95 shadow-xs"
                           >
-                            Details
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                            <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                            <span>Details</span>
+                          </button>
+                          <button
                             onClick={() => navigate(`/lookup?q=${encodeURIComponent(call.callerNumber)}`)}
-                            title="Lookup reputation"
+                            title="Lookup phone reputation"
+                            className="p-1.5 rounded-lg text-zinc-400 hover:text-cyan-300 bg-white/[0.04] hover:bg-cyan-500/15 border border-white/10 hover:border-cyan-500/40 transition-all cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95"
                           >
-                            <Flag className="w-3.5 h-3.5 text-cyber-muted hover:text-brand-cyan" />
-                          </Button>
+                            <Flag className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             onClick={() => setSelectedCallToDelete(call.callId)}
-                            className="p-1.5 text-cyber-muted hover:text-red-400 rounded-md hover:bg-slate-800 transition-colors"
+                            className="p-1.5 text-zinc-400 hover:text-red-400 rounded-lg bg-white/[0.04] hover:bg-red-500/15 border border-white/10 hover:border-red-500/40 transition-all cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95"
                             title="Delete record"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

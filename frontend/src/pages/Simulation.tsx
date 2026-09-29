@@ -440,12 +440,12 @@ export const Simulation: React.FC = () => {
                     key={idx}
                     type="button"
                     onClick={() => injectUtterance(p.text, 'caller')}
-                    className="p-2 rounded-lg bg-slate-950/80 border border-cyber-border hover:border-brand-primary hover:bg-slate-900 text-left text-xs transition-colors group"
+                    className="p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-cyan-500/40 text-left text-xs transition-all group cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-98 shadow-xs"
                   >
-                    <span className="font-bold text-white group-hover:text-brand-cyan block">
+                    <span className="font-bold text-white group-hover:text-cyan-300 block transition-colors">
                       ⚡ {p.label}
                     </span>
-                    <span className="text-[11px] text-cyber-subtle truncate block">
+                    <span className="text-[11px] text-zinc-400 truncate block mt-0.5">
                       "{p.text}"
                     </span>
                   </button>

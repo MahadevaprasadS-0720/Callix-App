@@ -414,13 +414,13 @@ export const AudioScanner: React.FC = () => {
                   key={preset.id}
                   onClick={() => handleLoadPreset(preset.id)}
                   disabled={isScanning}
-                  className="w-full p-3 rounded-xl bg-slate-900/70 border border-cyber-border hover:border-brand-primary hover:bg-cyber-cardHover text-left transition-all group flex items-center justify-between"
+                  className="w-full p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-white/25 text-left transition-all group flex items-center justify-between cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-[0.99] shadow-xs"
                 >
                   <div className="space-y-0.5 min-w-0 pr-2">
-                    <div className="font-bold text-xs text-white group-hover:text-brand-cyan flex items-center gap-1.5 truncate">
+                    <div className="font-bold text-xs text-white group-hover:text-cyan-300 flex items-center gap-1.5 truncate transition-colors">
                       {preset.title}
                     </div>
-                    <div className="text-[11px] text-cyber-subtle font-mono">
+                    <div className="text-[11px] text-zinc-400 font-mono">
                       {preset.subtitle} • {preset.duration}
                     </div>
                   </div>
@@ -588,21 +588,21 @@ export const AudioScanner: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={togglePlay}
-                    className="w-10 h-10 rounded-full bg-brand-primary hover:bg-indigo-500 text-white flex items-center justify-center shadow-glow-primary transition-all"
+                    className="w-10 h-10 rounded-full bg-white hover:bg-zinc-200 text-slate-950 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all hover:scale-105 active:scale-95 cursor-pointer"
                     title={isPlaying ? 'Pause Audio' : 'Play Audio'}
                   >
                     {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
                   </button>
                   <button
                     onClick={() => handleSeek(0)}
-                    className="p-2 text-cyber-muted hover:text-white rounded-lg hover:bg-slate-800"
+                    className="p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-white/[0.08] border border-transparent hover:border-white/10 transition-all cursor-pointer active:scale-95"
                     title="Reset to beginning"
                   >
                     <RotateCcw className="w-4 h-4" />
                   </button>
                   <button
                     onClick={toggleMute}
-                    className="p-2 text-cyber-muted hover:text-white rounded-lg hover:bg-slate-800"
+                    className="p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-white/[0.08] border border-transparent hover:border-white/10 transition-all cursor-pointer active:scale-95"
                     title={isMuted ? 'Unmute' : 'Mute'}
                   >
                     {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}

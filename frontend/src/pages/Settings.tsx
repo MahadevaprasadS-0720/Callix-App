@@ -321,10 +321,10 @@ export const Settings: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => toggleTranscriptPermission(g.guardianId)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold flex items-center gap-1.5 border transition-colors ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold flex items-center gap-1.5 border transition-all cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95 ${
                       hasTranscript
-                        ? 'bg-indigo-950/80 text-indigo-300 border-indigo-500/40'
-                        : 'bg-slate-950/80 text-cyber-muted border-cyber-border'
+                        ? 'bg-indigo-950/60 text-indigo-300 border-indigo-500/40 hover:bg-indigo-950/80 shadow-[0_0_12px_rgba(99,102,241,0.2)]'
+                        : 'bg-white/[0.04] text-zinc-400 border-white/10 hover:border-white/20 hover:text-zinc-200'
                     }`}
                   >
                     {hasTranscript ? (
@@ -333,7 +333,7 @@ export const Settings: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <EyeOff className="w-3.5 h-3.5 text-cyber-subtle" /> High-Risk Alerts Only
+                        <EyeOff className="w-3.5 h-3.5 text-zinc-500" /> High-Risk Alerts Only
                       </>
                     )}
                   </button>
@@ -341,7 +341,7 @@ export const Settings: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => removeGuardian(g.guardianId)}
-                    className="p-1.5 text-cyber-muted hover:text-red-400 rounded-lg hover:bg-slate-800 transition-colors"
+                    className="p-1.5 text-zinc-400 hover:text-red-400 rounded-lg bg-white/[0.04] hover:bg-red-500/15 border border-white/10 hover:border-red-500/30 transition-all cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95"
                     title="Remove Guardian"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -398,14 +398,14 @@ export const Settings: React.FC = () => {
                     preferences: { ...user!.preferences, riskSensitivity: item.mode as any },
                   })
                 }
-                className={`p-4 rounded-xl border text-left transition-all ${
+                className={`p-4 rounded-xl border text-left transition-all cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-[0.99] ${
                   user?.preferences.riskSensitivity === item.mode
-                    ? 'border-brand-primary bg-brand-primary/15 shadow-glow-primary/20 text-white'
-                    : 'border-cyber-border bg-slate-900/60 text-slate-300 hover:bg-slate-800'
+                    ? 'border-cyan-500/50 bg-cyan-500/10 shadow-[0_0_20px_rgba(6,182,212,0.18)] text-white'
+                    : 'border-white/10 bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] hover:border-white/20'
                 }`}
               >
                 <div className="font-bold text-sm">{item.title}</div>
-                <p className="text-xs text-cyber-muted mt-1 leading-relaxed">{item.desc}</p>
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{item.desc}</p>
               </button>
             ))}
           </div>

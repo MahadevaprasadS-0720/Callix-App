@@ -134,31 +134,38 @@ export const PhraseLibrary: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center gap-1.5 flex-wrap w-full md:w-auto">
-            <span className="text-xs font-semibold text-cyber-muted mr-1">Category:</span>
+          <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
+            <span className="text-xs font-mono font-semibold text-cyber-muted uppercase tracking-wider mr-1">Category:</span>
             <button
               onClick={() => setSelectedCategory('ALL')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-medium border backdrop-blur-md transition-all duration-200 cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95 ${
                 selectedCategory === 'ALL'
-                  ? 'bg-brand-primary text-white shadow-glow-primary'
-                  : 'bg-slate-800 text-cyber-muted hover:text-cyber-text'
+                  ? 'bg-white text-zinc-950 font-bold border-white shadow-[0_0_16px_rgba(255,255,255,0.35)]'
+                  : 'bg-white/[0.04] text-zinc-400 border-white/10 hover:border-white/25 hover:text-white hover:bg-white/[0.08]'
               }`}
             >
               All Categories
             </button>
-            {Object.entries(SCAM_CATEGORIES).map(([key, value]) => (
-              <button
-                key={key}
-                onClick={() => setSelectedCategory(key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors ${
-                  selectedCategory === key
-                    ? 'bg-brand-primary text-white shadow-glow-primary'
-                    : 'bg-slate-800 text-cyber-muted hover:text-cyber-text'
-                }`}
-              >
-                {value.label.split(' ')[0]}
-              </button>
-            ))}
+            {Object.entries(SCAM_CATEGORIES).map(([key, value]) => {
+              const isActive = selectedCategory === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setSelectedCategory(key)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-medium border backdrop-blur-md transition-all duration-200 cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95 ${
+                    isActive
+                      ? 'bg-white/20 text-white border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.25)] font-semibold'
+                      : 'bg-white/[0.03] text-zinc-400 border-white/10 hover:border-white/25 hover:text-zinc-200 hover:bg-white/[0.07]'
+                  }`}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: value.color }}
+                  />
+                  {value.label.split(' ')[0]}
+                </button>
+              );
+            })}
           </div>
         </div>
       </Card>
@@ -210,7 +217,7 @@ export const PhraseLibrary: React.FC = () => {
                     <span>Target: {phrase.targetVictimProfile}</span>
                     <button
                       onClick={() => handleDeletePhrase(phrase.id)}
-                      className="p-1 text-cyber-muted hover:text-red-400 rounded hover:bg-slate-800 transition-colors"
+                      className="p-1.5 text-zinc-400 hover:text-red-400 rounded-lg bg-white/[0.04] hover:bg-red-500/15 border border-white/10 hover:border-red-500/30 transition-all cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95"
                       title="Delete rule"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

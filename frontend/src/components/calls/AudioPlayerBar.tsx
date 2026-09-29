@@ -79,7 +79,7 @@ export const AudioPlayerBar: React.FC<AudioPlayerBarProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={togglePlay}
-            className="w-10 h-10 rounded-full bg-brand-primary hover:bg-indigo-500 text-white flex items-center justify-center shadow-glow-primary transition-all duration-150"
+            className="w-10 h-10 rounded-full bg-white hover:bg-zinc-200 text-slate-950 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-150 hover:scale-105 active:scale-95 cursor-pointer"
           >
             {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
           </button>
@@ -89,7 +89,7 @@ export const AudioPlayerBar: React.FC<AudioPlayerBarProps> = ({
               setCurrentTime(0);
               setIsPlaying(false);
             }}
-            className="p-2 text-cyber-muted hover:text-cyber-text rounded-lg hover:bg-cyber-cardHover"
+            className="p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-white/[0.08] border border-transparent hover:border-white/10 transition-all cursor-pointer active:scale-95"
             title="Reset Playback"
           >
             <RotateCcw className="w-4 h-4" />
@@ -97,7 +97,7 @@ export const AudioPlayerBar: React.FC<AudioPlayerBarProps> = ({
 
           <button
             onClick={cycleSpeed}
-            className="px-2 py-1 text-xs font-mono font-bold bg-slate-800 text-brand-cyan hover:bg-slate-700 rounded-md border border-cyber-border"
+            className="px-2.5 py-1 text-xs font-mono font-bold bg-white/[0.06] text-cyan-400 hover:text-cyan-300 hover:bg-white/[0.12] rounded-lg border border-white/10 hover:border-cyan-500/30 transition-all cursor-pointer active:scale-95"
           >
             {speed}x
           </button>

@@ -153,20 +153,23 @@ export const Analytics: React.FC = () => {
 
         {/* Timeframe Filter Buttons */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center bg-slate-900 border border-cyber-border rounded-lg p-1 text-xs font-mono">
-            {(['7d', '30d', '90d'] as const).map((range) => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-3 py-1.5 rounded-md font-semibold transition-colors ${
-                  timeRange === range
-                    ? 'bg-brand-primary text-white shadow-glow-primary'
-                    : 'text-cyber-muted hover:text-white'
-                }`}
-              >
-                {range === '7d' ? 'Last 7 Days' : range === '30d' ? 'Last 30 Days' : 'Last 90 Days'}
-              </button>
-            ))}
+          <div className="flex items-center bg-white/[0.04] border border-white/10 backdrop-blur-md rounded-xl p-1 text-xs font-mono">
+            {(['7d', '30d', '90d'] as const).map((range) => {
+              const isActive = timeRange === range;
+              return (
+                <button
+                  key={range}
+                  onClick={() => setTimeRange(range)}
+                  className={`px-3.5 py-1.5 rounded-lg font-medium transition-all duration-200 cursor-pointer transform-gpu active:scale-95 ${
+                    isActive
+                      ? 'bg-white text-zinc-950 font-bold shadow-[0_0_15px_rgba(255,255,255,0.3)]'
+                      : 'text-zinc-400 hover:text-white hover:bg-white/[0.06] border border-transparent'
+                  }`}
+                >
+                  {range === '7d' ? 'Last 7 Days' : range === '30d' ? 'Last 30 Days' : 'Last 90 Days'}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
