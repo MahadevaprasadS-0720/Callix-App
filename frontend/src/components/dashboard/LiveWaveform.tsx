@@ -66,15 +66,27 @@ export const LiveWaveform: React.FC<LiveWaveformProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const barCount = 28;
+    const width = canvas.width;
+    const height = canvas.height;
+    const barWidth = width / barCount - 2.5;
+
+    if (!active) {
+      // Inactive baseline drawn once with ZERO requestAnimationFrame CPU/GPU consumption
+      ctx.clearRect(0, 0, width, height);
+      for (let i = 0; i < barCount; i++) {
+        ctx.fillStyle = '#1E293B';
+        ctx.beginPath();
+        ctx.roundRect(i * (barWidth + 2.5), height - 4, barWidth, 3, 1);
+        ctx.fill();
+      }
+      return;
+    }
+
     const render = () => {
       animFrameRef.current = requestAnimationFrame(render);
 
-      const width = canvas.width;
-      const height = canvas.height;
       ctx.clearRect(0, 0, width, height);
-
-      const barCount = 28;
-      const barWidth = width / barCount - 2.5;
 
       // Color scheme based on threat level
       let colorStart = '#06B6D4'; // Cyan
@@ -88,7 +100,7 @@ export const LiveWaveform: React.FC<LiveWaveformProps> = ({
         colorEnd = '#D97706';
       }
 
-      if (active && analyserRef.current) {
+      if (analyserRef.current) {
         // Real microphone frequency data
         const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
         analyserRef.current.getByteFrequencyData(dataArray);
@@ -107,8 +119,8 @@ export const LiveWaveform: React.FC<LiveWaveformProps> = ({
           ctx.roundRect(i * (barWidth + 2.5), height - barHeight, barWidth, barHeight, 2);
           ctx.fill();
         }
-      } else if (active) {
-        // Fallback dynamic wave reacting to volume prop
+      } else {
+        // Dynamic wave reacting to volume prop
         const time = Date.now() / 120;
         const volMultiplier = Math.max(0.2, volume / 50);
 
@@ -123,14 +135,6 @@ export const LiveWaveform: React.FC<LiveWaveformProps> = ({
           ctx.fillStyle = gradient;
           ctx.beginPath();
           ctx.roundRect(i * (barWidth + 2.5), height - barHeight, barWidth, barHeight, 2);
-          ctx.fill();
-        }
-      } else {
-        // Inactive baseline
-        for (let i = 0; i < barCount; i++) {
-          ctx.fillStyle = '#1E293B';
-          ctx.beginPath();
-          ctx.roundRect(i * (barWidth + 2.5), height - 4, barWidth, 3, 1);
           ctx.fill();
         }
       }

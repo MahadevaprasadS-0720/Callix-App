@@ -16,6 +16,7 @@ import { useCallHistory } from '../hooks/useCallHistory';
 import { useCallSimulation } from '../context/CallSimulationContext';
 import { useAuth } from '../hooks/useAuth';
 import { formatPhoneNumber } from '../utils/formatters';
+import { cn } from '../utils/cn';
 import { 
   ShieldCheck, 
   Radio, 
@@ -31,8 +32,15 @@ import {
   Mic,
   BarChart3,
   Layers,
-  Sparkles
+  Sparkles,
+  CheckCircle2,
+  MapPin,
+  Phone,
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
+import { carrierLookupService, LiveCarrierLookupResponse } from '../services/carrierLookupService';
+import { GroqFraudAlertBanner } from '../components/calls/GroqFraudAlertBanner';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -45,12 +53,17 @@ export const Dashboard: React.FC = () => {
     callerName, 
     audioLevels, 
     startSimulation, 
-    stopSimulation 
+    stopSimulation,
+    groqAlert,
+    dismissGroqAlert,
   } = useCallSimulation();
 
   type TabId = 'overview' | 'playground' | 'telemetry' | 'analytics';
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [lookupInput, setLookupInput] = useState('');
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupResult, setLookupResult] = useState<LiveCarrierLookupResponse | null>(null);
+  const [lookupError, setLookupError] = useState<string | null>(null);
 
   const tabs: Array<{ id: TabId; label: string; icon: React.FC<{ className?: string }>; iconColor: string; badge?: string }> = [
     { id: 'overview', label: 'Security Overview', icon: Activity, iconColor: 'text-cyan-400' },
@@ -59,10 +72,33 @@ export const Dashboard: React.FC = () => {
     { id: 'analytics', label: 'Visual Threat Analytics', icon: BarChart3, iconColor: 'text-purple-400' },
   ];
 
-  const handleQuickLookup = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (lookupInput.trim()) {
-      navigate(`/lookup?q=${encodeURIComponent(lookupInput.trim())}`);
+  const handleQuickLookup = async (e?: React.FormEvent, presetPhone?: string) => {
+    if (e) e.preventDefault();
+    const phoneToScan = (presetPhone || lookupInput).trim();
+    if (!phoneToScan) {
+      setLookupError('Please enter a phone number to scan');
+      return;
+    }
+
+    if (presetPhone) {
+      setLookupInput(presetPhone);
+    }
+
+    setLookupLoading(true);
+    setLookupError(null);
+    setLookupResult(null);
+
+    try {
+      const data = await carrierLookupService.lookupLivePhone(phoneToScan);
+      if (!data.valid && data.error) {
+        setLookupError(data.error);
+      } else {
+        setLookupResult(data);
+      }
+    } catch (err: any) {
+      setLookupError(err?.message || 'Could not verify caller. Please check your network connection.');
+    } finally {
+      setLookupLoading(false);
     }
   };
 
@@ -173,6 +209,24 @@ export const Dashboard: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left 2 Columns: Live Call Widget / Recent Calls & Threat Radar */}
                 <div className="lg:col-span-2 space-y-6">
+                  {/* Groq Real-Time High Risk Alert Banner */}
+                  {isCallActive && groqAlert && (
+                    <GroqFraudAlertBanner
+                      alert={groqAlert}
+                      onDismiss={dismissGroqAlert}
+                      onTerminateCall={() => stopSimulation('TERMINATED_BY_SYSTEM')}
+                      onConsultAssistant={(reason) => {
+                        window.dispatchEvent(
+                          new CustomEvent('open-callix-ai-assistant', {
+                            detail: {
+                              prompt: `The Groq Real-Time Shield detected high fraud risk: "${reason}". Please investigate this threat and tell me how to protect myself.`,
+                            },
+                          })
+                        );
+                      }}
+                    />
+                  )}
+
                   {/* Live Call Telemetry Box (If Call Active) */}
                   {isCallActive ? (
                     <Card glow="danger" className="border-red-500/40 bg-gradient-to-br from-neutral-950/80 via-red-950/25 to-neutral-950/80 backdrop-blur-2xl shadow-[0_12px_40px_rgba(239,68,68,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)] space-y-4">
@@ -244,41 +298,198 @@ export const Dashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    <form onSubmit={handleQuickLookup} className="space-y-3">
+                    <form onSubmit={(e) => handleQuickLookup(e)} className="space-y-3">
                       <div className="relative">
                         <input
                           type="text"
-                          placeholder="e.g. +91 98201 88472"
+                          placeholder="e.g. +91 98201 88472 or 7975583509"
                           value={lookupInput}
-                          onChange={(e) => setLookupInput(e.target.value)}
+                          onChange={(e) => {
+                            setLookupInput(e.target.value);
+                            if (lookupError) setLookupError(null);
+                          }}
                           className="w-full bg-white/[0.04] border border-white/15 rounded-xl px-4 py-2.5 text-sm text-white font-mono placeholder-zinc-500 focus:outline-none focus:border-cyan-400/80 focus:ring-1 focus:ring-cyan-400/30 backdrop-blur-md transition-all shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]"
                         />
                       </div>
                       <button 
                         type="submit" 
-                        className="w-full py-2.5 rounded-xl text-sm font-semibold text-black bg-white hover:bg-zinc-100 shadow-[0_4px_20px_rgba(255,255,255,0.25)] transition-all duration-200 transform-gpu hover:-translate-y-0.5 cursor-pointer active:scale-95"
+                        disabled={lookupLoading}
+                        className="w-full py-2.5 rounded-xl text-sm font-semibold text-black bg-white hover:bg-zinc-100 shadow-[0_4px_20px_rgba(255,255,255,0.25)] transition-all duration-200 transform-gpu hover:-translate-y-0.5 cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        Scan Phone Number
+                        {lookupLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin text-black" />
+                            <span>Verifying with Numverify...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Search className="w-4 h-4 text-black" />
+                            <span>Scan Phone Number</span>
+                          </>
+                        )}
                       </button>
                     </form>
+
+                    {/* Frosted Glass Loading State */}
+                    {lookupLoading && (
+                      <div className="p-4 rounded-2xl bg-white/[0.04] border border-cyan-500/30 backdrop-blur-xl flex flex-col items-center justify-center space-y-2.5 animate-pulse">
+                        <div className="relative flex items-center justify-center">
+                          <div className="w-9 h-9 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
+                          <Radio className="w-4 h-4 text-cyan-400 absolute animate-pulse" />
+                        </div>
+                        <div className="text-center space-y-1">
+                          <div className="text-xs font-semibold text-white">Scanning Carrier &amp; Telecom Route...</div>
+                          <div className="text-[10px] text-cyan-400/90 font-mono flex items-center justify-center gap-1">
+                            <Zap className="w-3 h-3 text-cyan-400 animate-pulse" />
+                            <span>⚡ Triple-Engine Synchronized (Abstract + Veriphone + Numverify)</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Error Notice */}
+                    {lookupError && !lookupLoading && (
+                      <div className="p-3 rounded-2xl bg-red-500/10 border border-red-500/30 text-xs text-red-300 flex items-start gap-2 animate-fade-in">
+                        <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <div className="font-semibold">Lookup Notice</div>
+                          <div className="text-[11px] text-red-200/80">{lookupError}</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Live Liquid Glass Results Badges */}
+                    {lookupResult && !lookupLoading && (
+                      <div className="p-4 rounded-2xl bg-gradient-to-br from-white/[0.07] via-white/[0.03] to-cyan-950/20 border border-cyan-500/30 backdrop-blur-xl shadow-lg space-y-3 animate-fade-in">
+                        {/* Header line: Phone, Source Micro-Badge & Valid status */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 font-mono text-sm font-bold text-white truncate">
+                            <Phone className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                            <span>{lookupResult.international_format || lookupResult.number}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className={cn(
+                              "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wide",
+                              lookupResult.valid 
+                                ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400" 
+                                : "bg-red-500/15 border border-red-500/30 text-red-400"
+                            )}>
+                              {lookupResult.valid ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+                              <span>{lookupResult.valid ? "ACTIVE" : "INVALID"}</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Subtle micro-badge: ⚡ Triple-Engine Synchronized */}
+                        <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-white/[0.04] border border-cyan-500/20 text-[10px] font-mono text-zinc-300 backdrop-blur-md">
+                          <span className="flex items-center gap-1.5 text-cyan-300 font-semibold tracking-wide">
+                            <Sparkles className="w-3 h-3 text-cyan-400 shrink-0" />
+                            <span className="truncate">{lookupResult.engine_badge || "⚡ Triple-Engine Synchronized"}</span>
+                          </span>
+                          <span className="text-emerald-400 font-medium flex items-center gap-1 shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span>{lookupResult.confidence ? `${lookupResult.confidence}% Consensus` : 'Consensus Active'}</span>
+                          </span>
+                        </div>
+
+                        {/* Badges Grid (Liquid Glass Capsules) */}
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          {/* SIM Carrier with glowing neon accent */}
+                          <div 
+                            className="p-2.5 rounded-xl bg-black/40 border transition-all duration-300 space-y-1 relative overflow-hidden group"
+                            style={{
+                              borderColor: `${lookupResult.brand_accent || '#0084FF'}45`,
+                              boxShadow: `0 0 16px -4px ${lookupResult.brand_accent || '#0084FF'}25`,
+                            }}
+                          >
+                            <div 
+                              className="absolute -right-4 -bottom-4 w-12 h-12 rounded-full opacity-20 blur-lg pointer-events-none"
+                              style={{ backgroundColor: lookupResult.brand_accent || '#0084FF' }}
+                            />
+                            <div className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider flex items-center gap-1">
+                              <Radio className="w-3 h-3" style={{ color: lookupResult.brand_accent || '#0084FF' }} />
+                              <span>SIM Carrier</span>
+                            </div>
+                            <div 
+                              className="font-bold truncate text-sm" 
+                              style={{ 
+                                color: lookupResult.brand_accent || '#FFFFFF',
+                                textShadow: `0 0 10px ${lookupResult.brand_accent || '#0084FF'}60`
+                              }}
+                            >
+                              {lookupResult.carrier || lookupResult.operator || 'Unknown Operator'}
+                            </div>
+                          </div>
+
+                          {/* Location / Circle */}
+                          <div className="p-2.5 rounded-xl bg-black/40 border border-emerald-500/20 space-y-1 relative overflow-hidden">
+                            <div className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-emerald-400" />
+                              <span>Telecom Circle</span>
+                            </div>
+                            <div className="font-semibold text-zinc-200 truncate">
+                              {lookupResult.location || lookupResult.circle || 'India (National)'}
+                            </div>
+                          </div>
+
+                          {/* Line Type */}
+                          <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 space-y-1">
+                            <div className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider flex items-center gap-1">
+                              <Zap className="w-3 h-3 text-amber-400" />
+                              <span>Line Type</span>
+                            </div>
+                            <div className="font-semibold text-zinc-200 capitalize truncate">
+                              {lookupResult.line_type || 'Mobile (Cellular)'}
+                            </div>
+                          </div>
+
+                          {/* Parallel Latency & Tri-Sync */}
+                          <div className="p-2.5 rounded-xl bg-black/40 border border-cyan-500/20 space-y-1">
+                            <div className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3 text-cyan-400" />
+                              <span>Parallel Latency</span>
+                            </div>
+                            <div className="font-semibold text-cyan-300 text-[11px] truncate flex items-center gap-1">
+                              <span>{lookupResult.roundtrip_seconds ? `${lookupResult.roundtrip_seconds}s (Tri-Sync)` : '⚡ 3 Concurrent'}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="pt-1 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/lookup?q=${encodeURIComponent(lookupResult.number || lookupInput)}`)}
+                            className="flex-1 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                          >
+                            <span>Deep Reputation</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setLookupResult(null); setLookupInput(''); }}
+                            className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white text-xs transition-colors cursor-pointer"
+                            title="Clear scan"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="text-[11px] text-zinc-400 space-y-1.5 pt-1">
                       <span className="font-semibold text-zinc-300 block">Common Threat Numbers:</span>
                       <div className="flex flex-wrap gap-1.5">
                         <button
-                          onClick={() => {
-                            setLookupInput('+91 98201 88472');
-                            navigate('/lookup?q=%2B919820188472');
-                          }}
+                          type="button"
+                          onClick={() => handleQuickLookup(undefined, '+91 98201 88472')}
                           className="px-2.5 py-1 rounded-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-300 font-mono text-[10px] transition-all duration-200 transform-gpu hover:-translate-y-0.5 cursor-pointer"
                         >
                           +91 98201 88472 (CBI Scam)
                         </button>
                         <button
-                          onClick={() => {
-                            setLookupInput('+91 78034 51928');
-                            navigate('/lookup?q=%2B917803451928');
-                          }}
+                          type="button"
+                          onClick={() => handleQuickLookup(undefined, '+91 78034 51928')}
                           className="px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-300 font-mono text-[10px] transition-all duration-200 transform-gpu hover:-translate-y-0.5 cursor-pointer"
                         >
                           +91 78034 51928 (Power Cut)

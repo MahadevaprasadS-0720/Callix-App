@@ -21,6 +21,7 @@ const NumberLookup = lazy(() => import('./pages/NumberLookup').then(m => ({ defa
 const GuardianView = lazy(() => import('./pages/GuardianView').then(m => ({ default: m.GuardianView })));
 const PhraseLibrary = lazy(() => import('./pages/PhraseLibrary').then(m => ({ default: m.PhraseLibrary })));
 const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
+const Preferences = lazy(() => import('./pages/Preferences').then(m => ({ default: m.Preferences })));
 
 export const App: React.FC = () => {
   return (
@@ -64,6 +65,7 @@ export const App: React.FC = () => {
                     <Route path="/phrases" element={<PhraseLibrary />} />
                     <Route path="/library" element={<PhraseLibrary />} />
                     <Route path="/settings" element={<Settings />} />
+                    <Route path="/preferences" element={<Preferences />} />
                   </Route>
 
                   {/* Catch-all fallback */}

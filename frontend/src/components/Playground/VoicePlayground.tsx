@@ -159,7 +159,9 @@ export const VoicePlayground: React.FC<{ id?: string }> = ({ id = 'playground' }
         ctx.stroke();
       }
 
-      animationFrameRef.current = requestAnimationFrame(renderWave);
+      if (isRecording || isPlaying || isScanning) {
+        animationFrameRef.current = requestAnimationFrame(renderWave);
+      }
     };
 
     renderWave();

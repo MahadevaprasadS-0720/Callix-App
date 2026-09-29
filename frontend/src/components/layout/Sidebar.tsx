@@ -9,6 +9,7 @@ import {
   Users, 
   BookOpen, 
   Settings,
+  Sliders,
   AlertTriangle,
   LogOut,
   Home,
@@ -19,7 +20,6 @@ import {
 import { cn } from '../../utils/cn';
 import { useCallSimulation } from '../../context/CallSimulationContext';
 import { useAuth } from '../../context/AuthContext';
-import { UserAvatar } from '../common/UserAvatar';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -57,7 +57,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onProfileClic
     { to: '/analytics', label: 'Threat Metrics', icon: <BarChart3 className="w-4 h-4" /> },
     { to: '/guardian', label: 'Elder Shield', icon: <Users className="w-4 h-4" /> },
     { to: '/phrases', label: 'Scam Heuristics', icon: <BookOpen className="w-4 h-4" /> },
-    { to: '/settings', label: 'Settings & Preferences', icon: <Settings className="w-4 h-4" /> },
+    { to: '/settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
+    { to: '/preferences', label: 'Preferences', icon: <Sliders className="w-4 h-4" /> },
   ];
 
   return (
@@ -81,30 +82,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onProfileClic
           <LinkToHome onClose={onClose} />
         </div>
 
-        {/* User Session Quick Strip */}
-        <div className="px-3 pt-3">
-          <div 
-            onClick={onProfileClick}
-            className="p-2.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 flex items-center justify-between text-xs cursor-pointer transition-all duration-200 group shadow-sm hover:border-white/20 active:scale-[0.98]"
-            title="Open User Profile & Credentials"
-          >
-            <div className="flex items-center gap-2.5 truncate">
-              <UserAvatar user={user} size="xs" shape="circle" className="ring-1 ring-white/20 group-hover:ring-white/40" />
-              <div className="truncate">
-                <div className="font-semibold text-zinc-200 group-hover:text-white truncate text-[11px] transition-colors">
-                  {user?.displayName || 'Developer'}
-                </div>
-                <div className="text-[10px] text-zinc-500 group-hover:text-zinc-400 font-mono">
-                  {user?.plan || 'PRO_SHIELD'}
-                </div>
-              </div>
-            </div>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.06] text-zinc-300 group-hover:text-white font-mono border border-white/10 group-hover:border-white/20 transition-all">
-              Profile
-            </span>
-          </div>
-        </div>
-
         {/* Live Call Alert Strip */}
         {isCallActive && (
           <div className={cn(
@@ -122,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onProfileClic
         )}
 
         {/* Navigation Links with iOS-inspired glowing pills & micro-interactions */}
-        <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}

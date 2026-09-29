@@ -20,8 +20,23 @@ export interface StoredAccount {
   email: string;
   password?: string;
   displayName: string;
+  firstName?: string;
+  lastName?: string;
   phoneNumber?: string;
+  secondaryPhoneNumber?: string;
+  gender?: 'Male' | 'Female' | 'Other' | 'Prefer not to say' | string;
+  birthDate?: string;
+  street?: string;
+  city?: string;
+  zipCode?: string;
+  country?: string;
+  companyName?: string;
+  jobTitle?: string;
+  aboutMe?: string;
+  websiteUrl?: string;
   photoURL?: string;
+  profileCompletion?: number;
+  isVerified?: boolean;
   plan: SubscriptionPlan;
   isSimulationUser?: boolean;
   isGuest?: boolean;
@@ -32,6 +47,34 @@ export interface StoredAccount {
 }
 
 const DEFAULT_DEV_ACCOUNTS: StoredAccount[] = [
+  {
+    uid: 'user_dev_mahi_01',
+    email: 'user@callix.ai',
+    password: 'password123',
+    displayName: 'Callix User',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    secondaryPhoneNumber: '',
+    gender: '',
+    birthDate: '',
+    street: '',
+    city: '',
+    zipCode: '',
+    country: '',
+    companyName: '',
+    jobTitle: '',
+    aboutMe: '',
+    websiteUrl: '',
+    photoURL: '',
+    profileCompletion: 20,
+    isVerified: true,
+    plan: 'PRO_SHIELD',
+    authProvider: 'google',
+    guardianLinks: MOCK_USER.guardianLinks,
+    preferences: MOCK_USER.preferences,
+    createdAt: Date.now() - 86400000 * 90,
+  },
   {
     uid: 'user_dev_9988',
     email: 'arjun.sharma@callix.ai',

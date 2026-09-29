@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { 
+  ArrowLeft,
   X, 
   User as UserIcon, 
   Mail, 
   ShieldCheck, 
-  Fingerprint, 
-  Copy, 
   Check, 
   Edit2, 
   Save, 
@@ -14,13 +13,15 @@ import {
   LogOut, 
   Calendar, 
   Globe, 
-  Bell, 
-  Lock, 
-  Sliders, 
+  Camera, 
+  Phone,
+  ChevronDown,
+  Building,
+  Briefcase,
+  MapPin,
   Sparkles,
-  ExternalLink,
-  Camera,
-  Phone
+  Shield,
+  Copy
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../../utils/cn';
@@ -32,20 +33,61 @@ export interface UserProfileModalProps {
 }
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) => {
-  const { user, updateProfile, logout } = useAuth();
+  const { user, updateProfile, logout, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'preferences' | 'security'>('overview');
-  const [copiedUid, setCopiedUid] = useState(false);
-  const [copiedApiKey, setCopiedApiKey] = useState(false);
+  // Mode: 'truecaller' (primary profile view) or 'security' (Callix voice shield & API credentials)
+  const [activeMode, setActiveMode] = useState<'truecaller' | 'security'>('truecaller');
+
   const [isTelecomOpen, setIsTelecomOpen] = useState(false);
-
-  // Editable display name state
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [editName, setEditName] = useState(user?.displayName || '');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [googleFillSuccess, setGoogleFillSuccess] = useState(false);
+  const [copiedApiKey, setCopiedApiKey] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Editable preferences
+  // Form State initialized strictly with real user data or empty strings (NO hardcoded fake defaults)
+  const [firstName, setFirstName] = useState(
+    user?.firstName || 
+    (user?.displayName && !user.displayName.includes('@') && user.displayName !== 'User' && user.displayName !== 'Callix User' ? user.displayName.split(' ')[0] : '') || 
+    ''
+  );
+  const [lastName, setLastName] = useState(
+    user?.lastName || 
+    (user?.displayName && !user.displayName.includes('@') && user.displayName !== 'User' && user.displayName !== 'Callix User' ? user.displayName.split(' ').slice(1).join(' ') : '') || 
+    ''
+  );
+  const [phoneNumber, setPhoneNumber] = useState(
+    user?.phoneNumber && user.phoneNumber !== '+917975583509' ? user.phoneNumber : ''
+  );
+  const [secondaryPhoneNumber, setSecondaryPhoneNumber] = useState(user?.secondaryPhoneNumber || '');
+  const [gender, setGender] = useState(
+    user?.gender && !(user.gender === 'Male' && !user.street) ? user.gender : ''
+  );
+  const [birthDate, setBirthDate] = useState(
+    user?.birthDate && user.birthDate !== '07/08/2006' ? user.birthDate : ''
+  );
+  
+  // Address Fields
+  const [street, setStreet] = useState(user?.street || '');
+  const [city, setCity] = useState(
+    user?.city && user.city !== 'Mysore' ? user.city : ''
+  );
+  const [zipCode, setZipCode] = useState(user?.zipCode || '');
+  const [country, setCountry] = useState(
+    user?.country && !(user.country === 'India' && !user.street) ? user.country : ''
+  );
+
+  // About Fields
+  const [companyName, setCompanyName] = useState(user?.companyName || '');
+  const [jobTitle, setJobTitle] = useState(user?.jobTitle || '');
+  const [aboutMe, setAboutMe] = useState(user?.aboutMe || '');
+  const [email, setEmail] = useState(
+    user?.email && !(user.email === 'smahi.072006@gmail.com' && !user.photoURL) ? user.email : ''
+  );
+  const [websiteUrl, setWebsiteUrl] = useState(user?.websiteUrl || '');
+  const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
+
+  // Callix Security Preferences
   const [autoBlock, setAutoBlock] = useState(user?.preferences?.autoBlockHighRisk ?? true);
   const [smsAlerts, setSmsAlerts] = useState(user?.preferences?.smsAlerts ?? true);
   const [pushAlerts, setPushAlerts] = useState(user?.preferences?.pushAlerts ?? true);
@@ -53,27 +95,132 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
     user?.preferences?.riskSensitivity || 'STANDARD'
   );
 
+  // Track focused field for floating notch effect
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  // Sync state if user object updates
+  useEffect(() => {
+    if (user) {
+      if (user.firstName) {
+        setFirstName(user.firstName);
+      } else if (user.displayName && !user.displayName.includes('@') && user.displayName !== 'User' && user.displayName !== 'Callix User') {
+        setFirstName(user.displayName.split(' ')[0] || '');
+      }
+      
+      if (user.lastName) {
+        setLastName(user.lastName);
+      } else if (user.displayName && !user.displayName.includes('@') && user.displayName !== 'User' && user.displayName !== 'Callix User') {
+        setLastName(user.displayName.split(' ').slice(1).join(' ') || '');
+      }
+
+      if (user.phoneNumber && user.phoneNumber !== '+917975583509') {
+        setPhoneNumber(user.phoneNumber);
+      }
+      if (user.secondaryPhoneNumber !== undefined) {
+        setSecondaryPhoneNumber(user.secondaryPhoneNumber);
+      }
+      if (user.gender && !(user.gender === 'Male' && !user.street)) {
+        setGender(user.gender);
+      }
+      if (user.birthDate && user.birthDate !== '07/08/2006') {
+        setBirthDate(user.birthDate);
+      }
+      if (user.street !== undefined) setStreet(user.street);
+      if (user.city && user.city !== 'Mysore') setCity(user.city);
+      if (user.zipCode !== undefined) setZipCode(user.zipCode);
+      if (user.country && !(user.country === 'India' && !user.street)) setCountry(user.country);
+      if (user.companyName !== undefined) setCompanyName(user.companyName);
+      if (user.jobTitle !== undefined) setJobTitle(user.jobTitle);
+      if (user.aboutMe !== undefined) setAboutMe(user.aboutMe);
+      if (user.email && !(user.email === 'smahi.072006@gmail.com' && !user.photoURL)) setEmail(user.email);
+      if (user.websiteUrl !== undefined) setWebsiteUrl(user.websiteUrl);
+      if (user.photoURL) setPhotoURL(user.photoURL);
+    }
+  }, [user]);
+
+  // Compute profile completion percentage dynamically (0% to 100% based on what is actually filled)
+  const profileCompletion = useMemo(() => {
+    let score = 0;
+    if (firstName.trim()) score += 10;
+    if (lastName.trim()) score += 10;
+    if (phoneNumber.trim()) score += 10;
+    if (gender.trim()) score += 10;
+    if (birthDate.trim()) score += 10;
+    if (city.trim()) score += 10;
+    if (country.trim()) score += 10;
+    if (email.trim()) score += 10;
+    if (photoURL.trim()) score += 10;
+    if (
+      companyName.trim() || 
+      jobTitle.trim() || 
+      aboutMe.trim() || 
+      websiteUrl.trim() || 
+      street.trim() || 
+      zipCode.trim() || 
+      secondaryPhoneNumber.trim()
+    ) {
+      score += 10;
+    }
+    return Math.min(100, score);
+  }, [
+    firstName, lastName, phoneNumber, gender, birthDate, 
+    city, country, email, photoURL, companyName, jobTitle, 
+    aboutMe, websiteUrl, street, zipCode, secondaryPhoneNumber
+  ]);
+
   if (!isOpen || !user) return null;
 
-  const handleCopyUid = () => {
-    navigator.clipboard.writeText(user.uid || 'usr_callix_dev');
-    setCopiedUid(true);
-    setTimeout(() => setCopiedUid(false), 2000);
+  const handleSaveProfile = () => {
+    const fullDisplayName = `${firstName.trim()} ${lastName.trim()}`.trim() || user.displayName || 'Callix User';
+    updateProfile({
+      displayName: fullDisplayName,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      phoneNumber: phoneNumber.trim(),
+      secondaryPhoneNumber: secondaryPhoneNumber.trim(),
+      gender,
+      birthDate: birthDate.trim(),
+      street: street.trim(),
+      city: city.trim(),
+      zipCode: zipCode.trim(),
+      country: country.trim(),
+      companyName: companyName.trim(),
+      jobTitle: jobTitle.trim(),
+      aboutMe: aboutMe.trim(),
+      email: email.trim(),
+      websiteUrl: websiteUrl.trim(),
+      photoURL,
+      profileCompletion,
+      preferences: {
+        autoBlockHighRisk: autoBlock,
+        smsAlerts: smsAlerts,
+        pushAlerts: pushAlerts,
+        audioRecordingOptIn: user.preferences?.audioRecordingOptIn ?? true,
+        riskSensitivity,
+      }
+    });
+
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2500);
   };
 
-  const handleCopyApiKey = () => {
-    const mockKey = `cx_live_${(user.uid || 'dev').substring(0, 8)}_${Math.random().toString(36).substring(2, 10)}`;
-    navigator.clipboard.writeText(mockKey);
-    setCopiedApiKey(true);
-    setTimeout(() => setCopiedApiKey(false), 2000);
-  };
-
-  const handleSaveName = () => {
-    if (editName.trim()) {
-      updateProfile({ displayName: editName.trim() });
-      setIsEditingName(false);
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2000);
+  const handleFillWithGoogle = async () => {
+    try {
+      if (user.authProvider === 'google' && user.displayName) {
+        const parts = user.displayName.split(' ');
+        setFirstName(parts[0] || firstName);
+        setLastName(parts.slice(1).join(' ') || lastName);
+        if (user.email) setEmail(user.email);
+        if (user.photoURL) setPhotoURL(user.photoURL);
+        setGoogleFillSuccess(true);
+        setTimeout(() => setGoogleFillSuccess(false), 2500);
+      } else {
+        await loginWithGoogle();
+        setGoogleFillSuccess(true);
+        setTimeout(() => setGoogleFillSuccess(false), 2500);
+      }
+    } catch (err) {
+      console.warn('Google auto-fill note:', err);
     }
   };
 
@@ -84,6 +231,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
       reader.onload = (event) => {
         const base64 = event.target?.result as string;
         if (base64) {
+          setPhotoURL(base64);
           updateProfile({ photoURL: base64 });
           setSaveSuccess(true);
           setTimeout(() => setSaveSuccess(false), 2000);
@@ -93,398 +241,578 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
     }
   };
 
-  const handleSavePreferences = () => {
-    updateProfile({
-      preferences: {
-        autoBlockHighRisk: autoBlock,
-        smsAlerts: smsAlerts,
-        pushAlerts: pushAlerts,
-        audioRecordingOptIn: user.preferences?.audioRecordingOptIn ?? true,
-        riskSensitivity: riskSensitivity,
-      }
-    });
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 2500);
-  };
-
   const handleSignOut = async () => {
     onClose();
     await logout();
     navigate('/?auth=login');
   };
 
-  const getInitials = (name?: string) => {
-    if (!name) return 'CX';
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    return name.substring(0, 2).toUpperCase();
+  const handleCopyApiKey = () => {
+    const mockKey = `cx_live_${(user.uid || 'dev').substring(0, 8)}_${Math.random().toString(36).substring(2, 10)}`;
+    navigator.clipboard.writeText(mockKey);
+    setCopiedApiKey(true);
+    setTimeout(() => setCopiedApiKey(false), 2000);
   };
 
-  const formatDate = (timestamp?: number) => {
-    if (!timestamp) return 'August 2026';
-    const date = new Date(timestamp);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
+  // Circular progress calculation
+  const radius = 48;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (profileCompletion / 100) * circumference;
+
+  const currentDisplayName = `${firstName} ${lastName}`.trim() || user.displayName || 'Callix User';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in font-sans">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-4 font-sans animate-fade-in select-none">
+      {/* Dark Liquid Glass Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity cursor-pointer"
+        className="fixed inset-0 bg-black/80 backdrop-blur-xl transition-opacity cursor-pointer"
         onClick={onClose}
       />
 
-      {/* Modal Window (Apple macOS / iOS Liquid Sheet) */}
-      <div className="relative w-full max-w-2xl liquid-modal-sheet rounded-3xl overflow-hidden z-10 text-[#EDEDED] animate-scale-in">
-        
-        {/* Top Cover Banner */}
-        <div className="relative h-28 sm:h-32 bg-gradient-to-r from-cyan-950/40 via-zinc-900/60 to-indigo-950/40 border-b border-white/10 overflow-hidden p-4 sm:p-6 flex items-start justify-between">
-          {/* Ambient Specular Highlights */}
-          <div className="pointer-events-none absolute -top-12 -left-12 w-56 h-56 bg-cyan-500/15 blur-3xl rounded-full" />
-          <div className="pointer-events-none absolute -bottom-12 right-12 w-56 h-56 bg-indigo-500/15 blur-3xl rounded-full" />
-          
-          {/* macOS Traffic Lights + Status Badge */}
-          <div className="relative z-10 flex items-center gap-3">
-            <div className="flex items-center gap-1.5 mr-1">
-              <button 
-                onClick={onClose} 
-                className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]/60 hover:opacity-80 transition-opacity cursor-pointer shadow-sm"
-                title="Close"
-              />
-              <div className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]/60 shadow-sm" />
-              <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]/60 shadow-sm" />
-            </div>
+      {/* Main Container: Callix Dark Liquid Glass Modal Frame */}
+      <div 
+        className="relative w-full sm:max-w-[480px] h-full sm:h-auto sm:max-h-[92vh] sm:rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.95)] flex flex-col z-10 overflow-hidden border border-white/15 bg-neutral-950/90 sm:bg-neutral-950/85 backdrop-blur-3xl text-white transition-all duration-200"
+      >
+        {/* Subtle Top Glint Accent */}
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent pointer-events-none" />
 
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/50 border border-white/10 backdrop-blur-md text-[11px] font-mono text-zinc-300 shadow-inner">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+        {/* Sticky Liquid Glass Header Bar */}
+        <div 
+          className="sticky top-0 z-20 px-5 py-4 flex items-center justify-between border-b border-white/10 bg-neutral-950/95 backdrop-blur-xl"
+        >
+          {/* Back Arrow & User Display Name */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-full hover:bg-white/10 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+              title="Close Profile"
+              aria-label="Close"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+
+            <div className="flex flex-col truncate max-w-[200px]">
+              <span className="font-semibold text-sm tracking-tight text-white truncate">
+                {activeMode === 'truecaller' ? currentDisplayName : 'Security & AI Voice Shield'}
               </span>
-              <span>ACTIVE SECURITY AGENT</span>
+              <span className="text-[10px] font-mono text-cyan-400/80">
+                {user.plan || 'PRO SHIELD'}
+              </span>
             </div>
           </div>
 
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="relative z-10 w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.15] border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer backdrop-blur-md"
-            aria-label="Close Profile"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {/* Right Action Controls: Mode Switcher & Quick Save */}
+          <div className="flex items-center gap-2">
+            {/* View Switcher: Profile vs Callix Security */}
+            <button
+              type="button"
+              onClick={() => setActiveMode(prev => prev === 'truecaller' ? 'security' : 'truecaller')}
+              className={cn(
+                "px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 border transition-all cursor-pointer",
+                activeMode === 'security'
+                  ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                  : "bg-white/[0.06] text-zinc-300 border-white/15 hover:bg-white/10 hover:text-white"
+              )}
+              title="Switch between Profile Info & Voice Shield"
+            >
+              <Shield className="w-3.5 h-3.5 text-cyan-400" />
+              <span>{activeMode === 'truecaller' ? 'Shield' : 'Profile'}</span>
+            </button>
+
+            {/* Quick Save Checkmark Button */}
+            <button
+              type="button"
+              onClick={handleSaveProfile}
+              className="p-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white transition-all shadow-[0_0_14px_rgba(6,182,212,0.4)] cursor-pointer active:scale-95"
+              title="Save Profile"
+            >
+              <Save className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Profile Identity Bar */}
-        <div className="px-6 sm:px-8 -mt-12 sm:-mt-14 pb-4 border-b border-white/10 relative">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            
-            {/* Avatar & Names */}
-            <div className="flex items-end gap-4">
-              <div className="group relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl ring-4 ring-[#080B11] bg-zinc-900 border border-white/20 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center text-xl font-bold text-white">
-                {user.photoURL ? (
-                  <img 
-                    src={user.photoURL.includes('googleusercontent.com') ? user.photoURL.replace(/=s\d+(-c)?$/, '=s256-c') : user.photoURL} 
-                    alt={user.displayName} 
-                    referrerPolicy="no-referrer"
-                    crossOrigin="anonymous"
-                    className="w-full h-full object-cover" 
-                  />
-                ) : (
-                  <span className="bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-transparent text-2xl font-bold">
-                    {getInitials(user.displayName)}
-                  </span>
-                )}
-                {/* Active Indicator dot */}
-                <div className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#080B11] rounded-full z-10 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+        {/* Save & Autofill Notifications */}
+        {saveSuccess && (
+          <div className="px-4 py-2 bg-emerald-500/15 border-b border-emerald-500/30 text-emerald-400 text-xs font-medium flex items-center justify-center gap-1.5 animate-fade-in backdrop-blur-md">
+            <Check className="w-3.5 h-3.5" />
+            <span>Profile saved successfully!</span>
+          </div>
+        )}
 
-                {/* Change photo hover button */}
-                <label 
-                  title="Change Profile Photo"
-                  className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-[10px] font-medium gap-1 z-20"
+        {googleFillSuccess && (
+          <div className="px-4 py-2 bg-cyan-500/15 border-b border-cyan-500/30 text-cyan-300 text-xs font-medium flex items-center justify-center gap-1.5 animate-fade-in backdrop-blur-md">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Filled from Google Account details!</span>
+          </div>
+        )}
+
+        {/* Scrollable Modal Content */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 no-scrollbar">
+
+          {activeMode === 'truecaller' ? (
+            <>
+              {/* Profile Avatar with Circular Meter (Strict Circle, No Box Outline) */}
+              <div className="flex flex-col items-center justify-center pt-2 pb-1">
+                <div 
+                  className="relative cursor-pointer group rounded-full"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Click to upload profile photo"
                 >
-                  <Camera className="w-5 h-5 text-white" />
-                  <span>Update</span>
+                  {/* SVG Circular Progress Meter */}
+                  <svg className="w-28 h-28 -rotate-90 transform" viewBox="0 0 110 110">
+                    {/* Background Ring Track */}
+                    <circle
+                      cx="55"
+                      cy="55"
+                      r={radius}
+                      stroke="rgba(255,255,255,0.1)"
+                      strokeWidth="5"
+                      fill="transparent"
+                    />
+                    {/* Active Cyan Glow Arc */}
+                    <circle
+                      cx="55"
+                      cy="55"
+                      r={radius}
+                      stroke="#06B6D4"
+                      strokeWidth="5"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      strokeLinecap="round"
+                      fill="transparent"
+                      className="transition-all duration-700 ease-out"
+                    />
+                  </svg>
+
+                  {/* Inner Circular Avatar */}
+                  <div className="absolute inset-0 m-auto w-20 h-20 rounded-full overflow-hidden flex items-center justify-center border border-white/20 bg-neutral-900 shadow-inner">
+                    {photoURL ? (
+                      <img 
+                        src={photoURL.includes('googleusercontent.com') ? photoURL.replace(/=s\d+(-c)?$/, '=s256-c') : photoURL}
+                        alt={currentDisplayName}
+                        referrerPolicy="no-referrer"
+                        crossOrigin="anonymous"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center relative bg-cyan-950/30 group-hover:bg-cyan-950/50 transition-colors">
+                        <div className="relative">
+                          <Camera className="w-8 h-8 text-cyan-400" strokeWidth={1.8} />
+                          <span className="absolute -top-1 -left-1 w-4 h-4 rounded-full bg-cyan-500 text-black flex items-center justify-center text-[11px] font-bold shadow-xs">
+                            +
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Hover Change Photo Overlay */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[11px] font-semibold tracking-wider uppercase">
+                      <span>Change</span>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Completion Percentage Pill Badge */}
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full border border-cyan-500/40 bg-neutral-950/90 backdrop-blur-md shadow-[0_0_10px_rgba(6,182,212,0.3)] text-xs font-mono font-bold text-cyan-400 select-none">
+                    {profileCompletion}%
+                  </div>
+
+                  {/* Hidden File Input */}
                   <input 
                     type="file" 
                     accept="image/*" 
+                    ref={fileInputRef} 
                     className="hidden" 
                     onChange={handleAvatarFileChange} 
                   />
-                </label>
-              </div>
-
-              <div className="space-y-1 pb-1">
-                {/* Display Name with inline editing */}
-                {isEditingName ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="liquid-input rounded-xl px-3 py-1 text-sm font-semibold text-white outline-none"
-                      autoFocus
-                    />
-                    <button
-                      onClick={handleSaveName}
-                      className="p-1.5 rounded-lg bg-white text-black hover:bg-zinc-200 transition-colors cursor-pointer"
-                      title="Save Name"
-                    >
-                      <Save className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setIsEditingName(false)}
-                      className="p-1.5 rounded-lg bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                      title="Cancel"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                      {user.displayName || 'Authorized Callix Agent'}
-                    </h2>
-                    <button
-                      onClick={() => { setEditName(user.displayName || ''); setIsEditingName(true); }}
-                      className="p-1 text-zinc-400 hover:text-white transition-colors rounded cursor-pointer"
-                      title="Edit Display Name"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Email & Provider Badge */}
-                <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400 font-mono">
-                  <span>{user.email || 'developer@callix.ai'}</span>
-                  <span className="text-zinc-600">·</span>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.05] border border-white/10 text-[10px] text-zinc-300 shadow-sm">
-                    {user.authProvider === 'google' ? (
-                      <>
-                        <svg className="w-2.5 h-2.5" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                        </svg>
-                        <span>Google Account</span>
-                      </>
-                    ) : user.authProvider === 'github' ? (
-                      <>
-                        <svg className="w-2.5 h-2.5 fill-white" viewBox="0 0 24 24">
-                          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-                        </svg>
-                        <span>GitHub Account</span>
-                      </>
-                    ) : (
-                      <span>Direct Credential</span>
-                    )}
-                  </span>
-
-                  {/* Phone Number Pill / Link Button */}
-                  {user.phoneNumber ? (
-                    <>
-                      <span className="text-zinc-600">·</span>
-                      <button
-                        type="button"
-                        onClick={() => setIsTelecomOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/25 text-[10px] text-cyan-300 font-mono transition-colors cursor-pointer"
-                        title="Click to edit mobile number"
-                      >
-                        <Phone className="w-2.5 h-2.5 text-cyan-400" />
-                        <span>{user.phoneNumber}</span>
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-zinc-600">·</span>
-                      <button
-                        type="button"
-                        onClick={() => setIsTelecomOpen(true)}
-                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-[10px] text-amber-300 font-mono transition-colors cursor-pointer"
-                      >
-                        <Phone className="w-2.5 h-2.5 text-amber-400" />
-                        <span>+ Link Mobile</span>
-                      </button>
-                    </>
-                  )}
                 </div>
               </div>
-            </div>
 
-            {/* Plan Badge */}
-            <div className="flex items-center gap-2">
-              <span className="px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-xs font-semibold text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.15)] flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-                <span>{user.plan || 'PRO SHIELD'}</span>
-              </span>
-            </div>
+              {/* Fill In With Google Button */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleFillWithGoogle}
+                  className="w-full py-3 px-4 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 active:scale-[0.99] text-white font-medium text-sm flex items-center justify-center relative shadow-[inset_0_1px_0_0_rgba(255,255,255,0.18)] transition-all cursor-pointer group"
+                >
+                  <div className="absolute left-4 w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                    </svg>
+                  </div>
+                  <span className="font-medium tracking-wide text-zinc-100 group-hover:text-white">
+                    Fill in with Google
+                  </span>
+                </button>
+              </div>
 
-          </div>
+              {/* Form Fields: Dark Liquid Glass Outlined Notch Style */}
+              <div className="space-y-4 pt-1">
+                
+                {/* First Name */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(firstName || focusedField === 'firstName') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      First Name
+                    </label>
+                  )}
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    onFocus={() => setFocusedField('firstName')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!firstName && focusedField !== 'firstName' ? 'First Name' : ''}
+                    className="w-full px-4 py-3 bg-transparent rounded-xl text-sm font-medium outline-none text-white placeholder:text-zinc-500"
+                  />
+                </div>
 
-          {/* Success Toast */}
-          {saveSuccess && (
-            <div className="mt-3 p-2.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-fade-in font-mono shadow-sm">
-              <Check className="w-3.5 h-3.5" />
-              <span>Profile preferences updated successfully.</span>
-            </div>
-          )}
-        </div>
+                {/* Last Name */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(lastName || focusedField === 'lastName') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      Last Name
+                    </label>
+                  )}
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    onFocus={() => setFocusedField('lastName')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!lastName && focusedField !== 'lastName' ? 'Last Name' : ''}
+                    className="w-full px-4 py-3 bg-transparent rounded-xl text-sm font-medium outline-none text-white placeholder:text-zinc-500"
+                  />
+                </div>
 
-        {/* Tab Selector (Apple iOS Segmented Control) */}
-        <div className="px-6 sm:px-8 pt-4 pb-1">
-          <div className="ios-segmented-bar p-1 flex items-center gap-1">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={cn(
-                "flex-1 py-1.5 px-3 text-xs font-semibold rounded-full transition-all cursor-pointer text-center",
-                activeTab === 'overview'
-                  ? "ios-segmented-active text-white"
-                  : "text-zinc-400 hover:text-white"
-              )}
-            >
-              Account Overview
-            </button>
-            <button
-              onClick={() => setActiveTab('preferences')}
-              className={cn(
-                "flex-1 py-1.5 px-3 text-xs font-semibold rounded-full transition-all cursor-pointer text-center",
-                activeTab === 'preferences'
-                  ? "ios-segmented-active text-white"
-                  : "text-zinc-400 hover:text-white"
-              )}
-            >
-              Voice AI Preferences
-            </button>
-            <button
-              onClick={() => setActiveTab('security')}
-              className={cn(
-                "flex-1 py-1.5 px-3 text-xs font-semibold rounded-full transition-all cursor-pointer text-center",
-                activeTab === 'security'
-                  ? "ios-segmented-active text-white"
-                  : "text-zinc-400 hover:text-white"
-              )}
-            >
-              API Credentials & Keys
-            </button>
-          </div>
-        </div>
+                {/* Primary Phone Number with Telecom Verification Pencil */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(phoneNumber || focusedField === 'phoneNumber') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      Primary Phone Number
+                    </label>
+                  )}
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    onFocus={() => setFocusedField('phoneNumber')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!phoneNumber && focusedField !== 'phoneNumber' ? 'Primary Phone Number (e.g. +91 98765 43210)' : ''}
+                    className="w-full px-4 py-3 pr-11 bg-transparent rounded-xl text-sm font-medium outline-none font-mono text-white placeholder:text-zinc-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsTelecomOpen(true)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-zinc-400 hover:text-cyan-400 transition-colors cursor-pointer"
+                    title="Telecom Onboarding & Line Verification"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                </div>
 
-        {/* Modal Body / Tab Content */}
-        <div className="p-6 sm:p-8 max-h-[58vh] overflow-y-auto space-y-4">
-          
-          {/* TAB 1: OVERVIEW */}
-          {activeTab === 'overview' && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Verified Mobile Number Card */}
-                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-1.5 shadow-sm col-span-1 sm:col-span-2">
-                  <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>Verified Telephony Line</span>
-                    </span>
+                {/* Secondary Phone Number */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(secondaryPhoneNumber || focusedField === 'secondaryPhoneNumber') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      Secondary Phone Number
+                    </label>
+                  )}
+                  <input
+                    type="tel"
+                    value={secondaryPhoneNumber}
+                    onChange={(e) => setSecondaryPhoneNumber(e.target.value)}
+                    onFocus={() => setFocusedField('secondaryPhoneNumber')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!secondaryPhoneNumber && focusedField !== 'secondaryPhoneNumber' ? 'Secondary Phone Number (Optional)' : ''}
+                    className="w-full px-4 py-3 bg-transparent rounded-xl text-sm font-medium outline-none font-mono text-white placeholder:text-zinc-500"
+                  />
+                </div>
+
+                {/* Gender Dropdown */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06]">
+                  {(gender || focusedField === 'gender') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      Gender
+                    </label>
+                  )}
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    onFocus={() => setFocusedField('gender')}
+                    onBlur={() => setFocusedField(null)}
+                    className="w-full px-4 py-3 bg-transparent rounded-xl text-sm font-medium outline-none appearance-none cursor-pointer text-white [&>option]:bg-neutral-900 [&>option]:text-white"
+                  >
+                    <option value="" disabled className="text-zinc-500">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-zinc-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+
+                {/* Birth Date */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(birthDate || focusedField === 'birthDate') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      Birth Date
+                    </label>
+                  )}
+                  <input
+                    type="text"
+                    value={birthDate}
+                    onChange={(e) => setBirthDate(e.target.value)}
+                    onFocus={() => setFocusedField('birthDate')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!birthDate && focusedField !== 'birthDate' ? 'Birth Date (DD/MM/YYYY)' : ''}
+                    className="w-full px-4 py-3 pr-11 bg-transparent rounded-xl text-sm font-medium outline-none text-white placeholder:text-zinc-500"
+                  />
+                  {birthDate && (
                     <button
                       type="button"
-                      onClick={() => setIsTelecomOpen(true)}
-                      className="text-xs font-mono text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer underline flex items-center gap-1"
+                      onClick={() => setBirthDate('')}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                      title="Clear date"
                     >
-                      {user.phoneNumber ? 'Update Number' : '+ Link Number'}
+                      <X className="w-4 h-4" />
                     </button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-mono text-white font-semibold">
-                      {user.phoneNumber || (
-                        <span className="text-amber-400 text-xs font-normal">
-                          ⚠️ No Indian mobile number linked to this account
-                        </span>
-                      )}
+                  )}
+                </div>
+
+                {/* Section Header: Address */}
+                <div className="flex items-center gap-2 pt-4 pb-1">
+                  <MapPin className="w-4 h-4 text-cyan-400" />
+                  <h3 className="text-xs font-mono font-bold tracking-wider uppercase text-cyan-400">
+                    Address Details
+                  </h3>
+                  <div className="flex-1 h-px bg-white/10" />
+                </div>
+
+                {/* Street */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(street || focusedField === 'street') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      Street Address
+                    </label>
+                  )}
+                  <input
+                    type="text"
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
+                    onFocus={() => setFocusedField('street')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!street && focusedField !== 'street' ? 'Street Address' : ''}
+                    className="w-full px-4 py-3 bg-transparent rounded-xl text-sm font-medium outline-none text-white placeholder:text-zinc-500"
+                  />
+                </div>
+
+                {/* City */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(city || focusedField === 'city') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      City
+                    </label>
+                  )}
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    onFocus={() => setFocusedField('city')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!city && focusedField !== 'city' ? 'City' : ''}
+                    className="w-full px-4 py-3 bg-transparent rounded-xl text-sm font-medium outline-none text-white placeholder:text-zinc-500"
+                  />
+                </div>
+
+                {/* Zip Code */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(zipCode || focusedField === 'zipCode') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      Zip / Postal Code
+                    </label>
+                  )}
+                  <input
+                    type="text"
+                    value={zipCode}
+                    onChange={(e) => setZipCode(e.target.value)}
+                    onFocus={() => setFocusedField('zipCode')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!zipCode && focusedField !== 'zipCode' ? 'Zip / Postal Code' : ''}
+                    className="w-full px-4 py-3 bg-transparent rounded-xl text-sm font-medium outline-none font-mono text-white placeholder:text-zinc-500"
+                  />
+                </div>
+
+                {/* Country */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(country || focusedField === 'country') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      Country
+                    </label>
+                  )}
+                  <input
+                    type="text"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    onFocus={() => setFocusedField('country')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!country && focusedField !== 'country' ? 'Country' : ''}
+                    className="w-full px-4 py-3 bg-transparent rounded-xl text-sm font-medium outline-none text-white placeholder:text-zinc-500"
+                  />
+                </div>
+
+                {/* Section Header: About & Professional */}
+                <div className="flex items-center gap-2 pt-4 pb-1">
+                  <Briefcase className="w-4 h-4 text-cyan-400" />
+                  <h3 className="text-xs font-mono font-bold tracking-wider uppercase text-cyan-400">
+                    Professional & About
+                  </h3>
+                  <div className="flex-1 h-px bg-white/10" />
+                </div>
+
+                {/* Company Name */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(companyName || focusedField === 'companyName') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      Company Name
+                    </label>
+                  )}
+                  <input
+                    type="text"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    onFocus={() => setFocusedField('companyName')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!companyName && focusedField !== 'companyName' ? 'Company Name' : ''}
+                    className="w-full px-4 py-3 bg-transparent rounded-xl text-sm font-medium outline-none text-white placeholder:text-zinc-500"
+                  />
+                </div>
+
+                {/* Job Title */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(jobTitle || focusedField === 'jobTitle') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      Job Title
+                    </label>
+                  )}
+                  <input
+                    type="text"
+                    value={jobTitle}
+                    onChange={(e) => setJobTitle(e.target.value)}
+                    onFocus={() => setFocusedField('jobTitle')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!jobTitle && focusedField !== 'jobTitle' ? 'Job Title' : ''}
+                    className="w-full px-4 py-3 bg-transparent rounded-xl text-sm font-medium outline-none text-white placeholder:text-zinc-500"
+                  />
+                </div>
+
+                {/* About Me */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(aboutMe || focusedField === 'aboutMe') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      About Me
+                    </label>
+                  )}
+                  <textarea
+                    rows={3}
+                    value={aboutMe}
+                    onChange={(e) => setAboutMe(e.target.value)}
+                    onFocus={() => setFocusedField('aboutMe')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!aboutMe && focusedField !== 'aboutMe' ? 'About Me / Bio' : ''}
+                    className="w-full px-4 py-3 bg-transparent rounded-xl text-sm font-medium outline-none resize-none text-white placeholder:text-zinc-500"
+                  />
+                </div>
+
+                {/* Email with Verified Badge */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(email || focusedField === 'email') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      Email Address
+                    </label>
+                  )}
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onFocus={() => setFocusedField('email')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!email && focusedField !== 'email' ? 'Email Address' : ''}
+                    className="w-full px-4 py-3 pr-11 bg-transparent rounded-xl text-sm font-medium outline-none text-white placeholder:text-zinc-500"
+                  />
+                  {email && (
+                    <div 
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-400 flex items-center justify-center shadow-sm"
+                      title="Verified Identity"
+                    >
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
                     </div>
-                    {user.phoneNumber && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                        TRAI STIR/SHAKEN A
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
 
-                {/* UID Card */}
-                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-1.5 shadow-sm">
-                  <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center justify-between">
-                    <span>Account UID</span>
-                    <button
-                      onClick={handleCopyUid}
-                      className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                      title="Copy UID"
-                    >
-                      {copiedUid ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                  <div className="text-xs font-mono text-zinc-200 truncate select-all">
-                    {user.uid}
-                  </div>
+                {/* Website URL */}
+                <div className="relative rounded-xl border border-white/15 bg-white/[0.04] transition-all focus-within:border-cyan-400 focus-within:bg-white/[0.06] focus-within:shadow-[0_0_16px_rgba(6,182,212,0.15)]">
+                  {(websiteUrl || focusedField === 'websiteUrl') && (
+                    <label className="absolute -top-2.5 left-3 px-1.5 py-0.2 rounded text-[11px] font-mono pointer-events-none transition-all z-10 bg-neutral-950 text-cyan-400 font-semibold shadow-xs">
+                      Website / Portfolio URL
+                    </label>
+                  )}
+                  <input
+                    type="url"
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    onFocus={() => setFocusedField('websiteUrl')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder={!websiteUrl && focusedField !== 'websiteUrl' ? 'Website URL (e.g. https://...)' : ''}
+                    className="w-full px-4 py-3 bg-transparent rounded-xl text-sm font-medium outline-none text-white placeholder:text-zinc-500"
+                  />
                 </div>
 
-                {/* Role / Clearance Card */}
-                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-1.5 shadow-sm">
-                  <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
-                    Security Clearance
-                  </div>
-                  <div className="text-xs font-medium text-white flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Lead Security Operator (L3)</span>
-                  </div>
-                </div>
-
-                {/* Member Since Card */}
-                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-1.5 shadow-sm">
-                  <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-zinc-400" />
-                    <span>Member Since</span>
-                  </div>
-                  <div className="text-xs font-mono text-zinc-200">
-                    {formatDate(user.createdAt)}
-                  </div>
-                </div>
-
-                {/* Server Region Card */}
-                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-1.5 shadow-sm">
-                  <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center gap-1">
-                    <Globe className="w-3 h-3 text-emerald-400" />
-                    <span>Edge Region</span>
-                  </div>
-                  <div className="text-xs font-mono text-emerald-400 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span>asia-south1 (Mumbai / Bengaluru)</span>
-                  </div>
-                </div>
               </div>
 
-              {/* Connected Telephony Protection Status */}
-              <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-2 shadow-sm">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-white flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Real-Time Voice Scam Shield</span>
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono">
-                    ONLINE & PROTECTED
-                  </span>
-                </div>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Your calls and streams are continuously analyzed by Claude 3.5 Sonnet XAI and Deepgram Nova-2 with sub-second diarization for instant threat neutralizations.
+              {/* Disclaimer Notice */}
+              <div className="pt-3 pb-2 space-y-1.5 text-center">
+                <p className="text-[11px] leading-relaxed px-2 text-zinc-400 select-none">
+                  Please note that this information is stored securely in your Callix account profile and is not shared with unverified callers.
+                </p>
+                <p className="text-[11px] text-zinc-400 select-none">
+                  For support or telecom provisioning assistance, contact{' '}
+                  <a 
+                    href="mailto:support@callix.ai" 
+                    className="text-cyan-400 font-semibold hover:underline"
+                  >
+                    support@callix.ai
+                  </a>
                 </p>
               </div>
-            </div>
-          )}
+            </>
+          ) : (
+            /* SECURITY & VOICE AI SHIELD VIEW */
+            <div className="space-y-4 animate-fade-in pt-1">
+              {/* Account Clearance Card */}
+              <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.03] space-y-2 backdrop-blur-md">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                    <span className="text-xs font-bold font-mono uppercase tracking-wider text-zinc-200">
+                      Security Clearance
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+                    {user.plan || 'PRO SHIELD'}
+                  </span>
+                </div>
+                <div className="text-xs font-mono text-zinc-400 truncate">
+                  UID: {user.uid}
+                </div>
+              </div>
 
-          {/* TAB 2: PREFERENCES */}
-          {activeTab === 'preferences' && (
-            <div className="space-y-4 animate-fade-in">
-              
-              {/* Sensitivity Selector */}
-              <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-2.5 shadow-sm">
-                <label className="block text-xs font-medium text-zinc-300">
+              {/* Threat Risk Sensitivity Selector */}
+              <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.03] space-y-2.5 backdrop-blur-md">
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-zinc-300">
                   Risk Sensitivity Level
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -496,120 +824,101 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                       className={cn(
                         "py-2 px-3 rounded-xl text-xs font-mono transition-all text-center cursor-pointer border",
                         riskSensitivity === level
-                          ? "bg-white text-black border-white font-bold shadow-[0_4px_16px_rgba(255,255,255,0.2)]"
-                          : "bg-white/[0.04] text-zinc-400 border-white/10 hover:border-white/20 hover:text-white"
+                          ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400/80 font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                          : "bg-white/[0.04] text-zinc-400 border-white/10 hover:text-white hover:bg-white/[0.08]"
                       )}
                     >
                       {level}
                     </button>
                   ))}
                 </div>
-                <p className="text-[11px] text-zinc-500">
-                  {riskSensitivity === 'AGGRESSIVE' && 'Alerts trigger at 60+ risk score. Recommended for vulnerable elder protection.'}
+                <p className="text-[11px] text-zinc-400">
+                  {riskSensitivity === 'AGGRESSIVE' && 'Alerts trigger at 60+ risk score. Recommended for elder protection.'}
                   {riskSensitivity === 'STANDARD' && 'Alerts trigger at 75+ risk score. Balanced enterprise calibration.'}
                   {riskSensitivity === 'RELAXED' && 'Alerts trigger at 85+ risk score. Only flags definitive high-threat attacks.'}
                 </p>
               </div>
 
-              {/* iOS Frosted Sliding Switches */}
-              <div className="space-y-2.5">
+              {/* Protective AI Toggles */}
+              <div className="space-y-2">
                 {/* Auto Block */}
-                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 flex items-center justify-between shadow-sm">
+                <div className="p-3.5 rounded-2xl border border-white/10 bg-white/[0.03] flex items-center justify-between backdrop-blur-md">
                   <div>
                     <div className="text-xs font-semibold text-white">Auto-Block High-Risk Scams</div>
-                    <div className="text-[11px] text-zinc-400">Automatically disconnect calls when threat score hits 80+</div>
+                    <div className="text-[10px] text-zinc-400">Instantly disconnect calls when threat score hits 80+</div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setAutoBlock(!autoBlock)}
                     className={cn(
-                      "w-12 h-6.5 rounded-full transition-all duration-300 relative cursor-pointer border shadow-inner shrink-0",
-                      autoBlock 
-                        ? "bg-emerald-500 border-emerald-400/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]" 
-                        : "bg-white/10 border-white/15"
+                      "w-11 h-6 rounded-full transition-all duration-300 relative cursor-pointer border shrink-0",
+                      autoBlock ? "bg-cyan-500 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]" : "bg-neutral-800 border-white/10"
                     )}
                   >
                     <span 
                       className={cn(
                         "absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-300 shadow-md",
-                        autoBlock ? "left-6" : "left-1"
+                        autoBlock ? "left-5.5" : "left-0.5"
                       )}
                     />
                   </button>
                 </div>
 
-                {/* SMS Alerts */}
-                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 flex items-center justify-between shadow-sm">
+                {/* SMS Emergency Dispatch */}
+                <div className="p-3.5 rounded-2xl border border-white/10 bg-white/[0.03] flex items-center justify-between backdrop-blur-md">
                   <div>
                     <div className="text-xs font-semibold text-white">SMS Emergency Dispatch</div>
-                    <div className="text-[11px] text-zinc-400">Send emergency SMS alerts to designated family guardians</div>
+                    <div className="text-[10px] text-zinc-400">Send emergency alerts to designated family guardians</div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setSmsAlerts(!smsAlerts)}
                     className={cn(
-                      "w-12 h-6.5 rounded-full transition-all duration-300 relative cursor-pointer border shadow-inner shrink-0",
-                      smsAlerts 
-                        ? "bg-cyan-500 border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.3)]" 
-                        : "bg-white/10 border-white/15"
+                      "w-11 h-6 rounded-full transition-all duration-300 relative cursor-pointer border shrink-0",
+                      smsAlerts ? "bg-cyan-500 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]" : "bg-neutral-800 border-white/10"
                     )}
                   >
                     <span 
                       className={cn(
                         "absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-300 shadow-md",
-                        smsAlerts ? "left-6" : "left-1"
+                        smsAlerts ? "left-5.5" : "left-0.5"
                       )}
                     />
                   </button>
                 </div>
 
-                {/* Push Alerts */}
-                <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 flex items-center justify-between shadow-sm">
+                {/* Browser Push Alerts */}
+                <div className="p-3.5 rounded-2xl border border-white/10 bg-white/[0.03] flex items-center justify-between backdrop-blur-md">
                   <div>
                     <div className="text-xs font-semibold text-white">Browser Push Notifications</div>
-                    <div className="text-[11px] text-zinc-400">Instant audio scanner and deepfake warning toasts</div>
+                    <div className="text-[10px] text-zinc-400">Instant audio scanner and deepfake warning toasts</div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setPushAlerts(!pushAlerts)}
                     className={cn(
-                      "w-12 h-6.5 rounded-full transition-all duration-300 relative cursor-pointer border shadow-inner shrink-0",
-                      pushAlerts 
-                        ? "bg-cyan-500 border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.3)]" 
-                        : "bg-white/10 border-white/15"
+                      "w-11 h-6 rounded-full transition-all duration-300 relative cursor-pointer border shrink-0",
+                      pushAlerts ? "bg-cyan-500 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]" : "bg-neutral-800 border-white/10"
                     )}
                   >
                     <span 
                       className={cn(
                         "absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-300 shadow-md",
-                        pushAlerts ? "left-6" : "left-1"
+                        pushAlerts ? "left-5.5" : "left-0.5"
                       )}
                     />
                   </button>
                 </div>
               </div>
 
-              {/* Save Preferences Button */}
-              <button
-                type="button"
-                onClick={handleSavePreferences}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-semibold transition-all shadow-[0_4px_16px_rgba(6,182,212,0.3)] cursor-pointer active:scale-98"
-              >
-                Save Preferences
-              </button>
-            </div>
-          )}
-
-          {/* TAB 3: API KEYS */}
-          {activeTab === 'security' && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-3 shadow-sm">
+              {/* API Key Card */}
+              <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.03] space-y-2.5 backdrop-blur-md">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
                     <Key className="w-3.5 h-3.5 text-cyan-400" />
                     <span>Live Telephony API Key</span>
-                  </span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
                     Production
                   </span>
                 </div>
@@ -618,57 +927,57 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                     type="password"
                     readOnly
                     value="cx_live_98a7b6c5d4e3f210a9b8c7d6e5"
-                    className="w-full liquid-input rounded-xl px-3 py-2 text-xs font-mono text-zinc-300"
+                    className="w-full rounded-xl px-3 py-2 text-xs font-mono border outline-none bg-black/40 border-white/10 text-zinc-300"
                   />
                   <button
                     onClick={handleCopyApiKey}
-                    className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-semibold text-white transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-2 rounded-xl text-xs font-medium border border-white/15 bg-white/10 hover:bg-white/20 text-white flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
                   >
                     {copiedApiKey ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedApiKey ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
-                <p className="text-[11px] text-zinc-400">
-                  Use this key in Authorization headers for carrier SIP trunk webhooks and real-time audio socket streams.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl liquid-glass-card-sm border border-white/10 space-y-2 text-xs shadow-sm">
-                <div className="font-semibold text-white">SDK Quickstart</div>
-                <pre className="p-3 rounded-xl bg-black/60 border border-white/10 text-[11px] font-mono text-zinc-300 overflow-x-auto shadow-inner">
-{`curl -X POST https://api.callix.ai/v1/telecom/stream \\
-  -H "Authorization: Bearer cx_live_..." \\
-  -H "Content-Type: audio/x-raw"`}
-                </pre>
               </div>
             </div>
           )}
 
         </div>
 
-        {/* Footer Actions Bar */}
-        <div className="p-4 sm:p-5 bg-black/40 border-t border-white/10 flex items-center justify-between backdrop-blur-md">
+        {/* Liquid Glass Bottom Actions Bar */}
+        <div 
+          className="p-4 border-t border-white/10 bg-neutral-950/95 backdrop-blur-xl flex items-center justify-between gap-3"
+        >
           <button
             type="button"
             onClick={handleSignOut}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 text-xs font-semibold transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-semibold transition-all cursor-pointer active:scale-95"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
           </button>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="ios-frosted-btn px-5 py-2 text-xs font-semibold text-white cursor-pointer"
-          >
-            Done
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-xs font-semibold border border-white/15 bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white transition-all cursor-pointer active:scale-95"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveProfile}
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-white text-xs font-semibold shadow-[0_0_18px_rgba(6,182,212,0.4)] transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <Check className="w-3.5 h-3.5" />
+              <span>Save Changes</span>
+            </button>
+          </div>
         </div>
 
       </div>
 
-      {/* Telecom Onboarding & Phone Number Modal */}
+      {/* Telecom Onboarding & Phone Number Verification Modal */}
       <TelecomOnboardingModal
         isOpen={isTelecomOpen}
         onClose={() => setIsTelecomOpen(false)}
@@ -678,4 +987,3 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
 };
 
 export default UserProfileModal;
-

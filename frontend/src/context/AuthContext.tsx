@@ -67,13 +67,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                              fbUser.email?.split('@')[0] || 
                              'Callix User';
 
+          const nameParts = (googleName || '').trim().split(' ');
+          const fName = existing?.firstName || (nameParts[0] !== 'Callix' && nameParts[0] !== 'User' ? nameParts[0] : '');
+          const lName = existing?.lastName || (nameParts.length > 1 ? nameParts.slice(1).join(' ') : '');
+
           const syncedUser: User = {
             uid: fbUser.uid,
-            email: fbUser.email || existing?.email || 'user@callix.ai',
+            email: fbUser.email || existing?.email || '',
             displayName: googleName,
-            photoURL: photo,
+            firstName: fName,
+            lastName: lName,
+            photoURL: photo || existing?.photoURL || '',
             plan: existing?.plan || 'PRO_SHIELD',
-            phoneNumber: existing?.phoneNumber || fbUser.phoneNumber || undefined,
+            phoneNumber: existing?.phoneNumber || fbUser.phoneNumber || '',
+            secondaryPhoneNumber: existing?.secondaryPhoneNumber || '',
+            gender: existing?.gender || '',
+            birthDate: existing?.birthDate || '',
+            street: existing?.street || '',
+            city: existing?.city || '',
+            zipCode: existing?.zipCode || '',
+            country: existing?.country || '',
+            companyName: existing?.companyName || '',
+            jobTitle: existing?.jobTitle || '',
+            aboutMe: existing?.aboutMe || '',
+            websiteUrl: existing?.websiteUrl || '',
+            profileCompletion: existing?.profileCompletion || 20,
+            isVerified: existing?.isVerified ?? false,
             authProvider: (fbUser.providerData[0]?.providerId.includes('github') ? 'github' : fbUser.providerData[0]?.providerId.includes('google') ? 'google' : 'password'),
             guardianLinks: existing?.guardianLinks || [],
             preferences: existing?.preferences || MOCK_USER.preferences,

@@ -47,7 +47,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   const sizeClass = sizeClasses[size];
 
   return (
-    <div className={`relative ${sizeClass} shrink-0 ${className}`}>
+    <div className={`relative ${sizeClass} ${roundedClass} shrink-0 ${className}`}>
       <div className={`w-full h-full ${roundedClass} overflow-hidden bg-zinc-900 border border-white/15 flex items-center justify-center shadow-sm`}>
         {photoURL && !imageFailed ? (
           <img

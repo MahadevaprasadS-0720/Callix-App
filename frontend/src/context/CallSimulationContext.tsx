@@ -6,6 +6,17 @@ import { apiService } from '../services/apiService';
 import { firestoreService } from '../services/firestoreService';
 import { useAuth } from './AuthContext';
 
+export interface GroqAlertState {
+  isFraud: boolean;
+  confidence: number;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  reason: string;
+  latencyMs?: number;
+  model?: string;
+  engine?: string;
+  timestamp: number;
+}
+
 interface CallSimulationContextType {
   isCallActive: boolean;
   isPaused: boolean;
@@ -23,6 +34,7 @@ interface CallSimulationContextType {
   audioLevels: number[];
   guardianAlertSent: boolean;
   callStatus: CallStatus;
+  groqAlert: GroqAlertState | null;
   
   // Actions
   selectPreset: (presetId: string) => void;
@@ -31,6 +43,7 @@ interface CallSimulationContextType {
   togglePause: () => void;
   simulateCustomUtterance: (text: string, speaker: 'caller' | 'user') => Promise<void>;
   resetSimulationState: () => void;
+  dismissGroqAlert: () => void;
 }
 
 const CallSimulationContext = createContext<CallSimulationContextType | undefined>(undefined);
@@ -53,6 +66,7 @@ export const CallSimulationProvider: React.FC<{ children: React.ReactNode }> = (
   const [audioLevels, setAudioLevels] = useState<number[]>(Array(24).fill(10));
   const [guardianAlertSent, setGuardianAlertSent] = useState<boolean>(false);
   const [callStatus, setCallStatus] = useState<CallStatus>('IN_PROGRESS');
+  const [groqAlert, setGroqAlert] = useState<GroqAlertState | null>(null);
 
   const timerRef = useRef<any>(null);
   const simulationStepRef = useRef<number>(0);
@@ -74,7 +88,7 @@ export const CallSimulationProvider: React.FC<{ children: React.ReactNode }> = (
             isSpeaking ? Math.floor(Math.random() * 85) + 15 : Math.floor(Math.random() * 15) + 5
           )
         );
-      }, 100);
+      }, 350);
     } else {
       setAudioLevels(Array(24).fill(8));
     }
@@ -119,7 +133,12 @@ export const CallSimulationProvider: React.FC<{ children: React.ReactNode }> = (
     setCallDuration(0);
     setGuardianAlertSent(false);
     setCallStatus('IN_PROGRESS');
+    setGroqAlert(null);
     simulationStepRef.current = 0;
+  };
+
+  const dismissGroqAlert = () => {
+    setGroqAlert(null);
   };
 
   const processDialogueStep = async (stepIndex: number, preset: SimulationPreset, callId: string) => {
@@ -148,7 +167,28 @@ export const CallSimulationProvider: React.FC<{ children: React.ReactNode }> = (
 
       setTranscripts((prev: TranscriptSegment[]) => [...prev, segment]);
 
-      // Call Backend AI Scoring Pipeline
+      // 1. Parallel Groq Ultra-Fast Sub-300ms Real-Time Fraud Scan
+      if (item.speaker === 'caller') {
+        apiService.realtimeFraudScan({
+          transcript: item.text,
+          caller_number: preset.callerNumber,
+        }).then((groqRes) => {
+          if (groqRes.is_fraud && groqRes.risk_level === 'HIGH') {
+            setGroqAlert({
+              isFraud: true,
+              confidence: groqRes.confidence,
+              riskLevel: groqRes.risk_level,
+              reason: groqRes.reason,
+              latencyMs: groqRes.latency_ms,
+              model: groqRes.model,
+              engine: groqRes.engine,
+              timestamp: Date.now(),
+            });
+          }
+        }).catch((e) => console.warn('Groq live scan error:', e));
+      }
+
+      // 2. Call Full Decision Pipeline
       try {
         const fullHistory = transcripts
           .map((t: TranscriptSegment) => `${t.speaker.toUpperCase()}: ${t.text}`)
@@ -290,6 +330,26 @@ export const CallSimulationProvider: React.FC<{ children: React.ReactNode }> = (
 
     setTranscripts((prev: TranscriptSegment[]) => [...prev, segment]);
 
+    if (speaker === 'caller') {
+      apiService.realtimeFraudScan({
+        transcript: text,
+        caller_number: callerNumber,
+      }).then((groqRes) => {
+        if (groqRes.is_fraud && groqRes.risk_level === 'HIGH') {
+          setGroqAlert({
+            isFraud: true,
+            confidence: groqRes.confidence,
+            riskLevel: groqRes.risk_level,
+            reason: groqRes.reason,
+            latencyMs: groqRes.latency_ms,
+            model: groqRes.model,
+            engine: groqRes.engine,
+            timestamp: Date.now(),
+          });
+        }
+      }).catch((e) => console.warn('Groq scan custom utterance error:', e));
+    }
+
     const fullHistory = transcripts
       .map((t: TranscriptSegment) => `${t.speaker.toUpperCase()}: ${t.text}`)
       .join('\n');
@@ -331,12 +391,14 @@ export const CallSimulationProvider: React.FC<{ children: React.ReactNode }> = (
         audioLevels,
         guardianAlertSent,
         callStatus,
+        groqAlert,
         selectPreset,
         startSimulation,
         stopSimulation,
         togglePause,
         simulateCustomUtterance,
         resetSimulationState,
+        dismissGroqAlert,
       }}
     >
       {children}

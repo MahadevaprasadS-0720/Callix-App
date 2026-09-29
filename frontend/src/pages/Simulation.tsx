@@ -16,6 +16,8 @@ import { formatPhoneNumber, formatDuration } from '../utils/formatters';
 import { SCAM_CATEGORIES } from '../utils/constants';
 import { ScamCategory } from '../types/fraud.types';
 import { CallRecord } from '../types/call.types';
+import { GroqFraudAlertBanner } from '../components/calls/GroqFraudAlertBanner';
+import { useCallSimulation } from '../context/CallSimulationContext';
 import { 
   Mic, 
   MicOff, 
@@ -75,6 +77,20 @@ export const Simulation: React.FC = () => {
   const [confidence, setConfidence] = useState(0.95);
   const [guardianNotified, setGuardianNotified] = useState(false);
 
+  // Groq Real-Time Shield Integration
+  const { groqAlert, dismissGroqAlert } = useCallSimulation();
+  const [liveGroqAlert, setLiveGroqAlert] = useState<{
+    isFraud: boolean;
+    confidence: number;
+    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+    reason: string;
+    latencyMs?: number;
+    model?: string;
+    engine?: string;
+  } | null>(null);
+
+  const effectiveGroqAlert = liveGroqAlert || groqAlert;
+
   // Manual Utterance Input State
   const [customUtterance, setCustomUtterance] = useState('');
   const [injectSpeaker, setInjectSpeaker] = useState<'caller' | 'user'>('caller');
@@ -112,6 +128,24 @@ export const Simulation: React.FC = () => {
 
     const fullText = finalTranscriptList.map((c) => c.text).join(' ');
     const latestSentence = finalTranscriptList[finalTranscriptList.length - 1].text;
+
+    // 1. Parallel Groq Ultra-Fast Sub-300ms Real-Time Fraud Scan
+    apiService.realtimeFraudScan({
+      transcript: latestSentence || fullText,
+      caller_number: callerNumber,
+    }).then((groqRes) => {
+      if (groqRes.is_fraud && groqRes.risk_level === 'HIGH') {
+        setLiveGroqAlert({
+          isFraud: true,
+          confidence: groqRes.confidence,
+          riskLevel: groqRes.risk_level,
+          reason: groqRes.reason,
+          latencyMs: groqRes.latency_ms,
+          model: groqRes.model,
+          engine: groqRes.engine,
+        });
+      }
+    }).catch((err) => console.warn('Groq live scan error:', err));
 
     const runLiveScoring = async () => {
       try {
@@ -151,6 +185,12 @@ export const Simulation: React.FC = () => {
     setCurrentScore(0);
     setVerdict('Legitimate');
     setPrimaryCategory('SAFE');
+    setTriggerPhrases([]);
+    setModelExplanation('Microphone active. Speak naturally or simulate a phone call.');
+    setGuardianNotified(false);
+    setSavedToHistory(false);
+    setLiveGroqAlert(null);
+    dismissGroqAlert();
     setTriggerPhrases([]);
     setModelExplanation('Microphone active. Speak naturally or simulate a phone call.');
     setGuardianNotified(false);
@@ -221,8 +261,28 @@ export const Simulation: React.FC = () => {
     e.preventDefault();
     if (!customUtterance.trim()) return;
 
-    injectUtterance(customUtterance, injectSpeaker);
+    const utteranceText = customUtterance.trim();
+    injectUtterance(utteranceText, injectSpeaker);
     setCustomUtterance('');
+
+    if (injectSpeaker === 'caller') {
+      apiService.realtimeFraudScan({
+        transcript: utteranceText,
+        caller_number: callerNumber,
+      }).then((groqRes) => {
+        if (groqRes.is_fraud && groqRes.risk_level === 'HIGH') {
+          setLiveGroqAlert({
+            isFraud: true,
+            confidence: groqRes.confidence,
+            riskLevel: groqRes.risk_level,
+            reason: groqRes.reason,
+            latencyMs: groqRes.latency_ms,
+            model: groqRes.model,
+            engine: groqRes.engine,
+          });
+        }
+      }).catch((err) => console.warn('Groq custom utterance scan error:', err));
+    }
   };
 
   const quickScamPrompts = [
@@ -285,6 +345,25 @@ export const Simulation: React.FC = () => {
           <span>{micError}</span>
         </div>
       )}
+
+      {/* Groq Ultra-Fast Real-Time Fraud Alert Pulsing Liquid-Glass Banner */}
+      <GroqFraudAlertBanner
+        alert={effectiveGroqAlert}
+        onDismiss={() => {
+          setLiveGroqAlert(null);
+          dismissGroqAlert();
+        }}
+        onTerminateCall={handleEndCall}
+        onConsultAssistant={(reason) => {
+          window.dispatchEvent(
+            new CustomEvent('open-callix-ai-assistant', {
+              detail: {
+                prompt: `The Groq Real-Time Shield detected high fraud risk: "${reason}". Please investigate this threat and tell me how to protect myself.`,
+              },
+            })
+          );
+        }}
+      />
 
       {/* Main Grid: Live Telemetry & Diarized Transcript Stream */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

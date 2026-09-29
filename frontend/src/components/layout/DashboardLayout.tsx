@@ -4,13 +4,17 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { UserProfileModal } from '../profile/UserProfileModal';
 import { TelecomOnboardingModal } from '../profile/TelecomOnboardingModal';
+import { CallixAiAssistant } from '../assistant/CallixAiAssistant';
 import { useAuth } from '../../context/AuthContext';
+import { Sparkles } from 'lucide-react';
 
 export const DashboardLayout: React.FC = () => {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [profileOpen, setProfileOpen] = useState<boolean>(false);
   const [telecomModalOpen, setTelecomModalOpen] = useState<boolean>(false);
+  const [aiAssistantOpen, setAiAssistantOpen] = useState<boolean>(false);
+  const [aiAssistantPrompt, setAiAssistantPrompt] = useState<string | undefined>(undefined);
 
   // Automatically prompt for Truecaller-style phone number onboarding if user is logged in,
   // has no phone number, and hasn't explicitly dismissed it in this browser session.
@@ -31,6 +35,18 @@ export const DashboardLayout: React.FC = () => {
     const handleOpen = () => setTelecomModalOpen(true);
     window.addEventListener('open-telecom-onboarding', handleOpen);
     return () => window.removeEventListener('open-telecom-onboarding', handleOpen);
+  }, []);
+
+  // Listen for custom trigger to open AI Assistant with optional prompt
+  useEffect(() => {
+    const handleOpenAi = (e: any) => {
+      if (e?.detail?.prompt) {
+        setAiAssistantPrompt(e.detail.prompt);
+      }
+      setAiAssistantOpen(true);
+    };
+    window.addEventListener('open-callix-ai-assistant', handleOpenAi);
+    return () => window.removeEventListener('open-callix-ai-assistant', handleOpenAi);
   }, []);
 
   return (
@@ -65,17 +81,51 @@ export const DashboardLayout: React.FC = () => {
         </main>
       </div>
 
-      {/* User Profile Modal */}
-      <UserProfileModal 
-        isOpen={profileOpen} 
-        onClose={() => setProfileOpen(false)} 
+      {/* Floating Liquid-Glass AI Assistant Capsule Trigger Button */}
+      <div className="fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-40">
+        <button
+          type="button"
+          onClick={() => {
+            setAiAssistantPrompt(undefined);
+            setAiAssistantOpen(true);
+          }}
+          className="group relative inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-neutral-900/90 via-indigo-950/90 to-neutral-900/90 border border-white/20 shadow-[0_8px_32px_rgba(99,102,241,0.35),inset_0_1px_0_0_rgba(255,255,255,0.4)] backdrop-blur-2xl hover:border-indigo-400/50 hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all duration-300 transform-gpu hover:-translate-y-1 active:scale-95 cursor-pointer"
+        >
+          <div className="relative flex items-center justify-center">
+            <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-cyan-400 opacity-60" />
+            <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-500 flex items-center justify-center shadow-xs">
+              <Sparkles className="w-3 h-3 text-white" />
+            </div>
+          </div>
+          <span className="tracking-wide">Ask Callix AI</span>
+        </button>
+      </div>
+
+      {/* Interactive Cyber Assistant Panel */}
+      <CallixAiAssistant 
+        isOpen={aiAssistantOpen} 
+        onClose={() => {
+          setAiAssistantOpen(false);
+          setAiAssistantPrompt(undefined);
+        }}
+        initialPrompt={aiAssistantPrompt}
       />
 
+      {/* User Profile Modal */}
+      {profileOpen && (
+        <UserProfileModal 
+          isOpen={profileOpen} 
+          onClose={() => setProfileOpen(false)} 
+        />
+      )}
+
       {/* Telecom Onboarding / Phone Number Setup Modal */}
-      <TelecomOnboardingModal
-        isOpen={telecomModalOpen}
-        onClose={() => setTelecomModalOpen(false)}
-      />
+      {telecomModalOpen && (
+        <TelecomOnboardingModal
+          isOpen={telecomModalOpen}
+          onClose={() => setTelecomModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

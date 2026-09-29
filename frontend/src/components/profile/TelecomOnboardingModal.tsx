@@ -163,6 +163,8 @@ export const TelecomOnboardingModal: React.FC<TelecomOnboardingModalProps> = ({
     onClose();
   };
 
+  if (!isOpen) return null;
+
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto overscroll-contain animate-fade-in font-sans">
       {/* Dark Frosted Backdrop */}

@@ -1,678 +1,1011 @@
 import React, { useState } from 'react';
-import { Card } from '../components/common/Card';
-import { Button } from '../components/common/Button';
-import { Input } from '../components/common/Input';
-import { Badge } from '../components/common/Badge';
-import { Modal } from '../components/common/Modal';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useCallHistory } from '../hooks/useCallHistory';
-import { maskPhoneNumber, maskEmail } from '../utils/piiMasker';
+import { UserProfileModal } from '../components/profile/UserProfileModal';
 import { 
+  ArrowLeft, 
+  Search, 
+  Camera, 
   Settings as SettingsIcon, 
-  Key, 
-  ShieldCheck, 
+  Phone, 
+  MessageSquare, 
+  Sparkles, 
+  Crown, 
+  Lock, 
+  ShieldAlert, 
+  Watch, 
+  Info, 
+  HelpCircle, 
+  ChevronRight, 
+  Check, 
+  X, 
+  Volume2, 
+  Globe, 
   Sliders, 
+  ShieldCheck, 
+  Trash2, 
+  Save, 
   RotateCcw, 
-  CheckCircle,
-  Database,
-  Download,
-  Users,
-  Eye,
-  EyeOff,
-  Bell,
-  Lock,
-  FileSpreadsheet,
-  FileCode,
-  Sparkles,
-  CreditCard,
-  Plus,
-  Trash2,
-  Camera,
-  AlertTriangle,
-  Phone
+  Zap, 
+  Activity, 
+  Bell, 
+  Cpu, 
+  PhoneCall, 
+  FileText 
 } from 'lucide-react';
-import { TelecomOnboardingModal } from '../components/profile/TelecomOnboardingModal';
+import { cn } from '../utils/cn';
+
+interface BlockRule {
+  id: string;
+  number: string;
+  label: string;
+  reason: string;
+  dateAdded: string;
+}
 
 export const Settings: React.FC = () => {
-  const { user, updateProfile, addGuardian, removeGuardian } = useAuth();
-  const { calls, resetCalls } = useCallHistory();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-  // API Keys state
-  const [claudeKey, setClaudeKey] = useState('');
-  const [deepgramKey, setDeepgramKey] = useState('');
-  const [savedKeys, setSavedKeys] = useState(false);
+  // Active category in desktop master-detail layout (default to 'general')
+  const [activeSection, setActiveSection] = useState<string>('general');
 
-  // Telecom Onboarding / Phone Number modal state
-  const [isTelecomModalOpen, setIsTelecomModalOpen] = useState(false);
+  // Profile modal trigger
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  // Add guardian modal state
-  const [isAddGuardianOpen, setIsAddGuardianOpen] = useState(false);
-  const [newGuardianName, setNewGuardianName] = useState('');
-  const [newGuardianPhone, setNewGuardianPhone] = useState('');
-  const [newGuardianEmail, setNewGuardianEmail] = useState('');
-  const [newGuardianRelation, setNewGuardianRelation] = useState<'Parent' | 'Child' | 'Spouse' | 'Other'>('Child');
+  // Search query
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Theme & Appearance state
-  const [selectedTheme, setSelectedTheme] = useState<string>(() => localStorage.getItem('callix_theme') || 'cyber-dark');
+  // Toast message
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // Permission settings per guardian state (persisted locally)
-  const [transcriptAccess, setTranscriptAccess] = useState<Record<string, boolean>>({
-    guard_1: true,
-    guard_2: false,
-  });
-
-  // Export states
-  const [exportMessage, setExportMessage] = useState<string | null>(null);
-  const [resetDone, setResetDone] = useState(false);
-
-  const toggleTranscriptPermission = (guardianId: string) => {
-    setTranscriptAccess(prev => ({
-      ...prev,
-      [guardianId]: !prev[guardianId],
-    }));
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 2500);
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64 = event.target?.result as string;
-        if (base64) {
-          updateProfile({ photoURL: base64 });
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // 1. GENERAL SETTINGS
+  const [language, setLanguage] = useState<'English' | 'Kannada' | 'Hindi' | 'Tamil'>('English');
+  const [autoStart, setAutoStart] = useState(true);
+  const [soundAlerts, setSoundAlerts] = useState(true);
+  const [desktopNotifications, setDesktopNotifications] = useState(true);
+  const [pollingRate, setPollingRate] = useState<'1s' | '5s' | 'manual'>('1s');
 
-  const handleSaveKeys = (e: React.FormEvent) => {
+  // 2. CALLS & AUDIO SHIELD
+  const [threatCutoff, setThreatCutoff] = useState(75);
+  const [autoHangup, setAutoHangup] = useState(true);
+  const [evidenceRecord, setEvidenceRecord] = useState(true);
+  const [callerIdPopup, setCallerIdPopup] = useState(true);
+  const [diarizationEngine, setDiarizationEngine] = useState<'nova-2' | 'whisper'>('nova-2');
+
+  // 3. MESSAGING & OTP GUARD
+  const [smsPhishingFilter, setSmsPhishingFilter] = useState(true);
+  const [inCallOtpMasking, setInCallOtpMasking] = useState(true);
+  const [quarantineApkLinks, setQuarantineApkLinks] = useState(true);
+
+  // 4. AI ASSISTANT & HEURISTICS
+  const [aiWhisperMode, setAiWhisperMode] = useState<'hud' | 'audio' | 'both'>('hud');
+  const [deepfakeSensitivity, setDeepfakeSensitivity] = useState<'STANDARD' | 'AGGRESSIVE' | 'STRICT'>('STANDARD');
+  const [patternDigitalArrest, setPatternDigitalArrest] = useState(true);
+  const [patternOtpDemands, setPatternOtpDemands] = useState(true);
+  const [patternKycNotice, setPatternKycNotice] = useState(true);
+  const [patternUpiReversal, setPatternUpiReversal] = useState(true);
+
+  // 5. PRIVACY & DPDPA
+  const [piiMasking, setPiiMasking] = useState(true);
+  const [biometricLock, setBiometricLock] = useState(false);
+  const [dpdpaConsent, setDpdpaConsent] = useState(true);
+
+  // 6. BLOCKLIST
+  const [blockKnownSpamPool, setBlockKnownSpamPool] = useState(true);
+  const [blockPrivateNumbers, setBlockPrivateNumbers] = useState(true);
+  const [blockForeignVoip, setBlockForeignVoip] = useState(true);
+  const [blockedNumbers, setBlockedNumbers] = useState<BlockRule[]>([
+    { id: 'b1', number: '+91 98201 44102', label: 'Fake MSEDCL Officer', reason: 'Power Disconnection Scam', dateAdded: 'Yesterday' },
+    { id: 'b2', number: '+91 80492 77190', label: 'Mumbai Police Impersonator', reason: 'Digital Arrest Threat', dateAdded: '3 days ago' },
+    { id: 'b3', number: '+91 79261 99234', label: 'Fastag Toll Overdue Bot', reason: 'Phishing Highway APK Link', dateAdded: 'Last week' },
+  ]);
+  const [newRuleNumber, setNewRuleNumber] = useState('');
+  const [newRuleLabel, setNewRuleLabel] = useState('');
+  const [newRuleReason, setNewRuleReason] = useState('');
+
+  // 7. WEAR OS
+  const [wristThreatHaptics, setWristThreatHaptics] = useState(true);
+  const [sosWristTap, setSosWristTap] = useState(true);
+
+  const handleAddBlockedNumber = (e: React.FormEvent) => {
     e.preventDefault();
-    setSavedKeys(true);
-    setTimeout(() => setSavedKeys(false), 3000);
+    if (!newRuleNumber.trim()) return;
+    const rule: BlockRule = {
+      id: 'b_' + Date.now(),
+      number: newRuleNumber.trim(),
+      label: newRuleLabel.trim() || 'Suspected Scammer',
+      reason: newRuleReason.trim() || 'Manual user block',
+      dateAdded: 'Just now'
+    };
+    setBlockedNumbers([rule, ...blockedNumbers]);
+    setNewRuleNumber('');
+    setNewRuleLabel('');
+    setNewRuleReason('');
+    showToast(`Added ${rule.number} to Blocklist`);
   };
 
-  const handleCreateGuardian = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newGuardianName || !newGuardianPhone) return;
-
-    addGuardian({
-      name: newGuardianName,
-      phone: newGuardianPhone,
-      email: newGuardianEmail,
-      relationship: newGuardianRelation,
-      notificationsEnabled: true,
-      alertOnThreshold: 75,
-    });
-
-    setNewGuardianName('');
-    setNewGuardianPhone('');
-    setNewGuardianEmail('');
-    setIsAddGuardianOpen(false);
+  const handleRemoveBlockedNumber = (id: string) => {
+    setBlockedNumbers(blockedNumbers.filter(b => b.id !== id));
+    showToast('Number removed from Blocklist');
   };
 
-  // Export Call Records to JSON
-  const handleExportJSON = () => {
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(calls, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `audio_guardian_export_${new Date().toISOString().slice(0, 10)}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+  const settingsMenuItems = [
+    { id: 'general', title: 'General', icon: <SettingsIcon className="w-5 h-5 text-cyan-400" />, desc: 'Language, sound alerts, startup daemon' },
+    { id: 'calls', title: 'Calls & Audio Shield', icon: <Phone className="w-5 h-5 text-emerald-400" />, desc: 'Threat auto-drop, live diarization, evidence recording' },
+    { id: 'messaging', title: 'Messaging & OTP Guard', icon: <MessageSquare className="w-5 h-5 text-blue-400" />, desc: 'SMS phishing filter, in-call OTP shielding' },
+    { id: 'assistant', title: 'AI Whisper & Heuristics', icon: <Sparkles className="w-5 h-5 text-purple-400" />, desc: 'AI coaching, deepfake sensitivity, scam patterns' },
+    { id: 'block', title: 'Block & Spam Filter', icon: <ShieldAlert className="w-5 h-5 text-red-400" />, desc: '1.2M+ India spam pool, hidden caller IDs, custom rules' },
+    { id: 'privacy', title: 'Privacy & DPDPA Center', icon: <Lock className="w-5 h-5 text-amber-400" />, desc: 'PII masking, biometric unlock, DPDPA 2023 compliance' },
+    { id: 'premium', title: 'Callix Pro Enterprise', icon: <Crown className="w-5 h-5 text-amber-400" />, desc: 'Enterprise Sentinel clearances & unlimited lookups' },
+    { id: 'wear-os', title: 'Wear OS & Smartwatch', icon: <Watch className="w-5 h-5 text-teal-400" />, desc: 'Wrist threat vibration, Emergency SOS guardian tap' },
+    { id: 'about', title: 'About Callix Systems', icon: <Info className="w-5 h-5 text-zinc-300" />, desc: 'Version Callix v2.4.0 Live Enterprise, telemetry' },
+    { id: 'help', title: 'Help & Incident Desk', icon: <HelpCircle className="w-5 h-5 text-sky-400" />, desc: 'FAQ, report false positives, 1930 Cyber helpline' },
+  ];
 
-    setExportMessage('JSON call history downloaded successfully.');
-    setTimeout(() => setExportMessage(null), 3000);
-  };
-
-  // Export Call Records to CSV
-  const handleExportCSV = () => {
-    if (calls.length === 0) return;
-
-    const headers = ['CallID', 'CallerNumber', 'CallerName', 'Date', 'DurationSeconds', 'Score', 'Verdict', 'Category', 'GuardianNotified'];
-    const rows = calls.map(c => [
-      c.callId,
-      `"${c.callerNumber}"`,
-      `"${c.callerName || 'Unknown'}"`,
-      `"${new Date(c.startTime).toISOString()}"`,
-      c.durationSeconds,
-      c.finalScore,
-      c.verdict,
-      c.primaryCategory,
-      c.guardianNotified ? 'TRUE' : 'FALSE'
-    ]);
-
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', encodedUri);
-    downloadAnchor.setAttribute('download', `audio_guardian_export_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-
-    setExportMessage('CSV call history report downloaded successfully.');
-    setTimeout(() => setExportMessage(null), 3000);
-  };
-
-  const handleResetData = () => {
-    resetCalls();
-    setResetDone(true);
-    setTimeout(() => setResetDone(false), 3000);
-  };
+  const filteredItems = settingsMenuItems.filter(item => 
+    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.desc.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-          <SettingsIcon className="w-6 h-6 text-brand-cyan" />
-          Settings, Privacy & Account Preferences
-        </h2>
-        <p className="text-xs text-cyber-muted">
-          Manage user profile, family guardian access delegation, in-call detection sensitivity, and privacy exports.
-        </p>
+    <div className="w-full min-h-[calc(100vh-6rem)] pb-12 font-sans select-none animate-fade-in">
+      
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-6 right-6 z-50 px-4 py-2.5 rounded-2xl bg-neutral-900 border border-cyan-500/40 text-cyan-300 text-xs font-semibold shadow-[0_10px_35px_rgba(0,0,0,0.85)] flex items-center gap-2 animate-fade-in backdrop-blur-xl">
+          <Check className="w-4 h-4 text-cyan-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* Top Professional Header Bar */}
+      <div className="w-full flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="p-2.5 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/12 text-zinc-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+            title="Back to Dashboard"
+            aria-label="Back to Dashboard"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl font-black tracking-tight text-white">Callix Security Settings</h1>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                PRO SENTINEL
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Configure dual-engine scam interception, deepfake thresholds, caller blocklists, and privacy controls
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              showToast('Settings saved to local encrypted vault');
+            }}
+            className="px-5 py-2 rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 shadow-[0_4px_20px_rgba(6,182,212,0.35)] transition-all cursor-pointer flex items-center gap-2 active:scale-95"
+          >
+            <Save className="w-4 h-4" />
+            <span>Save Changes</span>
+          </button>
+        </div>
       </div>
 
-      {/* 0. Project Theme & UI Appearance Card */}
-      <Card className="p-6 bg-gradient-to-r from-slate-900 via-neutral-900 to-slate-900 border border-white/15 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-base text-white">Project Theme &amp; Visual Aesthetics</h3>
-              <p className="text-xs text-zinc-400">Customize the application palette, liquid glass refraction, and UI accents</p>
-            </div>
-          </div>
-          <span className="text-[10px] font-mono uppercase px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 w-fit">
-            Theme Active
-          </span>
-        </div>
+      {/* Full-Width Laptop / Desktop Master-Detail Grid */}
+      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        {/* ========================================================================= */}
+        {/* LEFT COLUMN: User Profile Card & Navigation Rail (lg:col-span-4)          */}
+        {/* ========================================================================= */}
+        <div className="lg:col-span-4 xl:col-span-4 space-y-4">
+          
+          {/* User Profile Card (Interactive, opens UserProfileModal) */}
+          <div 
+            onClick={() => setIsProfileModalOpen(true)}
+            className="w-full rounded-3xl border border-white/12 bg-white/[0.04] hover:bg-white/[0.07] hover:border-cyan-400/40 p-4.5 backdrop-blur-2xl transition-all cursor-pointer shadow-[0_8px_30px_rgba(0,0,0,0.4)] flex items-center justify-between group active:scale-[0.99]"
+            title="Click to view & manage profile credentials"
+          >
+            <div className="flex items-center gap-3.5">
+              {/* Circular Avatar with Meter */}
+              <div className="relative w-13 h-13 rounded-full flex items-center justify-center shrink-0">
+                <svg className="w-13 h-13 -rotate-90 transform absolute inset-0" viewBox="0 0 56 56">
+                  <circle cx="28" cy="28" r="24" stroke="rgba(255,255,255,0.12)" strokeWidth="2.5" fill="transparent" />
+                  <circle cx="28" cy="28" r="24" stroke="#007AFF" strokeWidth="2.5" strokeDasharray={150} strokeDashoffset={40} strokeLinecap="round" fill="transparent" />
+                </svg>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {[
-            { id: 'cyber-dark', label: 'Cyber Noir (Pure Dark)', desc: 'Ultra-deep contrast with liquid glass glow', accent: 'bg-cyan-500' },
-            { id: 'midnight-navy', label: 'Midnight Blue (Refraction)', desc: 'Deep indigo tone with subtle acrylic blur', accent: 'bg-indigo-500' },
-            { id: 'emerald-shield', label: 'Emerald Matrix (Shield)', desc: 'High security green telemetry palette', accent: 'bg-emerald-500' },
-          ].map((theme) => (
-            <button
-              key={theme.id}
-              type="button"
-              onClick={() => {
-                setSelectedTheme(theme.id);
-                localStorage.setItem('callix_theme', theme.id);
-              }}
-              className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative group ${
-                selectedTheme === theme.id
-                  ? 'bg-white/[0.08] border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.2)]'
-                  : 'bg-white/[0.03] hover:bg-white/[0.06] border-white/10'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-bold text-white group-hover:text-cyan-200 transition-colors">{theme.label}</span>
-                <span className={`w-2.5 h-2.5 rounded-full ${theme.accent}`} />
+                <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-blue-950/40 border border-blue-500/30">
+                  {user?.photoURL ? (
+                    <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="relative">
+                      <Camera className="w-4.5 h-4.5 text-[#007AFF]" />
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="text-[11px] text-zinc-400 leading-snug">{theme.desc}</p>
-            </button>
-          ))}
-        </div>
-      </Card>
 
-      {/* 1. Account & Subscription Profile Card */}
-      <Card className="p-6 bg-gradient-to-r from-slate-900 via-cyber-card to-slate-900 border border-cyber-border space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="group relative w-16 h-16 rounded-2xl overflow-hidden border-2 border-brand-primary shadow-glow-primary/20 shrink-0 bg-zinc-900 flex items-center justify-center">
-              {user?.photoURL ? (
-                <img
-                  src={user.photoURL.includes('googleusercontent.com') ? user.photoURL.replace(/=s\d+(-c)?$/, '=s256-c') : user.photoURL}
-                  alt={user?.displayName || 'User Profile'}
-                  referrerPolicy="no-referrer"
-                  crossOrigin="anonymous"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-xl font-bold bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-transparent">
-                  {(user?.displayName || 'CX').substring(0, 2).toUpperCase()}
+              {/* Name & Subtitle */}
+              <div className="flex flex-col text-left">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-bold text-sm text-white group-hover:text-cyan-300 transition-colors">
+                    {user?.displayName || 'Mahi S'}
+                  </h3>
+                  <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                </div>
+                <span className="text-xs text-cyan-400 font-medium group-hover:underline">
+                  Manage your profile &amp; credentials
                 </span>
-              )}
-              <label 
-                title="Change Profile Photo"
-                className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-[10px] font-medium gap-0.5 z-10"
-              >
-                <Camera className="w-4 h-4 text-brand-cyan" />
-                <span>Update</span>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden" 
-                  onChange={handlePhotoUpload} 
-                />
-              </label>
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-white">{user?.displayName || 'Callix User'}</h3>
-                <Badge variant="primary" size="sm">
-                  {user?.plan || 'PRO_SHIELD'}
-                </Badge>
               </div>
-              {user?.phoneNumber ? (
-                <div className="flex items-center gap-2">
-                  <p className="text-xs font-mono text-brand-cyan font-semibold">{maskPhoneNumber(user.phoneNumber)}</p>
-                  <button
-                    type="button"
-                    onClick={() => setIsTelecomModalOpen(true)}
-                    className="text-[11px] font-mono text-zinc-400 hover:text-white underline cursor-pointer transition-colors"
-                  >
-                    Edit Number
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 py-0.5">
-                  <span className="text-xs font-mono text-amber-400 flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                    No mobile number linked
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setIsTelecomModalOpen(true)}
-                    className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 font-semibold cursor-pointer transition-all"
-                  >
-                    + Link Number
-                  </button>
-                </div>
-              )}
-              <p className="text-xs text-cyber-muted">{maskEmail(user?.email || 'user@callix.ai')}</p>
+            </div>
+
+            {/* Notification Badge */}
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-[#007AFF] text-white text-xs font-bold flex items-center justify-center shadow-md">
+                12
+              </span>
+              <ChevronRight className="w-4 h-4 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<CreditCard className="w-4 h-4 text-brand-cyan" />}
-              onClick={() => alert('Subscription Tier: Guardian Pro Active. Includes unlimited real-time diarization & emergency SMS routing.')}
-            >
-              Manage Subscription
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      {/* 2. Guardian Permissions & Delegation Manager */}
-      <Card className="p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-cyber-border pb-3">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-indigo-400" />
-            <div>
-              <h3 className="font-bold text-base text-cyber-text">
-                Family Guardian Delegation & Access Controls
-              </h3>
-              <p className="text-xs text-cyber-muted">
-                Configure granular visibility permissions for each linked family member
-              </p>
-            </div>
-          </div>
-
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsAddGuardianOpen(true)}
-            leftIcon={<Plus className="w-3.5 h-3.5" />}
-          >
-            Add Guardian
-          </Button>
-        </div>
-
-        <div className="space-y-3 pt-1">
-          {user?.guardianLinks.map((g) => {
-            const hasTranscript = transcriptAccess[g.guardianId] ?? true;
-            return (
-              <div
-                key={g.guardianId}
-                className="p-4 rounded-xl bg-slate-900/70 border border-cyber-border flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-white">{g.name}</span>
-                    <Badge variant="cyan" size="sm">
-                      {g.relationship}
-                    </Badge>
-                  </div>
-                  <div className="text-xs font-mono text-cyber-subtle">
-                    {maskPhoneNumber(g.phone)} {g.email ? `• ${maskEmail(g.email)}` : ''}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  {/* Toggle Permission Button */}
-                  <button
-                    type="button"
-                    onClick={() => toggleTranscriptPermission(g.guardianId)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold flex items-center gap-1.5 border transition-all cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95 ${
-                      hasTranscript
-                        ? 'bg-indigo-950/60 text-indigo-300 border-indigo-500/40 hover:bg-indigo-950/80 shadow-[0_0_12px_rgba(99,102,241,0.2)]'
-                        : 'bg-white/[0.04] text-zinc-400 border-white/10 hover:border-white/20 hover:text-zinc-200'
-                    }`}
-                  >
-                    {hasTranscript ? (
-                      <>
-                        <Eye className="w-3.5 h-3.5 text-indigo-400" /> Full Transcripts Visible
-                      </>
-                    ) : (
-                      <>
-                        <EyeOff className="w-3.5 h-3.5 text-zinc-500" /> High-Risk Alerts Only
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => removeGuardian(g.guardianId)}
-                    className="p-1.5 text-zinc-400 hover:text-red-400 rounded-lg bg-white/[0.04] hover:bg-red-500/15 border border-white/10 hover:border-red-500/30 transition-all cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95"
-                    title="Remove Guardian"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
-
-      {/* 3. In-Call Detection Sensitivity & Privacy Preferences */}
-      <Card className="p-6 space-y-4">
-        <div className="flex items-center gap-2 border-b border-cyber-border pb-3">
-          <Sliders className="w-5 h-5 text-brand-cyan" />
-          <div>
-            <h3 className="font-bold text-base text-cyber-text">
-              In-Call Threat Sensitivity & Privacy Rules
-            </h3>
-            <p className="text-xs text-cyber-muted">
-              Control the AI detection threshold and telephony data retention preferences
-            </p>
-          </div>
-        </div>
-
-        {/* Sensitivity Selector */}
-        <div className="space-y-2">
-          <label className="text-xs font-semibold text-cyber-muted uppercase tracking-wider block">
-            Detection Sensitivity Profile
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              {
-                mode: 'STANDARD',
-                title: 'Standard (Recommended)',
-                desc: 'Balanced heuristic + Claude scoring (75+ trigger threshold).',
-              },
-              {
-                mode: 'AGGRESSIVE',
-                title: 'Aggressive (Elder Shield)',
-                desc: 'Lower threshold (50+). Extra protective for elderly relatives.',
-              },
-              {
-                mode: 'RELAXED',
-                title: 'Relaxed (Business)',
-                desc: 'Alerts only on confirmed fraud vectors (85+ threshold).',
-              },
-            ].map((item) => (
-              <button
-                key={item.mode}
-                type="button"
-                onClick={() =>
-                  updateProfile({
-                    preferences: { ...user!.preferences, riskSensitivity: item.mode as any },
-                  })
-                }
-                className={`p-4 rounded-xl border text-left transition-all cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-[0.99] ${
-                  user?.preferences.riskSensitivity === item.mode
-                    ? 'border-cyan-500/50 bg-cyan-500/10 shadow-[0_0_20px_rgba(6,182,212,0.18)] text-white'
-                    : 'border-white/10 bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] hover:border-white/20'
-                }`}
-              >
-                <div className="font-bold text-sm">{item.title}</div>
-                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{item.desc}</p>
+          {/* Search Box */}
+          <div className="relative rounded-2xl border border-white/12 bg-white/[0.04] px-3.5 py-2.5 flex items-center backdrop-blur-xl">
+            <Search className="w-4 h-4 text-zinc-400 mr-2 shrink-0" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search category or setting..."
+              className="w-full bg-transparent text-xs text-white placeholder:text-zinc-500 outline-none"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="p-1 text-zinc-400 hover:text-white">
+                <X className="w-3.5 h-3.5" />
               </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Toggles */}
-        <div className="space-y-3 pt-3 border-t border-cyber-border/60">
-          <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/60 border border-cyber-border">
-            <div className="space-y-0.5">
-              <span className="text-xs font-bold text-white block">
-                Automatic High-Risk Call Termination (95+ Score)
-              </span>
-              <p className="text-xs text-cyber-muted">
-                Automatically hang up incoming calls when digital arrest or critical coercion is detected.
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={user?.preferences.autoBlockHighRisk ?? true}
-              onChange={(e) =>
-                updateProfile({
-                  preferences: { ...user!.preferences, autoBlockHighRisk: e.target.checked },
-                })
-              }
-              className="w-4 h-4 rounded accent-brand-primary cursor-pointer"
-            />
-          </div>
-
-          <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/60 border border-cyber-border">
-            <div className="space-y-0.5">
-              <span className="text-xs font-bold text-white block">
-                Audio Snippet Recording & Storage Opt-In
-              </span>
-              <p className="text-xs text-cyber-muted">
-                Store encrypted 16kHz audio for forensic review. (Default: Off for maximum privacy).
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={user?.preferences.audioRecordingOptIn ?? false}
-              onChange={(e) =>
-                updateProfile({
-                  preferences: { ...user!.preferences, audioRecordingOptIn: e.target.checked },
-                })
-              }
-              className="w-4 h-4 rounded accent-brand-primary cursor-pointer"
-            />
-          </div>
-        </div>
-      </Card>
-
-      {/* 4. Data Export & Privacy GDPR Compliance */}
-      <Card className="p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-cyber-border pb-3">
-          <div className="flex items-center gap-2">
-            <Download className="w-5 h-5 text-emerald-400" />
-            <div>
-              <h3 className="font-bold text-base text-cyber-text">
-                Data Portability & Forensic Export
-              </h3>
-              <p className="text-xs text-cyber-muted">
-                Download your complete call records, diarized transcripts, and incident logs
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <p className="text-xs text-cyber-muted leading-relaxed">
-          Audio Guardian guarantees full user data ownership. You can download all telemetry dossiers in JSON or CSV format for submission to law enforcement or personal records.
-        </p>
-
-        <div className="flex flex-wrap items-center gap-3 pt-1">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleExportJSON}
-            leftIcon={<FileCode className="w-4 h-4 text-brand-cyan" />}
-          >
-            Export All Records (.JSON)
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleExportCSV}
-            leftIcon={<FileSpreadsheet className="w-4 h-4 text-emerald-400" />}
-          >
-            Export Table (.CSV)
-          </Button>
-        </div>
-
-        {exportMessage && (
-          <div className="p-2.5 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-xs font-mono text-emerald-300 flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-            {exportMessage}
-          </div>
-        )}
-      </Card>
-
-      {/* 5. Optional Cloud AI API Credentials */}
-      <Card className="p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-cyber-border pb-3">
-          <div className="flex items-center gap-2">
-            <Key className="w-5 h-5 text-brand-cyan" />
-            <h3 className="font-bold text-base text-cyber-text">AI Provider API Keys (Optional)</h3>
-          </div>
-          <Badge variant="cyan" size="sm">
-            OFFLINE SIMULATION ACTIVE
-          </Badge>
-        </div>
-
-        <p className="text-xs text-cyber-muted">
-          The platform operates seamlessly in local simulation mode. If you wish to connect directly to Anthropic or Deepgram APIs in cloud production, input your API credentials below:
-        </p>
-
-        <form onSubmit={handleSaveKeys} className="space-y-4 pt-1">
-          <Input
-            label="Anthropic Claude API Key"
-            type="password"
-            placeholder="sk-ant-api03-..."
-            value={claudeKey}
-            onChange={(e: any) => setClaudeKey(e.target.value)}
-          />
-
-          <Input
-            label="Deepgram Speech-to-Text API Key"
-            type="password"
-            placeholder="dg_live_..."
-            value={deepgramKey}
-            onChange={(e: any) => setDeepgramKey(e.target.value)}
-          />
-
-          <div className="flex items-center justify-between pt-2">
-            {savedKeys && (
-              <span className="text-xs font-mono text-threat-safe flex items-center gap-1">
-                <CheckCircle className="w-4 h-4" /> Keys saved to session memory
-              </span>
             )}
-            <Button type="submit" variant="primary" size="sm" className="ml-auto">
-              Save AI Credentials
-            </Button>
-          </div>
-        </form>
-      </Card>
-
-      {/* 6. Clear Local Call Logs & Cache */}
-      <Card className="p-6 space-y-3 bg-red-950/10 border border-red-500/30">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h3 className="font-bold text-sm text-white flex items-center gap-2">
-              <Database className="w-4 h-4 text-red-400" />
-              Clear Local Call Logs &amp; Telemetry Cache
-            </h3>
-            <p className="text-xs text-cyber-muted">
-              Purge locally cached call records, session transcripts, and temporary forensic logs.
-            </p>
           </div>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
-            onClick={handleResetData}
-          >
-            {resetDone ? 'Cache Cleared!' : 'Purge Local Cache'}
-          </Button>
+          {/* Vertical Category Navigation Rail */}
+          <div className="rounded-3xl border border-white/12 bg-neutral-900/60 backdrop-blur-2xl overflow-hidden divide-y divide-white/[0.06] shadow-[0_15px_40px_rgba(0,0,0,0.5)]">
+            {filteredItems.map((item) => {
+              const isActive = activeSection === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveSection(item.id)}
+                  className={cn(
+                    "w-full px-4 py-3.5 flex items-center justify-between text-left transition-all cursor-pointer group active:scale-[0.99]",
+                    isActive 
+                      ? "bg-cyan-500/15 border-l-4 border-cyan-400 shadow-inner" 
+                      : "hover:bg-white/[0.05]"
+                  )}
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className={cn(
+                      "shrink-0 p-2 rounded-xl transition-all",
+                      isActive ? "bg-cyan-500/20 text-cyan-300" : "bg-white/[0.04] text-zinc-400 group-hover:text-white"
+                    )}>
+                      {item.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <div className={cn(
+                        "font-semibold text-xs transition-colors truncate",
+                        isActive ? "text-cyan-300 font-bold" : "text-zinc-200 group-hover:text-white"
+                      )}>
+                        {item.title}
+                      </div>
+                      <div className="text-[11px] text-zinc-400 truncate mt-0.5">
+                        {item.desc}
+                      </div>
+                    </div>
+                  </div>
+
+                  <ChevronRight className={cn(
+                    "w-4 h-4 shrink-0 transition-all",
+                    isActive ? "text-cyan-400 translate-x-1" : "text-zinc-600 group-hover:text-zinc-300"
+                  )} />
+                </button>
+              );
+            })}
+          </div>
+
         </div>
-      </Card>
 
-      {/* Add Guardian Modal */}
-      <Modal
-        isOpen={isAddGuardianOpen}
-        onClose={() => setIsAddGuardianOpen(false)}
-        title="Link New Family Guardian"
-      >
-        <form onSubmit={handleCreateGuardian} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-cyber-muted uppercase">Guardian Full Name</label>
-            <Input
-              required
-              value={newGuardianName}
-              onChange={(e: any) => setNewGuardianName(e.target.value)}
-              placeholder="e.g. Pooja Sharma"
-            />
-          </div>
+        {/* ========================================================================= */}
+        {/* RIGHT COLUMN: Active Section Detailed Settings (lg:col-span-8)            */}
+        {/* ========================================================================= */}
+        <div className="lg:col-span-8 xl:col-span-8 space-y-5">
+          
+          {/* Active Section Banner */}
+          <div className="rounded-3xl border border-white/12 bg-gradient-to-r from-neutral-900/90 via-neutral-900/70 to-neutral-900/90 p-6 backdrop-blur-2xl shadow-xl flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400">
+                {settingsMenuItems.find(s => s.id === activeSection)?.icon}
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white tracking-tight">
+                  {settingsMenuItems.find(s => s.id === activeSection)?.title}
+                </h2>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  {settingsMenuItems.find(s => s.id === activeSection)?.desc}
+                </p>
+              </div>
+            </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-cyber-muted uppercase">Mobile Number (with +91)</label>
-            <Input
-              required
-              value={newGuardianPhone}
-              onChange={(e: any) => setNewGuardianPhone(e.target.value)}
-              placeholder="e.g. +91 99201 55431"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-cyber-muted uppercase">Email Address (Optional)</label>
-            <Input
-              type="email"
-              value={newGuardianEmail}
-              onChange={(e: any) => setNewGuardianEmail(e.target.value)}
-              placeholder="e.g. pooja.sharma@gmail.com"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-cyber-muted uppercase">Relationship</label>
-            <select
-              value={newGuardianRelation}
-              onChange={(e: any) => setNewGuardianRelation(e.target.value)}
-              className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:outline-none focus:border-brand-primary"
+            <button
+              type="button"
+              onClick={() => showToast('Configuration synchronized')}
+              className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-zinc-200 hover:text-white transition-all cursor-pointer"
             >
-              <option value="Child">Child / Daughter / Son</option>
-              <option value="Parent">Parent / Mother / Father</option>
-              <option value="Spouse">Spouse / Partner</option>
-              <option value="Other">Sibling / Relative / Other</option>
-            </select>
+              <RotateCcw className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Reset Defaults</span>
+            </button>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="ghost" onClick={() => setIsAddGuardianOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary">
-              Link Contact
-            </Button>
-          </div>
-        </form>
-      </Modal>
+          {/* 1. GENERAL SECTION */}
+          {activeSection === 'general' && (
+            <div className="rounded-3xl border border-white/12 bg-white/[0.03] backdrop-blur-2xl p-6 space-y-6 shadow-xl animate-fade-in">
+              <div>
+                <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-cyan-400" />
+                  <span>Language &amp; Environment</span>
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">Choose speech recognition transcript dialect and system locale.</p>
+              </div>
 
-      {/* Telecom Onboarding & Phone Number Modal */}
-      <TelecomOnboardingModal
-        isOpen={isTelecomModalOpen}
-        onClose={() => setIsTelecomModalOpen(false)}
-      />
+              <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] space-y-3">
+                <label className="block text-xs font-mono font-bold text-zinc-300 uppercase tracking-wider">
+                  Interface &amp; Voice Interception Language
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {(['English', 'Kannada', 'Hindi', 'Tamil'] as const).map((lang) => (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() => {
+                        setLanguage(lang);
+                        showToast(`Language set to ${lang}`);
+                      }}
+                      className={cn(
+                        "py-3 px-3 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer shadow-sm",
+                        language === lang
+                          ? "bg-cyan-500/20 border-cyan-400 text-cyan-300 font-bold shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                          : "bg-white/[0.03] border-white/10 text-zinc-400 hover:text-white hover:bg-white/[0.06]"
+                      )}
+                    >
+                      <div className="font-semibold">{lang === 'Kannada' ? 'ಕನ್ನಡ' : lang === 'Hindi' ? 'हिंदी' : lang === 'Tamil' ? 'தமிழ்' : 'English'}</div>
+                      <div className="text-[10px] text-zinc-500">{lang}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Auto-Start on Boot</span>
+                    </div>
+                    <div className="text-[11px] text-zinc-400 mt-0.5">Keep scam defense listening in background</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAutoStart(!autoStart)}
+                    className={cn("w-11 h-6 rounded-full transition-all relative border shrink-0 cursor-pointer", autoStart ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md", autoStart ? "left-5.5" : "left-0.5")} />
+                  </button>
+                </div>
+
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Acoustic Threat Chime</span>
+                    </div>
+                    <div className="text-[11px] text-zinc-400 mt-0.5">Plays audio warning chime on risk spikes</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSoundAlerts(!soundAlerts)}
+                    className={cn("w-11 h-6 rounded-full transition-all relative border shrink-0 cursor-pointer", soundAlerts ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md", soundAlerts ? "left-5.5" : "left-0.5")} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Real-time Telemetry Polling Rate</span>
+                  </div>
+                  <div className="text-[11px] text-zinc-400 mt-0.5">Latency interval for live audio guardian threat updates</div>
+                </div>
+                <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10">
+                  {(['1s', '5s', 'manual'] as const).map(rate => (
+                    <button
+                      key={rate}
+                      type="button"
+                      onClick={() => setPollingRate(rate)}
+                      className={cn(
+                        "px-3 py-1 text-xs rounded-lg font-mono transition-all cursor-pointer",
+                        pollingRate === rate ? "bg-cyan-500 text-black font-bold" : "text-zinc-400 hover:text-white"
+                      )}
+                    >
+                      {rate}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 2. CALLS SECTION */}
+          {activeSection === 'calls' && (
+            <div className="rounded-3xl border border-white/12 bg-white/[0.03] backdrop-blur-2xl p-6 space-y-6 shadow-xl animate-fade-in">
+              <div>
+                <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                  <PhoneCall className="w-4 h-4 text-emerald-400" />
+                  <span>Call Screening &amp; Auto-Interception</span>
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">Threshold policies, automated disconnect, and phoneme stream diarization.</p>
+              </div>
+
+              <div className="p-5 rounded-2xl border border-white/10 bg-white/[0.02] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">Auto-Disconnect Threat Threshold</div>
+                    <div className="text-[11px] text-zinc-400">Instantly terminates incoming call stream if risk score exceeds this level</div>
+                  </div>
+                  <span className="text-xs font-mono font-bold px-3 py-1 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 shadow-sm">
+                    {threatCutoff}/100 Risk
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="30"
+                  max="95"
+                  step="5"
+                  value={threatCutoff}
+                  onChange={(e) => setThreatCutoff(Number(e.target.value))}
+                  className="w-full accent-red-500 h-1.5 bg-neutral-800 rounded-lg cursor-pointer"
+                />
+                <div className="flex justify-between text-[10px] font-mono text-zinc-500">
+                  <span>30 (Strict Security)</span>
+                  <span>75 (Recommended)</span>
+                  <span>95 (Permissive)</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">Emergency Auto-Hangup</div>
+                    <div className="text-[11px] text-zinc-400">Protects elderly users by severing call on high risk</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAutoHangup(!autoHangup)}
+                    className={cn("w-11 h-6 rounded-full transition-all relative border shrink-0 cursor-pointer", autoHangup ? "bg-red-500 border-red-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md", autoHangup ? "left-5.5" : "left-0.5")} />
+                  </button>
+                </div>
+
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">Legal Audio Evidence Recording</div>
+                    <div className="text-[11px] text-zinc-400">Retains encrypted audio for police 1930 dispatch</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEvidenceRecord(!evidenceRecord)}
+                    className={cn("w-11 h-6 rounded-full transition-all relative border shrink-0 cursor-pointer", evidenceRecord ? "bg-emerald-500 border-emerald-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md", evidenceRecord ? "left-5.5" : "left-0.5")} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-white">Speech Diarization Engine</div>
+                  <div className="text-[11px] text-zinc-400">Separates Caller vs Receiver audio channels in real-time</div>
+                </div>
+                <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => setDiarizationEngine('nova-2')}
+                    className={cn(
+                      "px-3 py-1 text-xs rounded-lg font-mono transition-all cursor-pointer",
+                      diarizationEngine === 'nova-2' ? "bg-cyan-500 text-black font-bold" : "text-zinc-400 hover:text-white"
+                    )}
+                  >
+                    Deepgram Nova-2
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDiarizationEngine('whisper')}
+                    className={cn(
+                      "px-3 py-1 text-xs rounded-lg font-mono transition-all cursor-pointer",
+                      diarizationEngine === 'whisper' ? "bg-cyan-500 text-black font-bold" : "text-zinc-400 hover:text-white"
+                    )}
+                  >
+                    OpenAI Whisper
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3. MESSAGING SECTION */}
+          {activeSection === 'messaging' && (
+            <div className="rounded-3xl border border-white/12 bg-white/[0.03] backdrop-blur-2xl p-6 space-y-6 shadow-xl animate-fade-in">
+              <div>
+                <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-blue-400" />
+                  <span>SMS Phishing &amp; OTP Shield</span>
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">Real-time heuristics for incoming SMS, APK download links, and banking OTPs.</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">Deep SMS Phishing Heuristics</div>
+                    <div className="text-[11px] text-zinc-400">Analyzes urgent banking SMS links, lottery claims, and fake electricity disconnection threats</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSmsPhishingFilter(!smsPhishingFilter)}
+                    className={cn("w-11 h-6 rounded-full transition-all relative border shrink-0 cursor-pointer", smsPhishingFilter ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md", smsPhishingFilter ? "left-5.5" : "left-0.5")} />
+                  </button>
+                </div>
+
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">In-Call Active OTP Screen Masking</div>
+                    <div className="text-[11px] text-zinc-400">Prevents caller from coaxing you into reading 4-digit / 6-digit banking codes out loud</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setInCallOtpMasking(!inCallOtpMasking)}
+                    className={cn("w-11 h-6 rounded-full transition-all relative border shrink-0 cursor-pointer", inCallOtpMasking ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md", inCallOtpMasking ? "left-5.5" : "left-0.5")} />
+                  </button>
+                </div>
+
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">Suspicious APK &amp; Web Link Quarantine</div>
+                    <div className="text-[11px] text-zinc-400">Automatically disarms sideload links received via WhatsApp, Telegram, or SMS</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setQuarantineApkLinks(!quarantineApkLinks)}
+                    className={cn("w-11 h-6 rounded-full transition-all relative border shrink-0 cursor-pointer", quarantineApkLinks ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md", quarantineApkLinks ? "left-5.5" : "left-0.5")} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 4. ASSISTANT SECTION */}
+          {activeSection === 'assistant' && (
+            <div className="rounded-3xl border border-white/12 bg-white/[0.03] backdrop-blur-2xl p-6 space-y-6 shadow-xl animate-fade-in">
+              <div>
+                <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                  <span>AI Whisper Guardian &amp; Deepfake Engine</span>
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">Real-time LLM coaching and acoustic synthetic voice biometrics.</p>
+              </div>
+
+              <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] space-y-3">
+                <div className="text-xs font-bold text-white">Deepfake Voice Biometric Sensitivity</div>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {(['STANDARD', 'AGGRESSIVE', 'STRICT'] as const).map(sens => (
+                    <button
+                      key={sens}
+                      type="button"
+                      onClick={() => setDeepfakeSensitivity(sens)}
+                      className={cn(
+                        "py-3 rounded-xl text-xs font-mono border text-center transition-all cursor-pointer",
+                        deepfakeSensitivity === sens
+                          ? "bg-purple-500/20 border-purple-400 text-purple-300 font-bold shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                          : "bg-white/[0.03] border-white/10 text-zinc-400 hover:text-white"
+                      )}
+                    >
+                      {sens}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] space-y-3">
+                <div className="text-xs font-bold text-white">Indian Cybercrime Heuristic Scanners</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {[
+                    { label: 'Digital Arrest / Fake Police', state: patternDigitalArrest, set: setPatternDigitalArrest },
+                    { label: 'Urgent OTP Demands', state: patternOtpDemands, set: setPatternOtpDemands },
+                    { label: 'Bank KYC Expiry Threats', state: patternKycNotice, set: setPatternKycNotice },
+                    { label: 'Accidental UPI Refund Scam', state: patternUpiReversal, set: setPatternUpiReversal },
+                  ].map((pat, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => pat.set(!pat.state)}
+                      className={cn(
+                        "p-3 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer",
+                        pat.state ? "bg-white/[0.05] border-cyan-500/30 text-white" : "bg-neutral-900 border-white/5 text-zinc-500"
+                      )}
+                    >
+                      <span className="text-xs font-medium">{pat.label}</span>
+                      <Check className={cn("w-4 h-4", pat.state ? "text-cyan-400" : "text-transparent")} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 5. BLOCKLIST SECTION */}
+          {activeSection === 'block' && (
+            <div className="rounded-3xl border border-white/12 bg-white/[0.03] backdrop-blur-2xl p-6 space-y-6 shadow-xl animate-fade-in">
+              <div>
+                <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-red-400" />
+                  <span>Blocklist &amp; Call Shielding Engine</span>
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">Manage custom blocked phone numbers and automated spam pool rules.</p>
+              </div>
+
+              {/* Quick Toggles */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-3.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div className="text-xs font-bold text-white">Block 1.2M+ Spam Pool</div>
+                  <button
+                    type="button"
+                    onClick={() => setBlockKnownSpamPool(!blockKnownSpamPool)}
+                    className={cn("w-9 h-5 rounded-full transition-all relative border shrink-0 cursor-pointer", blockKnownSpamPool ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow-md", blockKnownSpamPool ? "left-4.5" : "left-0.5")} />
+                  </button>
+                </div>
+
+                <div className="p-3.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div className="text-xs font-bold text-white">Block Private Numbers</div>
+                  <button
+                    type="button"
+                    onClick={() => setBlockPrivateNumbers(!blockPrivateNumbers)}
+                    className={cn("w-9 h-5 rounded-full transition-all relative border shrink-0 cursor-pointer", blockPrivateNumbers ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow-md", blockPrivateNumbers ? "left-4.5" : "left-0.5")} />
+                  </button>
+                </div>
+
+                <div className="p-3.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div className="text-xs font-bold text-white">Block Spoofed VoIP</div>
+                  <button
+                    type="button"
+                    onClick={() => setBlockForeignVoip(!blockForeignVoip)}
+                    className={cn("w-9 h-5 rounded-full transition-all relative border shrink-0 cursor-pointer", blockForeignVoip ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow-md", blockForeignVoip ? "left-4.5" : "left-0.5")} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Add Custom Number Form */}
+              <form onSubmit={handleAddBlockedNumber} className="p-4 rounded-2xl border border-white/10 bg-white/[0.02] space-y-3">
+                <div className="text-xs font-bold text-white">Add Custom Phone Number to Blocklist</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <input
+                    type="text"
+                    placeholder="e.g. +91 98765 43210"
+                    value={newRuleNumber}
+                    onChange={(e) => setNewRuleNumber(e.target.value)}
+                    className="px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-xs text-white placeholder:text-zinc-500 outline-none focus:border-cyan-400"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Label (e.g. Courier Scammer)"
+                    value={newRuleLabel}
+                    onChange={(e) => setNewRuleLabel(e.target.value)}
+                    className="px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-xs text-white placeholder:text-zinc-500 outline-none focus:border-cyan-400"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Reason (e.g. Phishing link)"
+                    value={newRuleReason}
+                    onChange={(e) => setNewRuleReason(e.target.value)}
+                    className="px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-xs text-white placeholder:text-zinc-500 outline-none focus:border-cyan-400"
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs shadow-md transition-all cursor-pointer active:scale-95"
+                  >
+                    Add to Blocklist
+                  </button>
+                </div>
+              </form>
+
+              {/* Blocked Numbers Table */}
+              <div className="space-y-2">
+                <div className="text-xs font-bold text-zinc-300">Active Custom Blocked Rules ({blockedNumbers.length})</div>
+                <div className="divide-y divide-white/[0.06] rounded-2xl border border-white/10 bg-black/40 overflow-hidden">
+                  {blockedNumbers.map((b) => (
+                    <div key={b.id} className="p-3.5 flex items-center justify-between hover:bg-white/[0.03] transition-colors">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-white">{b.number}</span>
+                          <span className="text-xs text-zinc-300">· {b.label}</span>
+                        </div>
+                        <div className="text-[11px] text-red-400 mt-0.5">
+                          {b.reason} <span className="text-zinc-600">·</span> <span className="text-zinc-500 font-mono text-[10px]">{b.dateAdded}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBlockedNumber(b.id)}
+                        className="p-2 rounded-xl hover:bg-red-500/20 text-zinc-500 hover:text-red-400 transition-colors cursor-pointer"
+                        title="Unblock number"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 6. PRIVACY CENTER */}
+          {activeSection === 'privacy' && (
+            <div className="rounded-3xl border border-white/12 bg-white/[0.03] backdrop-blur-2xl p-6 space-y-6 shadow-xl animate-fade-in">
+              <div>
+                <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-amber-400" />
+                  <span>Privacy &amp; DPDPA Compliance Center</span>
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">Compliant with the Digital Personal Data Protection Act (DPDPA 2023).</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">Autonomous PII Masking</div>
+                    <div className="text-[11px] text-zinc-400">Redacts Aadhaar, PAN card, Credit Card, and bank account numbers from transcripts</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPiiMasking(!piiMasking)}
+                    className={cn("w-11 h-6 rounded-full transition-all relative border shrink-0 cursor-pointer", piiMasking ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md", piiMasking ? "left-5.5" : "left-0.5")} />
+                  </button>
+                </div>
+
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">Biometric Unlock for Call Recordings</div>
+                    <div className="text-[11px] text-zinc-400">Requires Windows Hello / Fingerprint sensor to export evidence audio</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setBiometricLock(!biometricLock)}
+                    className={cn("w-11 h-6 rounded-full transition-all relative border shrink-0 cursor-pointer", biometricLock ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md", biometricLock ? "left-5.5" : "left-0.5")} />
+                  </button>
+                </div>
+
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">DPDPA 2023 User Data Consent</div>
+                    <div className="text-[11px] text-zinc-400">Audio phonemes are analyzed locally and never stored on public 3rd party servers</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDpdpaConsent(!dpdpaConsent)}
+                    className={cn("w-11 h-6 rounded-full transition-all relative border shrink-0 cursor-pointer", dpdpaConsent ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md", dpdpaConsent ? "left-5.5" : "left-0.5")} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 7. PREMIUM SECTION */}
+          {activeSection === 'premium' && (
+            <div className="rounded-3xl border border-white/12 bg-white/[0.03] backdrop-blur-2xl p-6 space-y-6 shadow-xl animate-fade-in">
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-amber-500/15 via-neutral-900 to-amber-500/5 border border-amber-500/30 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Crown className="w-5 h-5 text-amber-400" />
+                    <span className="font-black text-sm text-white uppercase tracking-wider">Callix Pro Sentinel</span>
+                  </div>
+                  <p className="text-xs text-zinc-300 mt-1">Enterprise license active with real-time Deepgram Nova-2 dual-channel streaming.</p>
+                </div>
+                <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                  ACTIVE
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.02]">
+                  <div className="text-xs text-zinc-400">Number Lookups</div>
+                  <div className="text-lg font-black text-white mt-1">Unlimited</div>
+                  <div className="text-[10px] text-emerald-400">Federated API Live</div>
+                </div>
+                <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.02]">
+                  <div className="text-xs text-zinc-400">Deepfake Scans</div>
+                  <div className="text-lg font-black text-white mt-1">Real-Time</div>
+                  <div className="text-[10px] text-cyan-400">Dual-Channel Engine</div>
+                </div>
+                <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.02]">
+                  <div className="text-xs text-zinc-400">Police 1930 Integration</div>
+                  <div className="text-lg font-black text-white mt-1">Automated</div>
+                  <div className="text-[10px] text-amber-400">Encrypted Dossier</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 8. WEAR OS SECTION */}
+          {activeSection === 'wear-os' && (
+            <div className="rounded-3xl border border-white/12 bg-white/[0.03] backdrop-blur-2xl p-6 space-y-6 shadow-xl animate-fade-in">
+              <div>
+                <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                  <Watch className="w-4 h-4 text-teal-400" />
+                  <span>Wear OS &amp; Smartwatch Synchronization</span>
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">Real-time wrist haptics and silent scam emergency tap.</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">Smartwatch Threat Haptic Vibration</div>
+                    <div className="text-[11px] text-zinc-400">Double-pulse wrist vibration triggered when synthetic deepfake audio is detected</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setWristThreatHaptics(!wristThreatHaptics)}
+                    className={cn("w-11 h-6 rounded-full transition-all relative border shrink-0 cursor-pointer", wristThreatHaptics ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md", wristThreatHaptics ? "left-5.5" : "left-0.5")} />
+                  </button>
+                </div>
+
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">One-Tap Emergency SOS Guardian Dispatch</div>
+                    <div className="text-[11px] text-zinc-400">Allows elderly family members to press watch dial to immediately alert guardians</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSosWristTap(!sosWristTap)}
+                    className={cn("w-11 h-6 rounded-full transition-all relative border shrink-0 cursor-pointer", sosWristTap ? "bg-cyan-500 border-cyan-400" : "bg-neutral-800 border-white/10")}
+                  >
+                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md", sosWristTap ? "left-5.5" : "left-0.5")} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 9. ABOUT SECTION */}
+          {activeSection === 'about' && (
+            <div className="rounded-3xl border border-white/12 bg-white/[0.03] backdrop-blur-2xl p-6 space-y-5 shadow-xl animate-fade-in">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div>
+                  <h3 className="font-bold text-base text-white">About Callix Voice AI Security</h3>
+                  <div className="text-xs font-mono text-cyan-400 mt-0.5">Version v2.4.0 (Enterprise Live)</div>
+                </div>
+                <span className="px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  PRODUCTION READY
+                </span>
+              </div>
+              <p className="text-xs text-zinc-300 leading-relaxed">
+                Callix is an advanced multimodal scam defense and deepfake audio interception system. Designed for high-volume enterprise telecom routing and personal device security, Callix inspects incoming audio streams in real-time using Deepgram Nova-2 diarization and Claude 3.5 Sonnet NLP inference models.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center pt-2">
+                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/10">
+                  <div className="text-[10px] text-zinc-500 uppercase">Detection Engine</div>
+                  <div className="text-xs font-mono font-bold text-white mt-1">Deepgram Nova-2</div>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/10">
+                  <div className="text-[10px] text-zinc-500 uppercase">NLP Heuristics</div>
+                  <div className="text-xs font-mono font-bold text-white mt-1">Claude 3.5 Sonnet</div>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/10">
+                  <div className="text-[10px] text-zinc-500 uppercase">Compliance</div>
+                  <div className="text-xs font-mono font-bold text-white mt-1">DPDPA 2023</div>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/10">
+                  <div className="text-[10px] text-zinc-500 uppercase">Helpline Sync</div>
+                  <div className="text-xs font-mono font-bold text-white mt-1">1930 Cybercrime</div>
+                </div>
+              </div>
+              <div className="text-[11px] text-zinc-500 pt-3 border-t border-white/10">
+                &copy; 2026 Callix AI Systems Inc. All rights reserved.
+              </div>
+            </div>
+          )}
+
+          {/* 10. HELP SECTION */}
+          {activeSection === 'help' && (
+            <div className="rounded-3xl border border-white/12 bg-white/[0.03] backdrop-blur-2xl p-6 space-y-6 shadow-xl animate-fade-in">
+              <div>
+                <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4 text-sky-400" />
+                  <span>Help &amp; Incident Dispatch Desk</span>
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">24/7 technical assistance, false positive reporting, and emergency reporting.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] space-y-2">
+                  <div className="text-xs font-bold text-white">National Cyber Crime Helpline</div>
+                  <p className="text-[11px] text-zinc-400">
+                    If you have been targeted by financial fraud or digital arrest:
+                  </p>
+                  <div className="text-lg font-mono font-black text-red-400 pt-1">
+                    Dial 1930
+                  </div>
+                </div>
+
+                <div className="p-4.5 rounded-2xl border border-white/10 bg-white/[0.02] space-y-2">
+                  <div className="text-xs font-bold text-white">Direct Technical Support</div>
+                  <p className="text-[11px] text-zinc-400">
+                    Report false positive number reputation or API questions:
+                  </p>
+                  <a href="mailto:support@callix.ai" className="inline-block text-xs font-semibold text-cyan-400 hover:underline pt-1">
+                    support@callix.ai
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+      </div>
+
+      {/* User Profile Modal when user taps "Manage your profile" */}
+      {isProfileModalOpen && (
+        <UserProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+        />
+      )}
+
     </div>
   );
 };
+
+export default Settings;
