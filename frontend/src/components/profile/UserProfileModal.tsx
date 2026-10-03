@@ -21,11 +21,14 @@ import {
   MapPin,
   Sparkles,
   Shield,
-  Copy
+  Copy,
+  Crown
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 import { TelecomOnboardingModal } from './TelecomOnboardingModal';
+import { userDirectoryService } from '../../services/userDirectoryService';
+import { isHrAdminUser } from '../../utils/adminPermissions';
 
 export interface UserProfileModalProps {
   isOpen: boolean;
@@ -81,9 +84,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
   const [companyName, setCompanyName] = useState(user?.companyName || '');
   const [jobTitle, setJobTitle] = useState(user?.jobTitle || '');
   const [aboutMe, setAboutMe] = useState(user?.aboutMe || '');
-  const [email, setEmail] = useState(
-    user?.email && !(user.email === 'smahi.072006@gmail.com' && !user.photoURL) ? user.email : ''
-  );
+  const [email, setEmail] = useState(user?.email || '');
   const [websiteUrl, setWebsiteUrl] = useState(user?.websiteUrl || '');
   const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
 
@@ -132,7 +133,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
       if (user.companyName !== undefined) setCompanyName(user.companyName);
       if (user.jobTitle !== undefined) setJobTitle(user.jobTitle);
       if (user.aboutMe !== undefined) setAboutMe(user.aboutMe);
-      if (user.email && !(user.email === 'smahi.072006@gmail.com' && !user.photoURL)) setEmail(user.email);
+      if (user.email) setEmail(user.email);
       if (user.websiteUrl !== undefined) setWebsiteUrl(user.websiteUrl);
       if (user.photoURL) setPhotoURL(user.photoURL);
     }
@@ -202,6 +203,16 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
 
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2500);
+
+    if (phoneNumber.trim()) {
+      userDirectoryService.syncUserProfile({
+        phoneNumber: phoneNumber.trim(),
+        fullName: fullDisplayName,
+        email: email.trim() || undefined,
+        isVerified: true,
+        reputationScore: 100,
+      }).catch((e) => console.info('User directory profile save note:', e));
+    }
   };
 
   const handleFillWithGoogle = async () => {
@@ -349,6 +360,37 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
 
         {/* Scrollable Modal Content */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 no-scrollbar">
+
+          {/* HR SuperAdmin Exclusive Clearance Card */}
+          {isHrAdminUser(user) && (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-indigo-950/30 to-amber-500/10 border border-amber-500/35 shadow-[0_0_20px_rgba(245,158,11,0.18)] flex items-center justify-between gap-3 animate-fade-in">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                  <Crown className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span>Chief HR Officer & SuperAdmin</span>
+                    <span className="text-[10px] font-mono text-emerald-400 font-semibold">● Active</span>
+                  </div>
+                  <div className="text-[10px] text-amber-300 font-mono">
+                    Clearance Level 5: People Operations & SecOps Core
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  navigate('/hr-admin');
+                }}
+                className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs shadow-md transition-all cursor-pointer whitespace-nowrap active:scale-95"
+              >
+                Open HR Portal
+              </button>
+            </div>
+          )}
 
           {activeMode === 'truecaller' ? (
             <>

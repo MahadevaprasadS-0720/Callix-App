@@ -35,7 +35,7 @@ export interface User {
   plan: SubscriptionPlan;
   isSimulationUser?: boolean;
   isGuest?: boolean;
-  authProvider?: 'google' | 'github' | 'password' | 'guest' | 'demo';
+  authProvider?: 'google' | 'github' | 'password' | 'guest' | 'demo' | 'phone';
   guardianLinks: GuardianLink[];
   preferences: {
     autoBlockHighRisk: boolean;

@@ -99,13 +99,15 @@ export const LandingPage: React.FC = () => {
 
   // Auth modal state
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'phone'>('phone');
 
   useEffect(() => {
     const authQuery = searchParams.get('auth');
     if (authQuery) {
       if (authQuery === 'register' || authQuery === 'signup') {
         setAuthModalMode('register');
+      } else if (authQuery === 'phone' || authQuery === 'otp') {
+        setAuthModalMode('phone');
       } else {
         setAuthModalMode('login');
       }

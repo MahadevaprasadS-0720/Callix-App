@@ -4,6 +4,7 @@ import { auth } from '../config/firebaseConfig';
 import { User, GuardianLink } from '../types/user.types';
 import { authService } from '../services/authService';
 import { MOCK_USER } from '../services/mockDataService';
+import { userDirectoryService } from '../services/userDirectoryService';
 
 interface AuthContextType {
   user: User | null;
@@ -15,6 +16,7 @@ interface AuthContextType {
   sendPasswordReset: (email: string) => Promise<void>;
   loginAsGuest: () => void;
   loginDemo: () => void;
+  loginWithPhoneUser: (fbUser: any, fullName: string, token?: string) => Promise<User>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => void;
   addGuardian: (guardian: Omit<GuardianLink, 'guardianId' | 'createdAt'>) => void;
@@ -100,17 +102,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
           setUser(syncedUser);
           localStorage.setItem('audio_guardian_current_user', JSON.stringify(syncedUser));
+
+          // Sync with Callix User Directory database
+          if (syncedUser.phoneNumber && syncedUser.displayName) {
+            userDirectoryService.syncUserProfile({
+              phoneNumber: syncedUser.phoneNumber,
+              fullName: syncedUser.displayName,
+              email: syncedUser.email || undefined,
+              isVerified: true
+            }).catch((e) => console.info('User directory background sync note:', e));
+          }
         }
       });
       return () => unsubscribe();
     }
   }, []);
 
+  const triggerDirectorySync = (u: User | null) => {
+    if (u && u.phoneNumber && u.displayName) {
+      userDirectoryService.syncUserProfile({
+        phoneNumber: u.phoneNumber,
+        fullName: u.displayName,
+        email: u.email || undefined,
+        isVerified: true
+      }).catch((e) => console.info('User directory sync notice:', e));
+    }
+  };
+
   const loginWithGoogle = async () => {
     setLoading(true);
     try {
       const u = await authService.loginWithGoogle();
       setUser(u);
+      triggerDirectorySync(u);
     } finally {
       setLoading(false);
     }
@@ -121,6 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const u = await authService.loginWithGithub();
       setUser(u);
+      triggerDirectorySync(u);
     } finally {
       setLoading(false);
     }
@@ -131,6 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const u = await authService.loginWithEmail(email, pass);
       setUser(u);
+      triggerDirectorySync(u);
     } finally {
       setLoading(false);
     }
@@ -141,6 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const u = await authService.registerWithEmail(email, pass, displayName);
       setUser(u);
+      triggerDirectorySync(u);
     } finally {
       setLoading(false);
     }
@@ -153,6 +180,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginDemo = () => {
     const u = authService.loginDemo();
     setUser(u);
+    triggerDirectorySync(u);
+  };
+
+  const loginWithPhoneUser = async (fbUser: any, fullName: string, token?: string): Promise<User> => {
+    setLoading(true);
+    try {
+      const u = await authService.loginWithPhoneUser(fbUser, fullName, token);
+      setUser(u);
+      triggerDirectorySync(u);
+      return u;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = async () => {
@@ -163,6 +203,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = (updates: Partial<User>) => {
     const updated = authService.updateCurrentUser(updates);
     setUser(updated);
+    if (updated && updated.phoneNumber && updated.displayName) {
+      userDirectoryService.syncUserProfile({
+        phoneNumber: updated.phoneNumber,
+        fullName: updated.displayName,
+        email: updated.email || undefined,
+        isVerified: true
+      }).catch((e) => console.info('User directory profile sync notice:', e));
+    }
   };
 
   const addGuardian = (guardianData: Omit<GuardianLink, 'guardianId' | 'createdAt'>) => {
@@ -198,6 +246,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sendPasswordReset,
         loginAsGuest,
         loginDemo,
+        loginWithPhoneUser,
         logout,
         updateProfile,
         addGuardian,

@@ -37,7 +37,8 @@ import {
   MapPin,
   Phone,
   RefreshCw,
-  Loader2
+  Loader2,
+  Check
 } from 'lucide-react';
 import { carrierLookupService, LiveCarrierLookupResponse } from '../services/carrierLookupService';
 import { GroqFraudAlertBanner } from '../components/calls/GroqFraudAlertBanner';
@@ -361,6 +362,69 @@ export const Dashboard: React.FC = () => {
                     {/* Live Liquid Glass Results Badges */}
                     {lookupResult && !lookupLoading && (
                       <div className="p-4 rounded-2xl bg-gradient-to-br from-white/[0.07] via-white/[0.03] to-cyan-950/20 border border-cyan-500/30 backdrop-blur-xl shadow-lg space-y-3 animate-fade-in">
+                        {/* Prominent Truecaller-style Community Verified Caller ID Banner */}
+                        {lookupResult.caller_name ? (
+                          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600/30 via-cyan-500/20 to-indigo-900/30 border border-blue-400/50 p-3.5 backdrop-blur-2xl shadow-[0_8px_32px_-6px_rgba(59,130,246,0.45)] transition-all duration-300 group">
+                            {/* Ambient glowing orb */}
+                            <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-blue-500/30 blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+                            
+                            <div className="relative z-10 flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                {/* Apple-style Blue Verified Shield Checkmark Avatar */}
+                                <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-white shadow-[0_0_20px_rgba(59,130,246,0.6)] shrink-0 transform-gpu transition-transform duration-300 group-hover:scale-105">
+                                  <ShieldCheck className="w-5 h-5 text-white" />
+                                  <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-neutral-950 flex items-center justify-center shadow-md">
+                                    <Check className="w-2.5 h-2.5 text-white stroke-[3.5]" />
+                                  </span>
+                                </div>
+
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-300">
+                                    <span>Verified Registered Caller</span>
+                                    <span className="inline-block w-1 h-1 rounded-full bg-cyan-400" />
+                                    <span className="text-blue-200/90 font-medium">Community Identified</span>
+                                  </div>
+                                  <div className="text-base font-extrabold text-white tracking-tight truncate flex items-center gap-1.5 mt-0.5">
+                                    <span className="text-zinc-300 font-medium">Verified User:</span>
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-cyan-200">
+                                      {lookupResult.caller_name}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="shrink-0 flex flex-col items-end">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/25 border border-blue-400/50 text-[11px] font-mono font-bold text-cyan-200 shadow-sm">
+                                  <ShieldCheck className="w-3 h-3 text-cyan-300" />
+                                  <span>{lookupResult.reputation || 100}% Trust</span>
+                                </span>
+                                <span className="text-[9px] text-blue-300/80 font-mono mt-0.5">Callix Directory</span>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-3 backdrop-blur-xl">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="w-8 h-8 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center text-zinc-400 shrink-0">
+                                  <Users className="w-4 h-4" />
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="text-xs font-semibold text-zinc-300 truncate">
+                                    Name: <span className="text-zinc-400 font-normal">Not listed in Callix Community</span>
+                                  </div>
+                                  <div className="text-[10px] text-zinc-500 font-mono truncate">
+                                    Unlisted / Community Not Registered • Telecom Carrier Registry Fallback
+                                  </div>
+                                </div>
+                              </div>
+                              <span className="px-2 py-0.5 rounded-full bg-zinc-800/80 border border-zinc-700/60 text-[10px] font-mono font-medium text-zinc-400 shrink-0">
+                                Unlisted
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Header line: Phone, Source Micro-Badge & Valid status */}
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5 font-mono text-sm font-bold text-white truncate">

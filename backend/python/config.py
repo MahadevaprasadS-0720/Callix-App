@@ -13,10 +13,25 @@ def load_json_config():
 
 _CONFIG = load_json_config()
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / ".env")
+except Exception:
+    pass
+
 class Settings:
     PROJECT_NAME = _CONFIG.get("project", {}).get("name", "Callix Audio Guardian Backend")
     PROJECT_VERSION = _CONFIG.get("project", {}).get("version", "2.0.0")
     
+    # Triple-Engine Phone & Carrier Lookup API Keys
+    NUMVERIFY_API_KEY = os.getenv("NUMVERIFY_API_KEY", "")
+    ABSTRACT_PHONE_API_KEY = os.getenv("ABSTRACT_PHONE_API_KEY", "")
+    VERIPHONE_API_KEY = os.getenv("VERIPHONE_API_KEY", "")
+
+    # Multi-Model Hybrid AI Keys (Groq Ultra-Fast + Google Gemini Cyber Assistant)
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
     # Server settings
     HOST = os.getenv("HOST", _CONFIG.get("server", {}).get("host", "0.0.0.0"))
     PORT = int(os.getenv("PORT", _CONFIG.get("server", {}).get("port", 5001)))

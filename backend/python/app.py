@@ -27,6 +27,12 @@ from .database import (
     GuardianAlertRecord, 
     AuditLogRecord
 )
+from .user_directory_db import (
+    upsert_user_directory,
+    get_user_directory_by_phone,
+    normalize_phone_number,
+    get_all_directory_users,
+)
 from .nlp import scam_analyzer, urgency_analyzer
 from .stt import speech_transcriber, audio_forensics_analyzer
 from .ml import ml_engine, train_and_save_all_models
@@ -774,9 +780,9 @@ def _extract_telecom_circle(nv_data, veri_data, abs_data, clean10: str) -> str:
 
 async def _fetch_triple_engine_parallel(clean10: str, full_e164: str, intl_with_plus: str):
     """Execute Abstract, Veriphone, and Numverify simultaneously at the exact same millisecond."""
-    abstract_key = getattr(settings, "ABSTRACT_PHONE_API_KEY", "b60608534da44e3a91cffb1c24006cd2")
-    veriphone_key = getattr(settings, "VERIPHONE_API_KEY", "8E0742335C41434BA61A05034EF8AD53")
-    numverify_key = getattr(settings, "NUMVERIFY_API_KEY", "38c19713cd17bc263756f69f71756bff")
+    abstract_key = getattr(settings, "ABSTRACT_PHONE_API_KEY", "") or os.getenv("ABSTRACT_PHONE_API_KEY", "")
+    veriphone_key = getattr(settings, "VERIPHONE_API_KEY", "") or os.getenv("VERIPHONE_API_KEY", "")
+    numverify_key = getattr(settings, "NUMVERIFY_API_KEY", "") or os.getenv("NUMVERIFY_API_KEY", "")
 
     abs_url = f"https://phoneintelligence.abstractapi.com/v1/?api_key={abstract_key}&phone={full_e164}"
     veri_url = f"https://api.veriphone.io/v2/verify?phone={intl_with_plus}&key={veriphone_key}"
@@ -807,6 +813,85 @@ async def _fetch_triple_engine_parallel(clean10: str, full_e164: str, intl_with_
 
     return _parse_payload(res_abs, "Abstract"), _parse_payload(res_veri, "Veriphone"), _parse_payload(res_nv, "Numverify")
 
+# --------------------------------------------------------------------------
+# Truecaller-Style Crowdsourced Caller ID & User Directory Endpoints
+# --------------------------------------------------------------------------
+@dual_route("/users/sync-profile", methods=["POST"])
+def sync_user_profile():
+    """
+    Persists or updates registered/onboarded user phone number and display name
+    in the dedicated SQLite user_directory database table.
+    """
+    payload = request.get_json(silent=True) or {}
+    phone_number = (
+        payload.get("phone_number") or 
+        payload.get("phoneNumber") or 
+        payload.get("phone") or ""
+    )
+    full_name = (
+        payload.get("full_name") or 
+        payload.get("fullName") or 
+        payload.get("displayName") or 
+        payload.get("name") or ""
+    )
+    email = payload.get("email") or ""
+    reputation_score = payload.get("reputation_score", payload.get("reputation", 100))
+    is_verified = payload.get("is_verified", payload.get("isVerified", True))
+
+    # Optional Bearer token verification via Firebase Auth
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        bearer_token = auth_header.split("Bearer ")[1].strip()
+        if bearer_token:
+            try:
+                decoded = auth.verify_id_token(bearer_token)
+                is_verified = True
+                if not phone_number and decoded.get("phone_number"):
+                    phone_number = decoded.get("phone_number")
+                logger.info(f"Verified Firebase ID token for phone sync: {decoded.get('uid')}")
+            except Exception as auth_err:
+                logger.info(f"Bearer token check notice (non-fatal): {auth_err}")
+
+    if not phone_number or not str(phone_number).strip():
+        return jsonify({"success": False, "error": "Phone number is required"}), 400
+
+    normalized_phone = normalize_phone_number(phone_number)
+    digits_only = "".join(ch for ch in normalized_phone if ch.isdigit())
+    if not normalized_phone or len(digits_only) < 7:
+        return jsonify({"success": False, "error": "Please enter a valid phone number with country code"}), 400
+
+    if not full_name or not str(full_name).strip():
+        full_name = "Callix User"
+
+    try:
+        user_record = upsert_user_directory(
+            phone_number=normalized_phone,
+            full_name=full_name.strip(),
+            email=email.strip() if email else None,
+            reputation_score=int(reputation_score),
+            is_verified=bool(is_verified)
+        )
+        logger.info(f"User Directory Synced successfully: {normalized_phone} -> {full_name}")
+        return jsonify({
+            "success": True,
+            "message": "User profile successfully registered in Callix Community Directory",
+            "user": user_record,
+            "data": user_record
+        }), 200
+    except Exception as e:
+        logger.error(f"Failed to sync user directory profile: {e}", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@dual_route("/users/directory", methods=["GET"])
+def get_community_directory():
+    """Returns recent users registered in the crowdsourced directory."""
+    try:
+        limit = int(request.args.get("limit", 50))
+        users = get_all_directory_users(limit=limit)
+        return jsonify({"success": True, "count": len(users), "users": users})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @dual_route("/lookup-phone", methods=["GET"])
 def lookup_phone():
     phone_number = request.args.get("number", "").strip()
@@ -821,13 +906,26 @@ def lookup_phone():
             "number": phone_number
         }), 400
 
+    # Normalization with country code
+    normalized_number = normalize_phone_number(phone_number)
     clean10 = digits[-10:] if len(digits) >= 10 else digits
     full_e164 = f"91{clean10}" if len(clean10) == 10 and not digits.startswith("91") else digits
     intl_with_plus = f"+{full_e164}"
 
     req_start = time.time()
 
-    # Step 1: Launch TRUE Triple-Engine Parallel Execution
+    # Step 1: Check internal User Directory Database FIRST
+    user_record = None
+    try:
+        user_record = get_user_directory_by_phone(normalized_number or intl_with_plus or digits)
+        if user_record:
+            logger.info(f"[Callix User Directory HIT] Found registered user: '{user_record.get('full_name')}' for {normalized_number}")
+        else:
+            logger.info(f"[Callix User Directory MISS] Number {normalized_number} unlisted in community database")
+    except Exception as e:
+        logger.warning(f"Error querying internal user_directory database: {e}")
+
+    # Step 2: Concurrently fetch telecom carrier/circle data via existing triple-engine pipeline
     try:
         abs_data, veri_data, nv_data = asyncio.run(
             _fetch_triple_engine_parallel(clean10, full_e164, intl_with_plus)
@@ -839,8 +937,7 @@ def lookup_phone():
     roundtrip_seconds = round(time.time() - req_start, 3)
     logger.info(f"Triple-engine parallel query finished in {roundtrip_seconds}s for {clean10}")
 
-    # Step 2: Intelligent Consensus Merger Logic
-    # 2a. Carrier brand extraction
+    # Step 3: Carrier brand extraction & consensus
     c_abs = ((abs_data or {}).get("phone_carrier") or {}).get("name") or ""
     c_veri = (veri_data or {}).get("carrier") or ""
     c_num = (nv_data or {}).get("carrier") or ""
@@ -849,8 +946,6 @@ def lookup_phone():
     b_veri = _normalize_carrier_brand(c_veri)
     b_num = _normalize_carrier_brand(c_num)
 
-    # Intelligent Consensus prioritization:
-    # If Abstract and Veriphone agree, prioritize that over legacy Numverify.
     chosen_brand = None
     if b_abs and b_veri and b_abs["name"] == b_veri["name"]:
         chosen_brand = b_abs
@@ -875,10 +970,10 @@ def lookup_phone():
         else:
             chosen_brand = {"name": "Reliance Jio", "code": "JIO", "accent": "#0084FF"}
 
-    # 2b. Telecom Circle / Region extraction
+    # Telecom Circle / Region extraction
     circle = _extract_telecom_circle(nv_data, veri_data, abs_data, clean10)
 
-    # 2c. Line Type determination
+    # Line Type determination
     abs_voip = bool(((abs_data or {}).get("phone_validation") or {}).get("is_voip", False))
     abs_lt = (((abs_data or {}).get("phone_carrier") or {}).get("line_type") or "").lower()
     veri_lt = ((veri_data or {}).get("phone_type") or "").lower()
@@ -891,7 +986,7 @@ def lookup_phone():
     else:
         line_type = "mobile"
 
-    # 2d. Active Engines and Confidence Scoring
+    # Active Engines and Confidence Scoring
     engines_responded = []
     if abs_data is not None:
         engines_responded.append("Abstract")
@@ -917,7 +1012,7 @@ def lookup_phone():
         source_label = "Deterministic Cellular Engine"
         confidence = 72
 
-    # 2e. Validity
+    # Validity
     valid_votes = []
     if abs_data is not None:
         valid_votes.append(bool((abs_data.get("phone_validation") or {}).get("is_valid", True)))
@@ -928,7 +1023,7 @@ def lookup_phone():
 
     is_valid = any(valid_votes) if valid_votes else (len(clean10) == 10)
 
-    # 2f. International Format
+    # International Format
     intl_format = f"+91 {clean10[:5]} {clean10[5:]}" if len(clean10) == 10 else f"+{digits}"
     if veri_data and veri_data.get("international_number"):
         intl_format = veri_data["international_number"]
@@ -941,34 +1036,51 @@ def lookup_phone():
     risk_level = ((abs_data or {}).get("phone_risk") or {}).get("risk_level") or "low"
     raw_carrier = c_veri or c_abs or c_num or chosen_brand["name"]
 
+    # Step 4: Combine payload with User Directory priority
+    is_community_hit = user_record is not None
+    caller_name = user_record["full_name"] if is_community_hit else None
+    source = "Callix Community Directory" if is_community_hit else "Telecom Carrier Registry"
+    reputation = user_record["reputation_score"] if is_community_hit else 85
+    is_community_verified = bool(user_record["is_verified"]) if is_community_hit else False
+
     return jsonify({
+        # Required core payload fields:
+        "phone": normalized_number or intl_with_plus,
+        "caller_name": caller_name,
+        "source": source,
+        "carrier": chosen_brand["name"],
+        "location": circle,
+        "line_type": line_type,
+        "reputation": reputation,
+        "is_community_verified": is_community_verified,
+
+        # Extended fields for full dashboard compatibility:
         "valid": is_valid,
         "number": digits,
-        "carrier": chosen_brand["name"],
         "operator": chosen_brand["name"],
         "operator_code": chosen_brand["code"],
         "raw_carrier": raw_carrier,
-        "location": circle,
         "circle": circle,
-        "line_type": line_type,
         "line_status": line_status,
-        "risk_level": risk_level,
+        "risk_level": "safe" if (is_community_hit and reputation >= 80) else risk_level,
         "country_name": "India",
         "country_code": "IN",
         "country_prefix": "+91",
         "international_format": intl_format,
         "local_format": clean10,
-        "brand_accent": chosen_brand["accent"],
-        "source": source_label,
-        "engine_badge": engine_badge,
-        "confidence": confidence,
+        "brand_accent": "#007AFF" if is_community_hit else chosen_brand["accent"],
+        "engine_badge": "🛡️ Callix Verified Community" if is_community_hit else engine_badge,
+        "source_details": source_label,
+        "confidence": 100 if is_community_hit else confidence,
         "roundtrip_seconds": roundtrip_seconds,
         "engines_responded": engines_responded,
         "providers": {
             "abstract_resolved": abs_data is not None,
             "veriphone_resolved": veri_data is not None,
-            "numverify_resolved": nv_data is not None
-        }
+            "numverify_resolved": nv_data is not None,
+            "community_directory_hit": is_community_hit
+        },
+        "user_directory": user_record if is_community_hit else None
     })
 
 # --------------------------------------------------------------------------

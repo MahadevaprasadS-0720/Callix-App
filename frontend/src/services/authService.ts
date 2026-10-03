@@ -40,7 +40,7 @@ export interface StoredAccount {
   plan: SubscriptionPlan;
   isSimulationUser?: boolean;
   isGuest?: boolean;
-  authProvider?: 'password' | 'google' | 'github' | 'guest' | 'demo';
+  authProvider?: 'password' | 'google' | 'github' | 'guest' | 'demo' | 'phone';
   guardianLinks: GuardianLink[];
   preferences: User['preferences'];
   createdAt: number;
@@ -637,6 +637,31 @@ export const authService = {
     };
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(demoUser));
     return demoUser;
+  },
+
+  loginWithPhoneUser: async (fbUser: any, fullName: string, token?: string): Promise<User> => {
+    const rawPhone = fbUser?.phoneNumber || '';
+    const digits = rawPhone.replace(/\D/g, '');
+    const clean10 = digits.slice(-10);
+    const formattedPhone = clean10.length === 10 ? `+91 ${clean10.slice(0, 5)} ${clean10.slice(5)}` : rawPhone;
+    const finalName = fullName.trim() || fbUser?.displayName || 'Verified Caller';
+
+    const existing = authService.getCurrentUser();
+    const appUser: User = {
+      uid: fbUser?.uid || `phone_${Date.now()}`,
+      email: fbUser?.email || `${clean10 || 'user'}@callix.mobile`,
+      displayName: finalName,
+      phoneNumber: formattedPhone,
+      isVerified: true,
+      plan: existing?.plan || 'PRO_SHIELD',
+      authProvider: 'phone',
+      guardianLinks: existing?.guardianLinks || [],
+      preferences: existing?.preferences || MOCK_USER.preferences,
+      createdAt: existing?.createdAt || Date.now(),
+    };
+
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(appUser));
+    return appUser;
   },
 
   logout: async (): Promise<void> => {

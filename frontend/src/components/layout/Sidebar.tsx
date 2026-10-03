@@ -15,11 +15,13 @@ import {
   Home,
   Fingerprint,
   Mic,
-  Cpu
+  Cpu,
+  Crown
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useCallSimulation } from '../../context/CallSimulationContext';
 import { useAuth } from '../../context/AuthContext';
+import { isHrAdminUser } from '../../utils/adminPermissions';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -32,6 +34,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onProfileClic
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const isSuperAdmin = isHrAdminUser(user);
+
   const handleLogout = async () => {
     await logout();
     navigate('/?auth=login');
@@ -39,6 +43,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onProfileClic
 
   const navItems = [
     { to: '/dashboard', label: 'Overview', icon: <Activity className="w-4 h-4" /> },
+    ...(isSuperAdmin ? [
+      {
+        to: '/hr-admin',
+        label: 'Admin HR Panel',
+        icon: <Crown className="w-4 h-4 text-amber-400" />,
+        badge: 'HR SEC',
+        badgeColor: 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.3)] animate-pulse',
+      }
+    ] : []),
     { 
       to: '/simulation', 
       label: 'Live Simulation', 

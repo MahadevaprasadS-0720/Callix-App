@@ -18,13 +18,18 @@ export interface CarrierResult {
 export interface LiveCarrierLookupResponse {
   valid: boolean;
   number?: string;
+  phone?: string;
+  caller_name?: string | null;
+  source?: string;
   carrier?: string;
+  location?: string;
+  line_type?: string;
+  reputation?: number;
+  is_community_verified?: boolean;
   operator?: string;
   operator_code?: string;
   raw_carrier?: string;
-  location?: string;
   circle?: string;
-  line_type?: string;
   line_status?: string;
   risk_level?: string;
   country_name?: string;
@@ -33,8 +38,8 @@ export interface LiveCarrierLookupResponse {
   international_format?: string;
   local_format?: string;
   brand_accent?: string;
-  source?: string;
   engine_badge?: string;
+  source_details?: string;
   confidence?: number;
   roundtrip_seconds?: number;
   engines_responded?: string[];
@@ -42,7 +47,18 @@ export interface LiveCarrierLookupResponse {
     abstract_resolved?: boolean;
     veriphone_resolved?: boolean;
     numverify_resolved?: boolean;
+    community_directory_hit?: boolean;
   };
+  user_directory?: {
+    id: number;
+    phone_number: string;
+    full_name: string;
+    email?: string | null;
+    reputation_score: number;
+    is_verified: boolean | number;
+    created_at?: string;
+    updated_at?: string;
+  } | null;
   error?: string;
 }
 
@@ -119,16 +135,29 @@ export async function lookupLivePhone(phoneNumber: string): Promise<LiveCarrierL
   let veriData: any = null;
   let nvData: any = null;
 
-  try {
-    const absUrl = `https://phoneintelligence.abstractapi.com/v1/?api_key=b60608534da44e3a91cffb1c24006cd2&phone=${fullE164}`;
-    const veriUrl = `https://api.veriphone.io/v2/verify?phone=${encodeURIComponent(intlWithPlus)}&key=8E0742335C41434BA61A05034EF8AD53`;
-    const nvUrl = `http://apilayer.net/api/validate?access_key=38c19713cd17bc263756f69f71756bff&number=${clean10}&country_code=IN&format=1`;
+  const absKey = import.meta.env.VITE_CARRIER_API_KEY || import.meta.env.VITE_ABSTRACT_PHONE_API_KEY || '';
+  const veriKey = import.meta.env.VITE_VERIPHONE_API_KEY || '';
+  const nvKey = import.meta.env.VITE_NUMVERIFY_API_KEY || '';
 
-    const [absSettled, veriSettled, nvSettled] = await Promise.allSettled([
-      fetch(absUrl).then(r => r.ok ? r.json() : null),
-      fetch(veriUrl).then(r => r.ok ? r.json() : null),
-      fetch(nvUrl).then(r => r.ok ? r.json() : null),
-    ]);
+  try {
+    const promises: Promise<any>[] = [];
+    if (absKey) {
+      promises.push(fetch(`https://phoneintelligence.abstractapi.com/v1/?api_key=${absKey}&phone=${fullE164}`).then(r => r.ok ? r.json() : null).catch(() => null));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+    if (veriKey) {
+      promises.push(fetch(`https://api.veriphone.io/v2/verify?phone=${encodeURIComponent(intlWithPlus)}&key=${veriKey}`).then(r => r.ok ? r.json() : null).catch(() => null));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+    if (nvKey) {
+      promises.push(fetch(`http://apilayer.net/api/validate?access_key=${nvKey}&number=${clean10}&country_code=IN&format=1`).then(r => r.ok ? r.json() : null).catch(() => null));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+
+    const [absSettled, veriSettled, nvSettled] = await Promise.allSettled(promises);
 
     if (absSettled.status === 'fulfilled' && absSettled.value && !absSettled.value.error) {
       absData = absSettled.value;
@@ -178,9 +207,28 @@ export async function lookupLivePhone(phoneNumber: string): Promise<LiveCarrierL
     if (veriData) enginesResponded.push('Veriphone');
     if (nvData) enginesResponded.push('Numverify');
 
+    // Check local storage user directory cache for client-side fallback
+    let fallbackCallerName: string | null = null;
+    let fallbackCommunityVerified = false;
+    try {
+      const stored = localStorage.getItem('audio_guardian_current_user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        const uDigits = (u.phoneNumber || '').replace(/\D/g, '').slice(-10);
+        if (uDigits && uDigits === clean10 && u.displayName) {
+          fallbackCallerName = u.displayName;
+          fallbackCommunityVerified = true;
+        }
+      }
+    } catch {}
+
     return {
       valid: isValid,
       number: clean,
+      phone: intlWithPlus,
+      caller_name: fallbackCallerName,
+      is_community_verified: fallbackCommunityVerified,
+      reputation: fallbackCommunityVerified ? 100 : 85,
       carrier: carrierName,
       operator: carrierName,
       operator_code: operatorCode,
@@ -195,24 +243,43 @@ export async function lookupLivePhone(phoneNumber: string): Promise<LiveCarrierL
       country_prefix: '+91',
       international_format: intl,
       local_format: clean10,
-      brand_accent: brandAccent,
-      source: `⚡ Triple-Engine Parallel Consensus (${enginesResponded.join(' + ')})`,
-      engine_badge: '⚡ Triple-Engine Synchronized',
+      brand_accent: fallbackCommunityVerified ? '#007AFF' : brandAccent,
+      source: fallbackCommunityVerified ? 'Callix Community Directory' : `⚡ Triple-Engine Parallel Consensus (${enginesResponded.join(' + ')})`,
+      engine_badge: fallbackCommunityVerified ? '🛡️ Callix Verified Community' : '⚡ Triple-Engine Synchronized',
       confidence: enginesResponded.length >= 3 ? 99 : 95,
       engines_responded: enginesResponded,
       providers: {
         abstract_resolved: Boolean(absData),
         veriphone_resolved: Boolean(veriData),
         numverify_resolved: Boolean(nvData),
+        community_directory_hit: fallbackCommunityVerified,
       },
     };
   }
 
   // 4. Deterministic offline fallback
   const resolved = resolveIndianCarrier(clean);
+  let localCallerName: string | null = null;
+  let localCommunityVerified = false;
+  try {
+    const stored = localStorage.getItem('audio_guardian_current_user');
+    if (stored) {
+      const u = JSON.parse(stored);
+      const uDigits = (u.phoneNumber || '').replace(/\D/g, '').slice(-10);
+      if (uDigits && uDigits === clean10 && u.displayName) {
+        localCallerName = u.displayName;
+        localCommunityVerified = true;
+      }
+    }
+  } catch {}
+
   return {
     valid: clean10.length === 10 || clean.includes('1800') || clean.length <= 4,
     number: clean,
+    phone: `+91${clean10}`,
+    caller_name: localCallerName,
+    is_community_verified: localCommunityVerified,
+    reputation: localCommunityVerified ? 100 : 85,
     carrier: resolved.operator,
     operator: resolved.operator,
     raw_carrier: resolved.operator,
@@ -223,8 +290,9 @@ export async function lookupLivePhone(phoneNumber: string): Promise<LiveCarrierL
     country_prefix: '+91',
     international_format: clean10.length === 10 ? `+91 ${clean10.slice(0, 5)} ${clean10.slice(5)}` : clean,
     local_format: clean10,
-    brand_accent: resolved.brandColor,
-    source: 'Deterministic Cellular Resolution',
+    brand_accent: localCommunityVerified ? '#007AFF' : resolved.brandColor,
+    source: localCommunityVerified ? 'Callix Community Directory' : 'Deterministic Cellular Resolution',
+    engine_badge: localCommunityVerified ? '🛡️ Callix Verified Community' : undefined,
   };
 }
 

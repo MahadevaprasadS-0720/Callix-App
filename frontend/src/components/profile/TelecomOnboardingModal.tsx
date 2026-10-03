@@ -18,6 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { resolveCarrier, LookupResult } from '../../utils/numberResolver';
 import { cn } from '../../utils/cn';
+import { userDirectoryService } from '../../services/userDirectoryService';
 
 export interface TelecomOnboardingModalProps {
   isOpen: boolean;
@@ -140,11 +141,20 @@ export const TelecomOnboardingModal: React.FC<TelecomOnboardingModalProps> = ({
         }
       });
 
+      // Persist to Callix Crowdsourced User Directory Database
+      await userDirectoryService.syncUserProfile({
+        phoneNumber: formattedNumber,
+        fullName: finalName,
+        email: user?.email || undefined,
+        isVerified: true,
+        reputationScore: 100,
+      });
+
       // Show success toast
       showToast({
         type: 'success',
         title: '🛡️ Mobile Number Linked Successfully',
-        message: `${formattedNumber} (${resolvedData?.operator || 'Telecom Network'}) is now protected by Callix Real-Time Fraud Shield.`,
+        message: `${formattedNumber} (${resolvedData?.operator || 'Telecom Network'}) is now protected and listed in Callix Verified Directory.`,
       });
 
       if (onSuccess) {

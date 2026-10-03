@@ -6,12 +6,14 @@ import { ToastProvider } from './context/ToastContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
+import { AdminHrRoute } from './components/admin/AdminHrRoute';
 import { Loader } from './components/common/Loader';
 
 // Lazy-loaded route components for optimal production bundle splitting
 const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
 const Auth = lazy(() => import('./pages/Auth').then(m => ({ default: m.Auth })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
+const AdminHrPanel = lazy(() => import('./pages/AdminHrPanel').then(m => ({ default: m.AdminHrPanel })));
 const Simulation = lazy(() => import('./pages/Simulation').then(m => ({ default: m.Simulation })));
 const AudioScanner = lazy(() => import('./pages/AudioScanner').then(m => ({ default: m.AudioScanner })));
 const CallHistory = lazy(() => import('./pages/CallHistory').then(m => ({ default: m.CallHistory })));
@@ -54,6 +56,16 @@ export const App: React.FC = () => {
                     }
                   >
                     <Route path="/dashboard" element={<Dashboard />} />
+                    <Route 
+                      path="/hr-admin" 
+                      element={
+                        <AdminHrRoute>
+                          <AdminHrPanel />
+                        </AdminHrRoute>
+                      } 
+                    />
+                    <Route path="/admin/hr" element={<Navigate to="/hr-admin" replace />} />
+                    <Route path="/admin" element={<Navigate to="/hr-admin" replace />} />
                     <Route path="/simulation" element={<Simulation />} />
                     <Route path="/scanner" element={<AudioScanner />} />
                     <Route path="/audio-scanner" element={<AudioScanner />} />
